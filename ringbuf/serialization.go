@@ -1,6 +1,6 @@
-// Package ringbuf provides JSON serialization and deserialization for the circular buffer queue.
+// Package ringbuf provides JSON serialization and deserialization for a circular buffer queue.
 //
-// This file extends the Queue type with methods to convert to and from JSON format,
+// This package extends the Queue type with methods to convert to and from JSON format,
 // implementing the container.JSONSerializer and container.JSONDeserializer interfaces.
 package ringbuf
 
@@ -15,16 +15,17 @@ import (
 // --------------------------------------------------------------------------------
 // Constants and Errors
 
-// Predefined errors for JSON operations.
 var (
+	// ErrMarshalJSON indicates a failure during JSON marshaling.
 	ErrMarshalJSON = errors.New("failed to marshal queue to JSON")
+	// ErrInvalidJSON indicates the provided JSON data is invalid.
 	ErrInvalidJSON = errors.New("invalid JSON data")
 )
 
 // --------------------------------------------------------------------------------
 // Interface Assertions
 
-// Ensure Queue implements required interfaces at compile time.
+// Verify Queue satisfies required interfaces at compile time.
 var (
 	_ container.JSONSerializer   = (*Queue[int])(nil)
 	_ container.JSONDeserializer = (*Queue[int])(nil)
@@ -37,8 +38,8 @@ var (
 
 // ToJSON serializes the queue's elements into a JSON array in FIFO order.
 //
-// Returns the JSON-encoded byte slice or an error if marshaling fails.
-// Elements must be JSON-serializable; otherwise, an error is returned.
+// Elements are marshaled as a JSON array (e.g., "[1,2]"). The method returns an
+// error if the elements are not JSON-serializable.
 //
 // Example:
 //
@@ -47,58 +48,67 @@ var (
 //	q.PushBack(2)
 //	data, err := q.ToJSON() // Returns []byte("[1,2]"), nil
 //
+// Returns:
+//   - The JSON-encoded byte slice.
+//   - An error if marshaling fails.
+//
 // Time complexity: O(n), where n is the number of elements.
 func (q *Queue[T]) ToJSON() ([]byte, error) {
 	data, err := json.Marshal(q.Values())
 	if err != nil {
-		return nil, fmt.Errorf("ringbuf: %w: %w", ErrMarshalJSON, err)
+		return nil, fmt.Errorf("ringbuf: %w: %v", ErrMarshalJSON, err)
 	}
-
 	return data, nil
 }
 
 // FromJSON populates the queue from a JSON array, appending elements to the back.
 //
-// Expects a valid JSON array (e.g., "[1,2,3]"). Clears the queue before loading
-// to ensure a clean state. If the capacity is exceeded, older elements (front) are
-// overwritten. Returns an error if the JSON is invalid or elements cannot be
-// unmarshaled into type T.
+// The input must be a valid JSON array (e.g., "[1,2,3]"). The queue is cleared
+// before loading. If the capacity is exceeded, older elements are overwritten.
 //
 // Example:
 //
 //	q := New[int](2)
 //	err := q.FromJSON([]byte("[1,2,3]")) // Queue contains [2,3] after overflow
 //
+// Returns:
+//
+//	An error if the JSON is invalid or elements cannot be unmarshaled into type T.
+//
 // Time complexity: O(n), where n is the number of elements in the JSON array.
 func (q *Queue[T]) FromJSON(data []byte) error {
 	var vals []T
 	if err := json.Unmarshal(data, &vals); err != nil {
-		return fmt.Errorf("ringbuf: %w: %w", ErrInvalidJSON, err)
+		return fmt.Errorf("ringbuf: %w: %v", ErrInvalidJSON, err)
 	}
 
 	q.Clear()
-
 	for _, v := range vals {
 		q.PushBack(v)
 	}
-
 	return nil
 }
 
-// MarshalJSON implements json.Marshaler for seamless JSON encoding.
+// MarshalJSON implements json.Marshaler for JSON encoding.
 //
-// Delegates to ToJSON() for consistency. Returns the JSON byte slice or an error
-// if serialization fails.
+// This method ensures the queue can be seamlessly serialized by encoding/json.
+//
+// Returns:
+//   - The JSON-encoded byte slice.
+//   - An error if serialization fails.
 //
 // Time complexity: O(n), where n is the number of elements.
 func (q *Queue[T]) MarshalJSON() ([]byte, error) {
 	return q.ToJSON()
 }
 
-// UnmarshalJSON implements json.Unmarshaler for seamless JSON decoding.
+// UnmarshalJSON implements json.Unmarshaler for JSON decoding.
 //
-// Delegates to FromJSON() to populate the queue. Returns an error if the JSON
-// data is invalid or deserialization fails.
+// This method ensures the queue can be seamlessly deserialized by encoding/json.
+//
+// Returns:
+//
+//	An error if deserialization fails.
 //
 // Time complexity: O(n), where n is the number of elements in the JSON array.
 func (q *Queue[T]) UnmarshalJSON(data []byte) error {

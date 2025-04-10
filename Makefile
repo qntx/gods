@@ -34,7 +34,7 @@ test:
 .PHONY: docs
 docs:
 	@echo "Starting godoc server at http://localhost:6060"
-	@echo "Visit http://localhost:6060/pkg/github.com/qntx/qutil/ to view your package documentation"
+	@echo "Visit http://localhost:6060/pkg/github.com/qntx/gods/ to view your package documentation"
 	godoc -http=:6060
 
 # Pre-commit: run all checks before commit
