@@ -3,6 +3,7 @@ package btree
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 
 	"github.com/qntx/gods/container"
@@ -33,9 +34,11 @@ var (
 func (t *Tree[K, V]) ToJSON() ([]byte, error) {
 	elements := make(map[K]V)
 	it := t.Iterator()
+
 	for it.Next() {
 		elements[it.Key()] = it.Value()
 	}
+
 	return json.Marshal(elements)
 }
 
@@ -49,18 +52,20 @@ func (t *Tree[K, V]) ToJSON() ([]byte, error) {
 //	An error if the JSON is invalid or unmarshaling fails.
 func (t *Tree[K, V]) FromJSON(data []byte) error {
 	if len(data) == 0 {
-		return fmt.Errorf("btree: empty JSON data")
+		return errors.New("btree: empty JSON data")
 	}
 
 	elements := make(map[K]V)
 	if err := json.Unmarshal(data, &elements); err != nil {
-		return fmt.Errorf("btree: invalid JSON: %v", err)
+		return fmt.Errorf("btree: invalid JSON: %w", err)
 	}
 
 	t.Clear()
+
 	for k, v := range elements {
 		t.Put(k, v)
 	}
+
 	return nil
 }
 

@@ -562,45 +562,49 @@ func TestBTreeRemove8(t *testing.T) {
 }
 
 func TestBTreeRemove9(t *testing.T) {
-	const max = 1000
+	const maxSize = 1000
+
 	orders := []int{3, 4, 5, 6, 7, 8, 9, 10, 20, 100, 500, 1000, 5000, 10000}
 	for _, order := range orders {
-
 		tree := New[int, int](order)
 
 		{
-			for i := 1; i <= max; i++ {
+			for i := 1; i <= maxSize; i++ {
 				tree.Put(i, i)
 			}
-			assertValidTree(t, tree, max)
 
-			for i := 1; i <= max; i++ {
+			assertValidTree(t, tree, maxSize)
+
+			for i := 1; i <= maxSize; i++ {
 				if _, found := tree.Get(i); !found {
 					t.Errorf("Not found %v", i)
 				}
 			}
 
-			for i := 1; i <= max; i++ {
+			for i := 1; i <= maxSize; i++ {
 				tree.Remove(i)
 			}
+
 			assertValidTree(t, tree, 0)
 		}
 
 		{
-			for i := max; i > 0; i-- {
+			for i := maxSize; i > 0; i-- {
 				tree.Put(i, i)
 			}
-			assertValidTree(t, tree, max)
 
-			for i := max; i > 0; i-- {
+			assertValidTree(t, tree, maxSize)
+
+			for i := maxSize; i > 0; i-- {
 				if _, found := tree.Get(i); !found {
 					t.Errorf("Not found %v", i)
 				}
 			}
 
-			for i := max; i > 0; i-- {
+			for i := maxSize; i > 0; i-- {
 				tree.Remove(i)
 			}
+
 			assertValidTree(t, tree, 0)
 		}
 	}
@@ -613,36 +617,43 @@ func TestBTreeHeight(t *testing.T) {
 	}
 
 	tree.Put(1, 0)
+
 	if actualValue, expectedValue := tree.Height(), 1; actualValue != expectedValue {
 		t.Errorf("Got %v expected %v", actualValue, expectedValue)
 	}
 
 	tree.Put(2, 1)
+
 	if actualValue, expectedValue := tree.Height(), 1; actualValue != expectedValue {
 		t.Errorf("Got %v expected %v", actualValue, expectedValue)
 	}
 
 	tree.Put(3, 2)
+
 	if actualValue, expectedValue := tree.Height(), 2; actualValue != expectedValue {
 		t.Errorf("Got %v expected %v", actualValue, expectedValue)
 	}
 
 	tree.Put(4, 2)
+
 	if actualValue, expectedValue := tree.Height(), 2; actualValue != expectedValue {
 		t.Errorf("Got %v expected %v", actualValue, expectedValue)
 	}
 
 	tree.Put(5, 2)
+
 	if actualValue, expectedValue := tree.Height(), 2; actualValue != expectedValue {
 		t.Errorf("Got %v expected %v", actualValue, expectedValue)
 	}
 
 	tree.Put(6, 2)
+
 	if actualValue, expectedValue := tree.Height(), 2; actualValue != expectedValue {
 		t.Errorf("Got %v expected %v", actualValue, expectedValue)
 	}
 
 	tree.Put(7, 2)
+
 	if actualValue, expectedValue := tree.Height(), 3; actualValue != expectedValue {
 		t.Errorf("Got %v expected %v", actualValue, expectedValue)
 	}
@@ -654,6 +665,7 @@ func TestBTreeHeight(t *testing.T) {
 	tree.Remove(5)
 	tree.Remove(6)
 	tree.Remove(7)
+
 	if actualValue, expectedValue := tree.Height(), 0; actualValue != expectedValue {
 		t.Errorf("Got %v expected %v", actualValue, expectedValue)
 	}
@@ -665,6 +677,7 @@ func TestBTreeLeftAndRight(t *testing.T) {
 	if actualValue := tree.Left(); actualValue != nil {
 		t.Errorf("Got %v expected %v", actualValue, nil)
 	}
+
 	if actualValue := tree.Right(); actualValue != nil {
 		t.Errorf("Got %v expected %v", actualValue, nil)
 	}
@@ -681,6 +694,7 @@ func TestBTreeLeftAndRight(t *testing.T) {
 	if actualValue, expectedValue := tree.LeftKey(), 1; actualValue != expectedValue {
 		t.Errorf("Got %v expected %v", actualValue, expectedValue)
 	}
+
 	if actualValue, expectedValue := tree.LeftValue(), "x"; actualValue != expectedValue {
 		t.Errorf("Got %v expected %v", actualValue, expectedValue)
 	}
@@ -688,6 +702,7 @@ func TestBTreeLeftAndRight(t *testing.T) {
 	if actualValue, expectedValue := tree.RightKey(), 7; actualValue != expectedValue {
 		t.Errorf("Got %v expected %v", actualValue, expectedValue)
 	}
+
 	if actualValue, expectedValue := tree.RightValue(), "g"; actualValue != expectedValue {
 		t.Errorf("Got %v expected %v", actualValue, expectedValue)
 	}
@@ -703,12 +718,15 @@ func TestBTreeIteratorValuesAndKeys(t *testing.T) {
 	tree.Put(7, "g")
 	tree.Put(2, "b")
 	tree.Put(1, "x") // override
+
 	if actualValue, expectedValue := tree.Keys(), []int{1, 2, 3, 4, 5, 6, 7}; !slices.Equal(actualValue, expectedValue) {
 		t.Errorf("Got %v expected %v", actualValue, expectedValue)
 	}
+
 	if actualValue, expectedValue := tree.Values(), []string{"x", "b", "c", "d", "e", "f", "g"}; !slices.Equal(actualValue, expectedValue) {
 		t.Errorf("Got %v expected %v", actualValue, expectedValue)
 	}
+
 	if actualValue := tree.Size(); actualValue != 7 {
 		t.Errorf("Got %v expected %v", actualValue, 7)
 	}
@@ -716,6 +734,7 @@ func TestBTreeIteratorValuesAndKeys(t *testing.T) {
 
 func TestBTreeIteratorNextOnEmpty(t *testing.T) {
 	tree := New[int, string](3)
+
 	it := tree.Iterator()
 	for it.Next() {
 		t.Errorf("Shouldn't iterate on empty tree")
@@ -724,6 +743,7 @@ func TestBTreeIteratorNextOnEmpty(t *testing.T) {
 
 func TestBTreeIteratorPrevOnEmpty(t *testing.T) {
 	tree := New[int, string](3)
+
 	it := tree.Iterator()
 	for it.Prev() {
 		t.Errorf("Shouldn't iterate on empty tree")
@@ -742,13 +762,16 @@ func TestBTreeIterator1Next(t *testing.T) {
 	tree.Put(1, "a") //overwrite
 	it := tree.Iterator()
 	count := 0
+
 	for it.Next() {
 		count++
+
 		key := it.Key()
 		if actualValue, expectedValue := key, count; actualValue != expectedValue {
 			t.Errorf("Got %v expected %v", actualValue, expectedValue)
 		}
 	}
+
 	if actualValue, expectedValue := count, tree.Size(); actualValue != expectedValue {
 		t.Errorf("Size different. Got %v expected %v", actualValue, expectedValue)
 	}
@@ -764,17 +787,22 @@ func TestBTreeIterator1Prev(t *testing.T) {
 	tree.Put(1, "x")
 	tree.Put(2, "b")
 	tree.Put(1, "a") //overwrite
+
 	it := tree.Iterator()
 	for it.Next() {
 	}
+
 	countDown := tree.size
+
 	for it.Prev() {
 		key := it.Key()
 		if actualValue, expectedValue := key, countDown; actualValue != expectedValue {
 			t.Errorf("Got %v expected %v", actualValue, expectedValue)
 		}
+
 		countDown--
 	}
+
 	if actualValue, expectedValue := countDown, 0; actualValue != expectedValue {
 		t.Errorf("Size different. Got %v expected %v", actualValue, expectedValue)
 	}
@@ -787,13 +815,16 @@ func TestBTreeIterator2Next(t *testing.T) {
 	tree.Put(2, "b")
 	it := tree.Iterator()
 	count := 0
+
 	for it.Next() {
 		count++
+
 		key := it.Key()
 		if actualValue, expectedValue := key, count; actualValue != expectedValue {
 			t.Errorf("Got %v expected %v", actualValue, expectedValue)
 		}
 	}
+
 	if actualValue, expectedValue := count, tree.Size(); actualValue != expectedValue {
 		t.Errorf("Size different. Got %v expected %v", actualValue, expectedValue)
 	}
@@ -804,17 +835,22 @@ func TestBTreeIterator2Prev(t *testing.T) {
 	tree.Put(3, "c")
 	tree.Put(1, "a")
 	tree.Put(2, "b")
+
 	it := tree.Iterator()
 	for it.Next() {
 	}
+
 	countDown := tree.size
+
 	for it.Prev() {
 		key := it.Key()
 		if actualValue, expectedValue := key, countDown; actualValue != expectedValue {
 			t.Errorf("Got %v expected %v", actualValue, expectedValue)
 		}
+
 		countDown--
 	}
+
 	if actualValue, expectedValue := countDown, 0; actualValue != expectedValue {
 		t.Errorf("Size different. Got %v expected %v", actualValue, expectedValue)
 	}
@@ -825,13 +861,16 @@ func TestBTreeIterator3Next(t *testing.T) {
 	tree.Put(1, "a")
 	it := tree.Iterator()
 	count := 0
+
 	for it.Next() {
 		count++
+
 		key := it.Key()
 		if actualValue, expectedValue := key, count; actualValue != expectedValue {
 			t.Errorf("Got %v expected %v", actualValue, expectedValue)
 		}
 	}
+
 	if actualValue, expectedValue := count, tree.Size(); actualValue != expectedValue {
 		t.Errorf("Size different. Got %v expected %v", actualValue, expectedValue)
 	}
@@ -840,17 +879,22 @@ func TestBTreeIterator3Next(t *testing.T) {
 func TestBTreeIterator3Prev(t *testing.T) {
 	tree := New[int, string](3)
 	tree.Put(1, "a")
+
 	it := tree.Iterator()
 	for it.Next() {
 	}
+
 	countDown := tree.size
+
 	for it.Prev() {
 		key := it.Key()
 		if actualValue, expectedValue := key, countDown; actualValue != expectedValue {
 			t.Errorf("Got %v expected %v", actualValue, expectedValue)
 		}
+
 		countDown--
 	}
+
 	if actualValue, expectedValue := countDown, 0; actualValue != expectedValue {
 		t.Errorf("Size different. Got %v expected %v", actualValue, expectedValue)
 	}
@@ -870,13 +914,16 @@ func TestBTreeIterator4Next(t *testing.T) {
 	tree.Put(27, 10)
 	it := tree.Iterator()
 	count := 0
+
 	for it.Next() {
 		count++
+
 		value := it.Value()
 		if actualValue, expectedValue := value, count; actualValue != expectedValue {
 			t.Errorf("Got %v expected %v", actualValue, expectedValue)
 		}
 	}
+
 	if actualValue, expectedValue := count, tree.Size(); actualValue != expectedValue {
 		t.Errorf("Size different. Got %v expected %v", actualValue, expectedValue)
 	}
@@ -896,15 +943,19 @@ func TestBTreeIterator4Prev(t *testing.T) {
 	tree.Put(27, 10)
 	it := tree.Iterator()
 	count := tree.Size()
+
 	for it.Next() {
 	}
+
 	for it.Prev() {
 		value := it.Value()
 		if actualValue, expectedValue := value, count; actualValue != expectedValue {
 			t.Errorf("Got %v expected %v", actualValue, expectedValue)
 		}
+
 		count--
 	}
+
 	if actualValue, expectedValue := count, 0; actualValue != expectedValue {
 		t.Errorf("Size different. Got %v expected %v", actualValue, expectedValue)
 	}
@@ -937,6 +988,7 @@ func TestBTreeIteratorBegin(t *testing.T) {
 	}
 
 	it.Next()
+
 	if key, value := it.Key(), it.Value(); key != 1 || value != "a" {
 		t.Errorf("Got %v,%v expected %v,%v", key, value, 1, "a")
 	}
@@ -951,6 +1003,7 @@ func TestBTreeIteratorEnd(t *testing.T) {
 	}
 
 	it.End()
+
 	if it.node != nil {
 		t.Errorf("Got %v expected %v", it.node, nil)
 	}
@@ -959,11 +1012,13 @@ func TestBTreeIteratorEnd(t *testing.T) {
 	tree.Put(1, "a")
 	tree.Put(2, "b")
 	it.End()
+
 	if it.node != nil {
 		t.Errorf("Got %v expected %v", it.node, nil)
 	}
 
 	it.Prev()
+
 	if key, value := it.Key(), it.Value(); key != 3 || value != "c" {
 		t.Errorf("Got %v,%v expected %v,%v", key, value, 3, "c")
 	}
@@ -974,10 +1029,12 @@ func TestBTreeIteratorFirst(t *testing.T) {
 	tree.Put(3, "c")
 	tree.Put(1, "a")
 	tree.Put(2, "b")
+
 	it := tree.Iterator()
 	if actualValue, expectedValue := it.First(), true; actualValue != expectedValue {
 		t.Errorf("Got %v expected %v", actualValue, expectedValue)
 	}
+
 	if key, value := it.Key(), it.Value(); key != 1 || value != "a" {
 		t.Errorf("Got %v,%v expected %v,%v", key, value, 1, "a")
 	}
@@ -988,10 +1045,12 @@ func TestBTreeIteratorLast(t *testing.T) {
 	tree.Put(3, "c")
 	tree.Put(1, "a")
 	tree.Put(2, "b")
+
 	it := tree.Iterator()
 	if actualValue, expectedValue := it.Last(), true; actualValue != expectedValue {
 		t.Errorf("Got %v expected %v", actualValue, expectedValue)
 	}
+
 	if key, value := it.Key(), it.Value(); key != 3 || value != "c" {
 		t.Errorf("Got %v,%v expected %v,%v", key, value, 3, "c")
 	}
@@ -1004,11 +1063,13 @@ func TestBTreeSearch(t *testing.T) {
 		tests := [][]interface{}{
 			{0, 0, false},
 		}
+
 		for _, test := range tests {
 			index, found := tree.search(tree.Root, test[0].(int))
 			if actualValue, expectedValue := index, test[1]; actualValue != expectedValue {
 				t.Errorf("Got %v expected %v", actualValue, expectedValue)
 			}
+
 			if actualValue, expectedValue := found, test[2]; actualValue != expectedValue {
 				t.Errorf("Got %v expected %v", actualValue, expectedValue)
 			}
@@ -1027,11 +1088,13 @@ func TestBTreeSearch(t *testing.T) {
 			{6, 2, true},
 			{7, 3, false},
 		}
+
 		for _, test := range tests {
 			index, found := tree.search(tree.Root, test[0].(int))
 			if actualValue, expectedValue := index, test[1]; actualValue != expectedValue {
 				t.Errorf("Got %v expected %v", actualValue, expectedValue)
 			}
+
 			if actualValue, expectedValue := found, test[2]; actualValue != expectedValue {
 				t.Errorf("Got %v expected %v", actualValue, expectedValue)
 			}
@@ -1040,21 +1103,28 @@ func TestBTreeSearch(t *testing.T) {
 }
 
 func assertValidTree[K comparable, V any](t *testing.T, tree *Tree[K, V], expectedSize int) {
+	t.Helper()
+
 	if actualValue, expectedValue := tree.size, expectedSize; actualValue != expectedValue {
 		t.Errorf("Got %v expected %v for tree size", actualValue, expectedValue)
 	}
 }
 
 func assertValidTreeNode[K comparable, V any](t *testing.T, node *Node[K, V], expectedEntries int, expectedChildren int, keys []K, hasParent bool) {
+	t.Helper()
+
 	if actualValue, expectedValue := node.Parent != nil, hasParent; actualValue != expectedValue {
 		t.Errorf("Got %v expected %v for hasParent", actualValue, expectedValue)
 	}
+
 	if actualValue, expectedValue := len(node.Entries), expectedEntries; actualValue != expectedValue {
 		t.Errorf("Got %v expected %v for entries size", actualValue, expectedValue)
 	}
+
 	if actualValue, expectedValue := len(node.Children), expectedChildren; actualValue != expectedValue {
 		t.Errorf("Got %v expected %v for children size", actualValue, expectedValue)
 	}
+
 	for i, key := range keys {
 		if actualValue, expectedValue := node.Entries[i].Key, key; actualValue != expectedValue {
 			t.Errorf("Got %v expected %v for key", actualValue, expectedValue)
@@ -1064,13 +1134,14 @@ func assertValidTreeNode[K comparable, V any](t *testing.T, node *Node[K, V], ex
 
 func TestBTreeIteratorNextTo(t *testing.T) {
 	// Sample seek function, i.e. string starting with "b"
-	seek := func(index int, value string) bool {
+	seek := func(_ int, value string) bool {
 		return strings.HasSuffix(value, "b")
 	}
 
 	// NextTo (empty)
 	{
 		tree := New[int, string](3)
+
 		it := tree.Iterator()
 		for it.NextTo(seek) {
 			t.Errorf("Shouldn't iterate on empty tree")
@@ -1082,6 +1153,7 @@ func TestBTreeIteratorNextTo(t *testing.T) {
 		tree := New[int, string](3)
 		tree.Put(0, "xx")
 		tree.Put(1, "yy")
+
 		it := tree.Iterator()
 		for it.NextTo(seek) {
 			t.Errorf("Shouldn't iterate on empty tree")
@@ -1096,18 +1168,23 @@ func TestBTreeIteratorNextTo(t *testing.T) {
 		tree.Put(1, "bb")
 		it := tree.Iterator()
 		it.Begin()
+
 		if !it.NextTo(seek) {
 			t.Errorf("Shouldn't iterate on empty tree")
 		}
+
 		if index, value := it.Key(), it.Value(); index != 1 || value != "bb" {
 			t.Errorf("Got %v,%v expected %v,%v", index, value, 1, "bb")
 		}
+
 		if !it.Next() {
 			t.Errorf("Should go to first element")
 		}
+
 		if index, value := it.Key(), it.Value(); index != 2 || value != "cc" {
 			t.Errorf("Got %v,%v expected %v,%v", index, value, 2, "cc")
 		}
+
 		if it.Next() {
 			t.Errorf("Should not go past last element")
 		}
@@ -1116,7 +1193,7 @@ func TestBTreeIteratorNextTo(t *testing.T) {
 
 func TestBTreeIteratorPrevTo(t *testing.T) {
 	// Sample seek function, i.e. string starting with "b"
-	seek := func(index int, value string) bool {
+	seek := func(_ int, value string) bool {
 		return strings.HasSuffix(value, "b")
 	}
 
@@ -1125,6 +1202,7 @@ func TestBTreeIteratorPrevTo(t *testing.T) {
 		tree := New[int, string](3)
 		it := tree.Iterator()
 		it.End()
+
 		for it.PrevTo(seek) {
 			t.Errorf("Shouldn't iterate on empty tree")
 		}
@@ -1137,6 +1215,7 @@ func TestBTreeIteratorPrevTo(t *testing.T) {
 		tree.Put(1, "yy")
 		it := tree.Iterator()
 		it.End()
+
 		for it.PrevTo(seek) {
 			t.Errorf("Shouldn't iterate on empty tree")
 		}
@@ -1150,18 +1229,23 @@ func TestBTreeIteratorPrevTo(t *testing.T) {
 		tree.Put(1, "bb")
 		it := tree.Iterator()
 		it.End()
+
 		if !it.PrevTo(seek) {
 			t.Errorf("Shouldn't iterate on empty tree")
 		}
+
 		if index, value := it.Key(), it.Value(); index != 1 || value != "bb" {
 			t.Errorf("Got %v,%v expected %v,%v", index, value, 1, "bb")
 		}
+
 		if !it.Prev() {
 			t.Errorf("Should go to first element")
 		}
+
 		if index, value := it.Key(), it.Value(); index != 0 || value != "aa" {
 			t.Errorf("Got %v,%v expected %v,%v", index, value, 0, "aa")
 		}
+
 		if it.Prev() {
 			t.Errorf("Should not go before first element")
 		}
@@ -1175,16 +1259,20 @@ func TestBTreeSerialization(t *testing.T) {
 	tree.Put("a", "1")
 
 	var err error
+
 	assert := func() {
 		if actualValue, expectedValue := tree.Size(), 3; actualValue != expectedValue {
 			t.Errorf("Got %v expected %v", actualValue, expectedValue)
 		}
+
 		if actualValue, expectedValue := tree.Keys(), []string{"a", "b", "c"}; !slices.Equal(actualValue, expectedValue) {
 			t.Errorf("Got %v expected %v", actualValue, expectedValue)
 		}
+
 		if actualValue, expectedValue := tree.Values(), []string{"1", "2", "3"}; !slices.Equal(actualValue, expectedValue) {
 			t.Errorf("Got %v expected %v", actualValue, expectedValue)
 		}
+
 		if err != nil {
 			t.Errorf("Got error %v", err)
 		}
@@ -1193,27 +1281,33 @@ func TestBTreeSerialization(t *testing.T) {
 	assert()
 
 	bytes, err := tree.ToJSON()
+
 	assert()
 
 	err = tree.FromJSON(bytes)
+
 	assert()
 
-	bytes, err = json.Marshal([]interface{}{"a", "b", "c", tree})
+	bytes, err = json.Marshal([]any{"a", "b", "c", tree})
 	if err != nil {
 		t.Errorf("Got error %v", err)
 	}
 
 	intTree := New[string, int](3)
+
 	err = json.Unmarshal([]byte(`{"a":1,"b":2}`), intTree)
 	if err != nil {
 		t.Errorf("Got error %v", err)
 	}
+
 	if actualValue, expectedValue := intTree.Size(), 2; actualValue != expectedValue {
 		t.Errorf("Got %v expected %v", actualValue, expectedValue)
 	}
+
 	if actualValue, expectedValue := intTree.Keys(), []string{"a", "b"}; !slices.Equal(actualValue, expectedValue) {
 		t.Errorf("Got %v expected %v", actualValue, expectedValue)
 	}
+
 	if actualValue, expectedValue := intTree.Values(), []int{1, 2}; !slices.Equal(actualValue, expectedValue) {
 		t.Errorf("Got %v expected %v", actualValue, expectedValue)
 	}
@@ -1222,30 +1316,37 @@ func TestBTreeSerialization(t *testing.T) {
 func TestBTreeString(t *testing.T) {
 	c := New[string, int](3)
 	c.Put("a", 1)
+
 	if !strings.HasPrefix(c.String(), "BTree") {
 		t.Errorf("String should start with container name")
 	}
 }
 
 func benchmarkGet(b *testing.B, tree *Tree[int, struct{}], size int) {
-	for i := 0; i < b.N; i++ {
-		for n := 0; n < size; n++ {
+	b.Helper()
+
+	for b.Loop() {
+		for n := range size {
 			tree.Get(n)
 		}
 	}
 }
 
 func benchmarkPut(b *testing.B, tree *Tree[int, struct{}], size int) {
-	for i := 0; i < b.N; i++ {
-		for n := 0; n < size; n++ {
+	b.Helper()
+
+	for b.Loop() {
+		for n := range size {
 			tree.Put(n, struct{}{})
 		}
 	}
 }
 
 func benchmarkRemove(b *testing.B, tree *Tree[int, struct{}], size int) {
-	for i := 0; i < b.N; i++ {
-		for n := 0; n < size; n++ {
+	b.Helper()
+
+	for b.Loop() {
+		for n := range size {
 			tree.Remove(n)
 		}
 	}
@@ -1253,129 +1354,164 @@ func benchmarkRemove(b *testing.B, tree *Tree[int, struct{}], size int) {
 
 func BenchmarkBTreeGet100(b *testing.B) {
 	b.StopTimer()
+
 	size := 100
 	tree := New[int, struct{}](128)
-	for n := 0; n < size; n++ {
+
+	for n := range size {
 		tree.Put(n, struct{}{})
 	}
+
 	b.StartTimer()
 	benchmarkGet(b, tree, size)
 }
 
 func BenchmarkBTreeGet1000(b *testing.B) {
 	b.StopTimer()
+
 	size := 1000
 	tree := New[int, struct{}](128)
-	for n := 0; n < size; n++ {
+
+	for n := range size {
 		tree.Put(n, struct{}{})
 	}
+
 	b.StartTimer()
 	benchmarkGet(b, tree, size)
 }
 
 func BenchmarkBTreeGet10000(b *testing.B) {
 	b.StopTimer()
+
 	size := 10000
 	tree := New[int, struct{}](128)
-	for n := 0; n < size; n++ {
+
+	for n := range size {
 		tree.Put(n, struct{}{})
 	}
+
 	b.StartTimer()
 	benchmarkGet(b, tree, size)
 }
 
 func BenchmarkBTreeGet100000(b *testing.B) {
 	b.StopTimer()
+
 	size := 100000
 	tree := New[int, struct{}](128)
-	for n := 0; n < size; n++ {
+
+	for n := range size {
 		tree.Put(n, struct{}{})
 	}
+
 	b.StartTimer()
 	benchmarkGet(b, tree, size)
 }
 
 func BenchmarkBTreePut100(b *testing.B) {
 	b.StopTimer()
+
 	size := 100
 	tree := New[int, struct{}](128)
+
 	b.StartTimer()
 	benchmarkPut(b, tree, size)
 }
 
 func BenchmarkBTreePut1000(b *testing.B) {
 	b.StopTimer()
+
 	size := 1000
 	tree := New[int, struct{}](128)
-	for n := 0; n < size; n++ {
+
+	for n := range size {
 		tree.Put(n, struct{}{})
 	}
+
 	b.StartTimer()
 	benchmarkPut(b, tree, size)
 }
 
 func BenchmarkBTreePut10000(b *testing.B) {
 	b.StopTimer()
+
 	size := 10000
 	tree := New[int, struct{}](128)
-	for n := 0; n < size; n++ {
+
+	for n := range size {
 		tree.Put(n, struct{}{})
 	}
+
 	b.StartTimer()
 	benchmarkPut(b, tree, size)
 }
 
 func BenchmarkBTreePut100000(b *testing.B) {
 	b.StopTimer()
+
 	size := 100000
 	tree := New[int, struct{}](128)
-	for n := 0; n < size; n++ {
+
+	for n := range size {
 		tree.Put(n, struct{}{})
 	}
+
 	b.StartTimer()
 	benchmarkPut(b, tree, size)
 }
 
 func BenchmarkBTreeRemove100(b *testing.B) {
 	b.StopTimer()
+
 	size := 100
 	tree := New[int, struct{}](128)
-	for n := 0; n < size; n++ {
+
+	for n := range size {
 		tree.Put(n, struct{}{})
 	}
+
 	b.StartTimer()
 	benchmarkRemove(b, tree, size)
 }
 
 func BenchmarkBTreeRemove1000(b *testing.B) {
 	b.StopTimer()
+
 	size := 1000
 	tree := New[int, struct{}](128)
-	for n := 0; n < size; n++ {
+
+	for n := range size {
 		tree.Put(n, struct{}{})
 	}
+
 	b.StartTimer()
 	benchmarkRemove(b, tree, size)
 }
 
 func BenchmarkBTreeRemove10000(b *testing.B) {
 	b.StopTimer()
+
 	size := 10000
 	tree := New[int, struct{}](128)
-	for n := 0; n < size; n++ {
+
+	for n := range size {
 		tree.Put(n, struct{}{})
 	}
+
 	b.StartTimer()
 	benchmarkRemove(b, tree, size)
 }
 
 func BenchmarkBTreeRemove100000(b *testing.B) {
 	b.StopTimer()
+
 	size := 100000
 	tree := New[int, struct{}](128)
-	for n := 0; n < size; n++ {
+
+	for n := range size {
 		tree.Put(n, struct{}{})
 	}
+
 	b.StartTimer()
 	benchmarkRemove(b, tree, size)
 }

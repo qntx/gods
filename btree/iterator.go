@@ -41,7 +41,8 @@ var _ container.ReverseIteratorWithKey[string, int] = (*Iterator[string, int])(n
 // The iterator starts at the "begin" position; call Next() to move to the first element.
 //
 // Returns:
-//   A pointer to an initialized Iterator.
+//
+//	A pointer to an initialized Iterator.
 func (t *Tree[K, V]) Iterator() *Iterator[K, V] {
 	return &Iterator[K, V]{tree: t, position: begin}
 }
@@ -57,6 +58,7 @@ func (t *Tree[K, V]) Iterator() *Iterator[K, V] {
 func (it *Iterator[K, V]) Next() bool {
 	if it.position == end {
 		it.End()
+
 		return false
 	}
 
@@ -64,11 +66,14 @@ func (it *Iterator[K, V]) Next() bool {
 		left := it.tree.Left()
 		if left == nil {
 			it.End()
+
 			return false
 		}
+
 		it.node = left
 		it.entry = left.Entries[0]
 		it.position = between
+
 		return true
 	}
 
@@ -78,28 +83,34 @@ func (it *Iterator[K, V]) Next() bool {
 		for len(it.node.Children) > 0 {
 			it.node = it.node.Children[0]
 		}
+
 		it.entry = it.node.Entries[0]
 		it.position = between
+
 		return true
 	}
 
 	if e+1 < len(it.node.Entries) {
 		it.entry = it.node.Entries[e+1]
 		it.position = between
+
 		return true
 	}
 
 	for it.node.Parent != nil {
 		it.node = it.node.Parent
 		e, _ := it.tree.search(it.node, it.entry.Key)
+
 		if e < len(it.node.Entries) {
 			it.entry = it.node.Entries[e]
 			it.position = between
+
 			return true
 		}
 	}
 
 	it.End()
+
 	return false
 }
 
@@ -111,6 +122,7 @@ func (it *Iterator[K, V]) Next() bool {
 func (it *Iterator[K, V]) Prev() bool {
 	if it.position == begin {
 		it.Begin()
+
 		return false
 	}
 
@@ -118,11 +130,14 @@ func (it *Iterator[K, V]) Prev() bool {
 		right := it.tree.Right()
 		if right == nil {
 			it.Begin()
+
 			return false
 		}
+
 		it.node = right
 		it.entry = right.Entries[len(right.Entries)-1]
 		it.position = between
+
 		return true
 	}
 
@@ -132,28 +147,34 @@ func (it *Iterator[K, V]) Prev() bool {
 		for len(it.node.Children) > 0 {
 			it.node = it.node.Children[len(it.node.Children)-1]
 		}
+
 		it.entry = it.node.Entries[len(it.node.Entries)-1]
 		it.position = between
+
 		return true
 	}
 
 	if e-1 >= 0 {
 		it.entry = it.node.Entries[e-1]
 		it.position = between
+
 		return true
 	}
 
 	for it.node.Parent != nil {
 		it.node = it.node.Parent
 		e, _ := it.tree.search(it.node, it.entry.Key)
+
 		if e-1 >= 0 {
 			it.entry = it.node.Entries[e-1]
 			it.position = between
+
 			return true
 		}
 	}
 
 	it.Begin()
+
 	return false
 }
 
@@ -167,6 +188,7 @@ func (it *Iterator[K, V]) Key() K {
 	if it.position != between || it.entry == nil {
 		panic("btree: iterator not at valid position")
 	}
+
 	return it.entry.Key
 }
 
@@ -177,6 +199,7 @@ func (it *Iterator[K, V]) Value() V {
 	if it.position != between || it.entry == nil {
 		panic("btree: iterator not at valid position")
 	}
+
 	return it.entry.Value
 }
 
@@ -187,6 +210,7 @@ func (it *Iterator[K, V]) Node() *Node[K, V] {
 	if it.position != between {
 		return nil
 	}
+
 	return it.node
 }
 
@@ -216,6 +240,7 @@ func (it *Iterator[K, V]) End() {
 // Returns true if the tree is not empty, false otherwise.
 func (it *Iterator[K, V]) First() bool {
 	it.Begin()
+
 	return it.Next()
 }
 
@@ -224,6 +249,7 @@ func (it *Iterator[K, V]) First() bool {
 // Returns true if the tree is not empty, false otherwise.
 func (it *Iterator[K, V]) Last() bool {
 	it.End()
+
 	return it.Prev()
 }
 
@@ -237,6 +263,7 @@ func (it *Iterator[K, V]) NextTo(f func(key K, value V) bool) bool {
 			return true
 		}
 	}
+
 	return false
 }
 
@@ -250,5 +277,6 @@ func (it *Iterator[K, V]) PrevTo(f func(key K, value V) bool) bool {
 			return true
 		}
 	}
+
 	return false
 }

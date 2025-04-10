@@ -56,8 +56,9 @@ var (
 func (q *Queue[T]) ToJSON() ([]byte, error) {
 	data, err := json.Marshal(q.Values())
 	if err != nil {
-		return nil, fmt.Errorf("ringbuf: %w: %v", ErrMarshalJSON, err)
+		return nil, fmt.Errorf("ringbuf: %w: %w", ErrMarshalJSON, err)
 	}
+
 	return data, nil
 }
 
@@ -79,13 +80,15 @@ func (q *Queue[T]) ToJSON() ([]byte, error) {
 func (q *Queue[T]) FromJSON(data []byte) error {
 	var vals []T
 	if err := json.Unmarshal(data, &vals); err != nil {
-		return fmt.Errorf("ringbuf: %w: %v", ErrInvalidJSON, err)
+		return fmt.Errorf("ringbuf: %w: %w", ErrInvalidJSON, err)
 	}
 
 	q.Clear()
+
 	for _, v := range vals {
 		q.PushBack(v)
 	}
+
 	return nil
 }
 
