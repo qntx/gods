@@ -137,13 +137,11 @@ func TestBTreeGet3(t *testing.T) {
 
 	// Use t.Run to organize test scenarios
 	t.Run("tree operations", func(t *testing.T) {
-		t.Parallel()
 
 		tree := New[int, string](3)
 
 		// Test initial state
 		t.Run("initial size", func(t *testing.T) {
-			t.Parallel()
 
 			if got := tree.Size(); got != 0 {
 				t.Errorf("Size() = %d, want 0", got)
@@ -151,7 +149,6 @@ func TestBTreeGet3(t *testing.T) {
 		})
 
 		t.Run("initial node size", func(t *testing.T) {
-			t.Parallel()
 
 			if got := tree.GetNode(2).Size(); got != 0 {
 				t.Errorf("GetNode(2).Size() = %d, want 0", got)
