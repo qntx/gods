@@ -2,119 +2,204 @@ package btree
 
 import (
 	"encoding/json"
+	"fmt"
 	"slices"
 	"strings"
 	"testing"
 )
 
-func TestBTreeGet1(t *testing.T) {
-	tree := New[int, string](3)
-	tree.Put(1, "a")
-	tree.Put(2, "b")
-	tree.Put(3, "c")
-	tree.Put(4, "d")
-	tree.Put(5, "e")
-	tree.Put(6, "f")
-	tree.Put(7, "g")
+// TestBTreeGet tests the Get method of the BTree.
+func TestBTreeGet(t *testing.T) {
+	t.Parallel()
 
-	tests := [][]interface{}{
-		{0, "", false},
-		{1, "a", true},
-		{2, "b", true},
-		{3, "c", true},
-		{4, "d", true},
-		{5, "e", true},
-		{6, "f", true},
-		{7, "g", true},
-		{8, "", false},
-	}
+	// Use t.Run to organize test cases
+	t.Run("basic operations", func(t *testing.T) {
+		t.Parallel()
 
-	for _, test := range tests {
-		if value, found := tree.Get(test[0].(int)); value != test[1] || found != test[2] {
-			t.Errorf("Got %v,%v expected %v,%v", value, found, test[1], test[2])
+		tree := New[int, string](3)
+
+		// Initialize test data using a map for clarity
+		testData := map[int]string{
+			1: "a",
+			2: "b",
+			3: "c",
+			4: "d",
+			5: "e",
+			6: "f",
+			7: "g",
 		}
-	}
+
+		// Populate the tree with test data
+		for k, v := range testData {
+			tree.Put(k, v)
+		}
+
+		// Define test cases with a struct for better type safety
+		tests := []struct {
+			key       int
+			wantVal   string
+			wantFound bool
+		}{
+			{0, "", false},
+			{1, "a", true},
+			{2, "b", true},
+			{3, "c", true},
+			{4, "d", true},
+			{5, "e", true},
+			{6, "f", true},
+			{7, "g", true},
+			{8, "", false},
+		}
+
+		// Run each test case
+		for _, tt := range tests {
+			t.Run(fmt.Sprintf("key=%d", tt.key), func(t *testing.T) {
+				t.Parallel()
+
+				gotVal, gotFound := tree.Get(tt.key)
+				if gotVal != tt.wantVal || gotFound != tt.wantFound {
+					t.Errorf("Get(%d) = (%q, %v), want (%q, %v)",
+						tt.key, gotVal, gotFound, tt.wantVal, tt.wantFound)
+				}
+			})
+		}
+	})
 }
 
+// TestBTreeGet2 tests the Get method of the BTree with various key insertions.
 func TestBTreeGet2(t *testing.T) {
-	tree := New[int, string](3)
-	tree.Put(7, "g")
-	tree.Put(9, "i")
-	tree.Put(10, "j")
-	tree.Put(6, "f")
-	tree.Put(3, "c")
-	tree.Put(4, "d")
-	tree.Put(5, "e")
-	tree.Put(8, "h")
-	tree.Put(2, "b")
-	tree.Put(1, "a")
+	t.Parallel() // Enable parallel execution for this test
 
-	tests := [][]interface{}{
-		{0, "", false},
-		{1, "a", true},
-		{2, "b", true},
-		{3, "c", true},
-		{4, "d", true},
-		{5, "e", true},
-		{6, "f", true},
-		{7, "g", true},
-		{8, "h", true},
-		{9, "i", true},
-		{10, "j", true},
-		{11, "", false},
-	}
+	// Use t.Run to group test cases
+	t.Run("mixed order insertions", func(t *testing.T) {
+		t.Parallel()
 
-	for _, test := range tests {
-		if value, found := tree.Get(test[0].(int)); value != test[1] || found != test[2] {
-			t.Errorf("Got %v,%v expected %v,%v", value, found, test[1], test[2])
+		tree := New[int, string](3)
+
+		// Initialize test data using a map for better readability
+		testData := map[int]string{
+			7:  "g",
+			9:  "i",
+			10: "j",
+			6:  "f",
+			3:  "c",
+			4:  "d",
+			5:  "e",
+			8:  "h",
+			2:  "b",
+			1:  "a",
 		}
-	}
+
+		// Populate the tree with test data
+		for k, v := range testData {
+			tree.Put(k, v)
+		}
+
+		// Define test cases with a struct for type safety
+		tests := []struct {
+			key       int
+			wantVal   string
+			wantFound bool
+		}{
+			{0, "", false},
+			{1, "a", true},
+			{2, "b", true},
+			{3, "c", true},
+			{4, "d", true},
+			{5, "e", true},
+			{6, "f", true},
+			{7, "g", true},
+			{8, "h", true},
+			{9, "i", true},
+			{10, "j", true},
+			{11, "", false},
+		}
+
+		// Run each test case in parallel
+		for _, tt := range tests {
+			// Capture range variable for parallel execution
+			t.Run(fmt.Sprintf("key=%d", tt.key), func(t *testing.T) {
+				t.Parallel()
+
+				gotVal, gotFound := tree.Get(tt.key)
+				if gotVal != tt.wantVal || gotFound != tt.wantFound {
+					t.Errorf("Get(%d) = (%q, %v), want (%q, %v)",
+						tt.key, gotVal, gotFound, tt.wantVal, tt.wantFound)
+				}
+			})
+		}
+	})
 }
 
+// TestBTreeGet3 tests the Size and GetNode methods of the BTree.
 func TestBTreeGet3(t *testing.T) {
-	tree := New[int, string](3)
+	t.Parallel() // Enable parallel execution for this test
 
-	if actualValue := tree.Size(); actualValue != 0 {
-		t.Errorf("Got %v expected %v", actualValue, 0)
-	}
+	// Use t.Run to organize test scenarios
+	t.Run("tree operations", func(t *testing.T) {
+		t.Parallel()
 
-	if actualValue := tree.GetNode(2).Size(); actualValue != 0 {
-		t.Errorf("Got %v expected %v", actualValue, 0)
-	}
+		tree := New[int, string](3)
 
-	tree.Put(1, "x") // 1->x
-	tree.Put(2, "b") // 1->x, 2->b (in order)
-	tree.Put(1, "a") // 1->a, 2->b (in order, replacement)
-	tree.Put(3, "c") // 1->a, 2->b, 3->c (in order)
-	tree.Put(4, "d") // 1->a, 2->b, 3->c, 4->d (in order)
-	tree.Put(5, "e") // 1->a, 2->b, 3->c, 4->d, 5->e (in order)
-	tree.Put(6, "f") // 1->a, 2->b, 3->c, 4->d, 5->e, 6->f (in order)
-	tree.Put(7, "g") // 1->a, 2->b, 3->c, 4->d, 5->e, 6->f, 7->g (in order)
+		// Test initial state
+		t.Run("initial size", func(t *testing.T) {
+			t.Parallel()
 
-	// BTree
-	//         1
-	//     2
-	//         3
-	// 4
-	//         5
-	//     6
-	//         7
+			if got := tree.Size(); got != 0 {
+				t.Errorf("Size() = %d, want 0", got)
+			}
+		})
 
-	if actualValue := tree.Size(); actualValue != 7 {
-		t.Errorf("Got %v expected %v", actualValue, 7)
-	}
+		t.Run("initial node size", func(t *testing.T) {
+			t.Parallel()
 
-	if actualValue := tree.GetNode(2).Size(); actualValue != 3 {
-		t.Errorf("Got %v expected %v", actualValue, 3)
-	}
+			if got := tree.GetNode(2).Size(); got != 0 {
+				t.Errorf("GetNode(2).Size() = %d, want 0", got)
+			}
+		})
 
-	if actualValue := tree.GetNode(4).Size(); actualValue != 7 {
-		t.Errorf("Got %v expected %v", actualValue, 7)
-	}
+		// Populate the tree with test data
+		insertions := []struct {
+			key   int
+			value string
+		}{
+			{1, "x"}, // Initial insertion
+			{2, "b"}, // Add second key
+			{1, "a"}, // Replace value for key 1
+			{3, "c"},
+			{4, "d"},
+			{5, "e"},
+			{6, "f"},
+			{7, "g"},
+		}
+		for _, ins := range insertions {
+			tree.Put(ins.key, ins.value)
+		}
 
-	if actualValue := tree.GetNode(8).Size(); actualValue != 0 {
-		t.Errorf("Got %v expected %v", actualValue, 0)
-	}
+		// Define test cases for size checks
+		sizeTests := []struct {
+			name     string
+			getSize  func() int
+			wantSize int
+		}{
+			{"total size", tree.Size, 7},
+			{"node 2 size", func() int { return tree.GetNode(2).Size() }, 3},
+			{"node 4 size", func() int { return tree.GetNode(4).Size() }, 7},
+			{"node 8 size", func() int { return tree.GetNode(8).Size() }, 0},
+		}
+
+		// Run size checks in parallel
+		for _, tt := range sizeTests {
+			// Capture range variable for parallel execution
+			t.Run(tt.name, func(t *testing.T) {
+				t.Parallel()
+
+				if got := tt.getSize(); got != tt.wantSize {
+					t.Errorf("%s = %d, want %d", tt.name, got, tt.wantSize)
+				}
+			})
+		}
+	})
 }
 
 func TestBTreePut1(t *testing.T) {
@@ -1060,12 +1145,14 @@ func TestBTreeSearch(t *testing.T) {
 	{
 		tree := New[int, int](3)
 		tree.Root = &Node[int, int]{Entries: []*Entry[int, int]{}, Children: make([]*Node[int, int], 0)}
-		tests := [][]interface{}{
+		tests := [][]any{
 			{0, 0, false},
 		}
 
 		for _, test := range tests {
-			index, found := tree.search(tree.Root, test[0].(int))
+			key := test[0].(int)
+
+			index, found := tree.search(tree.Root, key)
 			if actualValue, expectedValue := index, test[1]; actualValue != expectedValue {
 				t.Errorf("Got %v expected %v", actualValue, expectedValue)
 			}
@@ -1078,7 +1165,7 @@ func TestBTreeSearch(t *testing.T) {
 	{
 		tree := New[int, int](3)
 		tree.Root = &Node[int, int]{Entries: []*Entry[int, int]{{2, 0}, {4, 1}, {6, 2}}, Children: []*Node[int, int]{}}
-		tests := [][]interface{}{
+		tests := [][]any{
 			{0, 0, false},
 			{1, 0, false},
 			{2, 0, true},
@@ -1090,7 +1177,9 @@ func TestBTreeSearch(t *testing.T) {
 		}
 
 		for _, test := range tests {
-			index, found := tree.search(tree.Root, test[0].(int))
+			key := test[0].(int)
+
+			index, found := tree.search(tree.Root, key)
 			if actualValue, expectedValue := index, test[1]; actualValue != expectedValue {
 				t.Errorf("Got %v expected %v", actualValue, expectedValue)
 			}
@@ -1288,7 +1377,7 @@ func TestBTreeSerialization(t *testing.T) {
 
 	assert()
 
-	bytes, err = json.Marshal([]any{"a", "b", "c", tree})
+	_, err = json.Marshal([]any{"a", "b", "c", tree})
 	if err != nil {
 		t.Errorf("Got error %v", err)
 	}
