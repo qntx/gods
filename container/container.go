@@ -15,7 +15,7 @@ import (
 	"cmp"
 	"slices"
 
-	"github.com/qntx/gods/util"
+	godscmp "github.com/qntx/gods/cmp"
 )
 
 // --------------------------------------------------------------------------------
@@ -81,7 +81,7 @@ func GetSortedValues[T cmp.Ordered](c Container[T]) []T {
 // via the provided comparator function. The original container remains unchanged.
 //
 // Returns the original values slice if it has fewer than 2 elements, as sorting is unnecessary.
-func GetSortedValuesFunc[T any](c Container[T], cmp util.Comparator[T]) []T {
+func GetSortedValuesFunc[T any](c Container[T], cmp godscmp.Comparator[T]) []T {
 	values := c.Values()
 	if len(values) < 2 {
 		return values

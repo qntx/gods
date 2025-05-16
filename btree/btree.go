@@ -18,15 +18,15 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/qntx/gods/util"
+	godscmp "github.com/qntx/gods/cmp"
 )
 
 // Tree holds elements of the B-tree.
 type Tree[K comparable, V any] struct {
-	Root       *Node[K, V]        // Root node
-	Comparator util.Comparator[K] // Key comparator
-	size       int                // Total number of keys in the tree
-	m          int                // order (maximum number of children)
+	Root       *Node[K, V]           // Root node
+	Comparator godscmp.Comparator[K] // Key comparator
+	size       int                   // Total number of keys in the tree
+	m          int                   // order (maximum number of children)
 }
 
 // Node is a single element within the tree.
@@ -48,7 +48,7 @@ func New[K cmp.Ordered, V any](order int) *Tree[K, V] {
 }
 
 // NewWith instantiates a B-tree with the order (maximum number of children) and a custom key comparator.
-func NewWith[K comparable, V any](order int, comparator util.Comparator[K]) *Tree[K, V] {
+func NewWith[K comparable, V any](order int, comparator godscmp.Comparator[K]) *Tree[K, V] {
 	if order < 3 {
 		panic("Invalid order, should be at least 3")
 	}

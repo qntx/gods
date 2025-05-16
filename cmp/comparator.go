@@ -1,12 +1,20 @@
-// Package util provides generic utility functions, including comparators for ordering values.
+// Package cmp provides generic utility functions, including comparators for ordering values.
 //
 // Comparators are designed for use in data structures like trees or sorting algorithms.
-package util
+package cmp
 
 import (
 	"math"
 	"time"
 )
+
+// --------------------------------------------------------------------------------
+// Constants
+
+// Epsilon is the default tolerance for floating-point comparisons.
+//
+// Used in comparators to handle precision issues. Value is 1e-15.
+const Epsilon = 1e-15
 
 // --------------------------------------------------------------------------------
 // Types

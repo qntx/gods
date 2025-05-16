@@ -1,4 +1,4 @@
-package util_test
+package cmp_test
 
 import (
 	"cmp"
@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/qntx/gods/util"
+	godscmp "github.com/qntx/gods/cmp"
 )
 
 // TestTimeComparator verifies TimeComparator's behavior with time.Time values.
@@ -31,7 +31,7 @@ func TestTimeComparator(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			got := util.TimeComparator(tt.t1, tt.t2)
+			got := godscmp.TimeComparator(tt.t1, tt.t2)
 			if got != tt.want {
 				t.Errorf("TimeComparator(%v, %v) = %d, want %d", tt.t1, tt.t2, got, tt.want)
 			}
@@ -74,7 +74,7 @@ func TestFloat64Comparator(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			got := util.Float64Comparator(tt.x, tt.y, tt.epsilon)
+			got := godscmp.Float64Comparator(tt.x, tt.y, tt.epsilon)
 			if got != tt.want {
 				t.Errorf("Float64Comparator(%v, %v, %v) = %d, want %d", tt.x, tt.y, tt.epsilon, got, tt.want)
 			}
@@ -117,7 +117,7 @@ func TestFloat64ReverseComparator(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			got := util.Float64ReverseComparator(tt.x, tt.y, tt.epsilon)
+			got := godscmp.Float64ReverseComparator(tt.x, tt.y, tt.epsilon)
 			if got != tt.want {
 				t.Errorf("Float64ReverseComparator(%v, %v, %v) = %d, want %d", tt.x, tt.y, tt.epsilon, got, tt.want)
 			}

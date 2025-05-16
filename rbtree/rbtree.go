@@ -12,7 +12,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/qntx/gods/util"
+	godscmp "github.com/qntx/gods/cmp"
 )
 
 // --------------------------------------------------------------------------------
@@ -40,9 +40,9 @@ type color bool
 // K must be comparable and compatible with the provided comparator.
 // V can be any type.
 type Tree[K comparable, V any] struct {
-	Root       *Node[K, V]        // Root node of the tree.
-	len        int                // Number of nodes in the tree.
-	Comparator util.Comparator[K] // Comparator for ordering keys.
+	Root       *Node[K, V]           // Root node of the tree.
+	len        int                   // Number of nodes in the tree.
+	Comparator godscmp.Comparator[K] // Comparator for ordering keys.
 }
 
 // Node represents a single element in the red-black tree.
@@ -68,7 +68,7 @@ func New[K cmp.Ordered, V any]() *Tree[K, V] {
 // NewWith creates a new red-black tree with a custom comparator.
 //
 // The comparator defines the ordering of keys. Time complexity: O(1).
-func NewWith[K comparable, V any](comparator util.Comparator[K]) *Tree[K, V] {
+func NewWith[K comparable, V any](comparator godscmp.Comparator[K]) *Tree[K, V] {
 	return &Tree[K, V]{Comparator: comparator}
 }
 
@@ -630,7 +630,7 @@ func nodeColor[K comparable, V any](n *Node[K, V]) color {
 // safeCompare wraps a comparator call with error handling.
 //
 // Returns the comparison result and any error from a panic.
-func safeCompare[K comparable](cmp util.Comparator[K], a, b K) (int, error) {
+func safeCompare[K comparable](cmp godscmp.Comparator[K], a, b K) (int, error) {
 	defer func() {
 		if r := recover(); r != nil {
 			err, _ := r.(error)
