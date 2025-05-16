@@ -1,8 +1,8 @@
-// Package ringbuf provides JSON serialization and deserialization for a circular buffer queue.
+// Package deque provides JSON serialization and deserialization for a circular buffer queue.
 //
 // This package extends the Queue type with methods to convert to and from JSON format,
 // implementing the container.JSONSerializer and container.JSONDeserializer interfaces.
-package ringbuf
+package deque
 
 import (
 	"encoding/json"
@@ -27,10 +27,10 @@ var (
 
 // Verify Queue satisfies required interfaces at compile time.
 var (
-	_ container.JSONSerializer   = (*Queue[int])(nil)
-	_ container.JSONDeserializer = (*Queue[int])(nil)
-	_ json.Marshaler             = (*Queue[int])(nil)
-	_ json.Unmarshaler           = (*Queue[int])(nil)
+	_ container.JSONSerializer   = (*Deque[int])(nil)
+	_ container.JSONDeserializer = (*Deque[int])(nil)
+	_ json.Marshaler             = (*Deque[int])(nil)
+	_ json.Unmarshaler           = (*Deque[int])(nil)
 )
 
 // --------------------------------------------------------------------------------
@@ -53,7 +53,7 @@ var (
 //   - An error if marshaling fails.
 //
 // Time complexity: O(n), where n is the number of elements.
-func (q *Queue[T]) ToJSON() ([]byte, error) {
+func (q *Deque[T]) ToJSON() ([]byte, error) {
 	data, err := json.Marshal(q.Values())
 	if err != nil {
 		return nil, fmt.Errorf("ringbuf: %w: %w", ErrMarshalJSON, err)
@@ -77,7 +77,7 @@ func (q *Queue[T]) ToJSON() ([]byte, error) {
 //	An error if the JSON is invalid or elements cannot be unmarshaled into type T.
 //
 // Time complexity: O(n), where n is the number of elements in the JSON array.
-func (q *Queue[T]) FromJSON(data []byte) error {
+func (q *Deque[T]) FromJSON(data []byte) error {
 	var vals []T
 	if err := json.Unmarshal(data, &vals); err != nil {
 		return fmt.Errorf("ringbuf: %w: %w", ErrInvalidJSON, err)
@@ -101,7 +101,7 @@ func (q *Queue[T]) FromJSON(data []byte) error {
 //   - An error if serialization fails.
 //
 // Time complexity: O(n), where n is the number of elements.
-func (q *Queue[T]) MarshalJSON() ([]byte, error) {
+func (q *Deque[T]) MarshalJSON() ([]byte, error) {
 	return q.ToJSON()
 }
 
@@ -114,6 +114,6 @@ func (q *Queue[T]) MarshalJSON() ([]byte, error) {
 //	An error if deserialization fails.
 //
 // Time complexity: O(n), where n is the number of elements in the JSON array.
-func (q *Queue[T]) UnmarshalJSON(data []byte) error {
+func (q *Deque[T]) UnmarshalJSON(data []byte) error {
 	return q.FromJSON(data)
 }

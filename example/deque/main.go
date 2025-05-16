@@ -3,12 +3,12 @@ package main
 import (
 	"log"
 
-	"github.com/qntx/gods/ringbuf"
+	"github.com/qntx/gods/deque"
 )
 
 func main() {
 	// Initialize a circular buffer with capacity 3
-	queue := ringbuf.New[int](3)
+	queue := deque.New[int](3)
 	log.Printf("Initialized circular buffer: capacity=%d, values=%v, len=%d, full=%t",
 		3, queue.Values(), queue.Len(), queue.Full())
 

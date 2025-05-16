@@ -8,5 +8,5 @@ MIT
 
 ## Acknowledgments
 
-- Inspired by: [emirpasic/gods](https://github.com/emirpasic/gods)
-- Referenced: [google/btree](https://github.com/google/btree/tree/master)
+- [emirpasic/gods](https://github.com/emirpasic/gods)
+- [google/btree](https://github.com/google/btree/tree/master)

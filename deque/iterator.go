@@ -1,8 +1,8 @@
-// Package ringbuf provides an iterator for traversing the circular buffer queue.
+// Package deque provides an iterator for traversing the circular buffer queue.
 //
 // This file implements a stateful iterator for the Queue type, supporting both
 // forward and reverse iteration with O(1) access to elements and indices.
-package ringbuf
+package deque
 
 import (
 	"errors"
@@ -33,7 +33,7 @@ var _ container.ReverseIteratorWithIndex[int] = (*Iterator[int])(nil)
 // The iterator is read-only and does not modify the underlying queue. Most operations
 // are O(1), except for NextTo and PrevTo which may be O(n).
 type Iterator[T comparable] struct {
-	queue *Queue[T] // Reference to the queue being iterated.
+	queue *Deque[T] // Reference to the queue being iterated.
 	index int       // Current position: -1 (before start), Len() (past end), or valid index.
 }
 
@@ -44,7 +44,7 @@ type Iterator[T comparable] struct {
 //
 // Starts in an invalid state (before the first element). Use Next() to reach the
 // first element or End() followed by Prev() for the last. Time complexity: O(1).
-func (q *Queue[T]) Iterator() *Iterator[T] {
+func (q *Deque[T]) Iterator() *Iterator[T] {
 	return &Iterator[T]{
 		queue: q,
 		index: -1, // Before-first state.
