@@ -5,6 +5,7 @@ package container
 
 // --------------------------------------------------------------------------------
 // Indexed Container Interface
+// --------------------------------------------------------------------------------
 
 // EnumerableWithIndex defines a generic interface for ordered containers whose elements
 // can be accessed by an integer index.
@@ -43,6 +44,7 @@ type EnumerableWithIndex[T any] interface {
 
 // --------------------------------------------------------------------------------
 // Key-Value Container Interface
+// --------------------------------------------------------------------------------
 
 // EnumerableWithKey defines a generic interface for containers whose elements are key-value pairs.
 //

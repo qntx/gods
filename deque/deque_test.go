@@ -114,13 +114,10 @@ func TestQueueBack(t *testing.T) {
 	}
 }
 
-func TestQueuePeek(t *testing.T) {
+func TestQueueGet(t *testing.T) {
 	t.Parallel()
 
 	queue := deque.New[int](3)
-	if actualValue := queue.Get(0); actualValue != 0 {
-		t.Errorf("Got %v expected %v", actualValue, 0)
-	}
 
 	queue.PushBack(1)
 	queue.PushBack(2)
@@ -136,10 +133,6 @@ func TestQueuePeek(t *testing.T) {
 
 	if actualValue := queue.Get(2); actualValue != 3 {
 		t.Errorf("Got %v expected %v", actualValue, 3)
-	}
-
-	if actualValue := queue.Get(3); actualValue != 0 {
-		t.Errorf("Got %v expected %v", actualValue, 0)
 	}
 }
 

@@ -8,6 +8,7 @@ MIT
 
 ## Acknowledgments
 
+- [google/btree](https://github.com/google/btree/tree/master)
 - [emirpasic/gods](https://github.com/emirpasic/gods)
 - [gammazero/deque](https://github.com/gammazero/deque)
-- [google/btree](https://github.com/google/btree/tree/master)
+- [dnaeon/go-priorityqueue](https://github.com/dnaeon/go-priorityqueue)

@@ -5,6 +5,7 @@ package container
 
 // --------------------------------------------------------------------------------
 // JSON Serialization Interface
+// --------------------------------------------------------------------------------
 
 // JSONSerializer defines methods for serializing container elements into JSON format.
 //
@@ -34,6 +35,7 @@ type JSONSerializer interface {
 
 // --------------------------------------------------------------------------------
 // JSON Deserialization Interface
+// --------------------------------------------------------------------------------
 
 // JSONDeserializer defines methods for deserializing JSON data into container elements.
 //
@@ -63,6 +65,7 @@ type JSONDeserializer interface {
 
 // --------------------------------------------------------------------------------
 // Combined Interface (Optional)
+// --------------------------------------------------------------------------------
 
 // JSONSerializable combines JSONSerializer and JSONDeserializer into a single interface.
 // It can be used for containers that support both serialization and deserialization.

@@ -123,7 +123,7 @@ func (t *Tree[K, V]) Put(key K, val V) {
 // Returns the value and true if found, zero value and false otherwise.
 // Panics if the key type is incompatible with the comparator.
 // Time complexity: O(log n).
-func (t *Tree[K, V]) Get(key K) (val V, found bool) {
+func (t *Tree[K, V]) Get(key K) (val V, ok bool) {
 	if node := t.lookup(key); node != nil {
 		return node.Value, true
 	}

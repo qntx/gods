@@ -12,6 +12,7 @@ import (
 
 // --------------------------------------------------------------------------------
 // Constants and Errors
+// --------------------------------------------------------------------------------
 
 // Predefined errors for iterator operations.
 var (
@@ -20,12 +21,14 @@ var (
 
 // --------------------------------------------------------------------------------
 // Interface Assertions
+// --------------------------------------------------------------------------------
 
 // Ensure Iterator implements container.ReverseIteratorWithIndex at compile time.
 var _ container.ReverseIteratorWithIndex[int] = (*Iterator[int])(nil)
 
 // --------------------------------------------------------------------------------
 // Types
+// --------------------------------------------------------------------------------
 
 // Iterator provides forward and reverse traversal over a Queue's elements.
 //
@@ -39,6 +42,7 @@ type Iterator[T comparable] struct {
 
 // --------------------------------------------------------------------------------
 // Constructor
+// --------------------------------------------------------------------------------
 
 // Iterator creates a new iterator for the queue.
 //
@@ -53,6 +57,7 @@ func (q *Deque[T]) Iterator() *Iterator[T] {
 
 // --------------------------------------------------------------------------------
 // Public Methods
+// --------------------------------------------------------------------------------
 
 // Next advances the iterator to the next element.
 //
@@ -182,6 +187,7 @@ func (it *Iterator[T]) PrevTo(f func(index int, value T) bool) bool {
 
 // --------------------------------------------------------------------------------
 // Private Helpers
+// --------------------------------------------------------------------------------
 
 // valid checks if the iterator is at a valid element position.
 func (it *Iterator[T]) valid() bool {

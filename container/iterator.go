@@ -5,6 +5,7 @@ package container
 
 // --------------------------------------------------------------------------------
 // Forward Iterator with Index
+// --------------------------------------------------------------------------------
 
 // IteratorWithIndex defines a generic, stateful iterator for ordered containers with indexed elements.
 //
@@ -45,6 +46,7 @@ type IteratorWithIndex[T any] interface {
 
 // --------------------------------------------------------------------------------
 // Forward Iterator with Key-Value Pairs
+// --------------------------------------------------------------------------------
 
 // IteratorWithKey defines a generic, stateful iterator for containers with key-value pairs.
 //
@@ -85,6 +87,7 @@ type IteratorWithKey[K, V any] interface {
 
 // --------------------------------------------------------------------------------
 // Reverse Iterator with Index
+// --------------------------------------------------------------------------------
 
 // ReverseIteratorWithIndex extends IteratorWithIndex with reverse traversal capabilities.
 //
@@ -115,6 +118,7 @@ type ReverseIteratorWithIndex[T any] interface {
 
 // --------------------------------------------------------------------------------
 // Reverse Iterator with Key-Value Pairs
+// --------------------------------------------------------------------------------
 
 // ReverseIteratorWithKey extends IteratorWithKey with reverse traversal capabilities.
 //

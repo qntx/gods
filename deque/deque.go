@@ -20,6 +20,7 @@ import (
 
 // --------------------------------------------------------------------------------
 // Constants and Errors
+// --------------------------------------------------------------------------------
 
 const (
 	minCapacity  = 1 // Minimum allowed capacity for the deque.
@@ -35,6 +36,7 @@ var (
 
 // --------------------------------------------------------------------------------
 // Types and Interfaces
+// --------------------------------------------------------------------------------
 
 // Deque represents a double-ended queue implemented as a circular buffer.
 //
@@ -52,6 +54,7 @@ type Deque[T comparable] struct {
 
 // --------------------------------------------------------------------------------
 // Constructors
+// --------------------------------------------------------------------------------
 
 // New initializes a new Deque with the given capacity in overwrite mode.
 //
@@ -105,6 +108,7 @@ func NewFrom[T comparable](values []T, capacity int, growable bool) *Deque[T] {
 
 // --------------------------------------------------------------------------------
 // Public Methods
+// --------------------------------------------------------------------------------
 
 // PushFront inserts an element at the front of the deque.
 //
@@ -448,6 +452,7 @@ func (d *Deque[T]) String() string {
 
 // --------------------------------------------------------------------------------
 // Private Helpers
+// --------------------------------------------------------------------------------
 
 // next calculates the next index in the circular buffer.
 func (d *Deque[T]) next(idx int) int {

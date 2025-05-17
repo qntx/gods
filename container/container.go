@@ -20,6 +20,7 @@ import (
 
 // --------------------------------------------------------------------------------
 // Base Container Interface
+// --------------------------------------------------------------------------------
 
 // Container defines the fundamental interface for all container data structures.
 //
@@ -55,6 +56,7 @@ type Container[T any] interface {
 
 // --------------------------------------------------------------------------------
 // Sorting Utilities
+// --------------------------------------------------------------------------------
 
 // GetSortedValues returns a sorted slice of the container's elements for ordered types.
 //
