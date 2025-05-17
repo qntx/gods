@@ -118,7 +118,7 @@ func TestQueuePeek(t *testing.T) {
 	t.Parallel()
 
 	queue := deque.New[int](3)
-	if actualValue, ok := queue.Peek(0); actualValue != 0 || ok {
+	if actualValue := queue.Get(0); actualValue != 0 {
 		t.Errorf("Got %v expected %v", actualValue, 0)
 	}
 
@@ -126,19 +126,19 @@ func TestQueuePeek(t *testing.T) {
 	queue.PushBack(2)
 	queue.PushBack(3)
 
-	if actualValue, ok := queue.Peek(0); actualValue != 1 || !ok {
+	if actualValue := queue.Get(0); actualValue != 1 {
 		t.Errorf("Got %v expected %v", actualValue, 1)
 	}
 
-	if actualValue, ok := queue.Peek(1); actualValue != 2 || !ok {
+	if actualValue := queue.Get(1); actualValue != 2 {
 		t.Errorf("Got %v expected %v", actualValue, 2)
 	}
 
-	if actualValue, ok := queue.Peek(2); actualValue != 3 || !ok {
+	if actualValue := queue.Get(2); actualValue != 3 {
 		t.Errorf("Got %v expected %v", actualValue, 3)
 	}
 
-	if actualValue, ok := queue.Peek(3); actualValue != 0 || ok {
+	if actualValue := queue.Get(3); actualValue != 0 {
 		t.Errorf("Got %v expected %v", actualValue, 0)
 	}
 }

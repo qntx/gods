@@ -12,19 +12,6 @@ func main() {
 	log.Printf("Initialized circular buffer: capacity=%d, values=%v, len=%d, full=%t",
 		3, queue.Values(), queue.Len(), queue.Full())
 
-	// Test operations on an empty queue
-	log.Println("Testing empty queue operations:")
-	if val, ok := queue.PopBack(); ok {
-		log.Printf("PopBack: %d (should not happen)", val)
-	} else {
-		log.Println("PopBack: queue is empty, returned (0, false)")
-	}
-	if val, ok := queue.PopFront(); ok {
-		log.Printf("PopFront: %d (should not happen)", val)
-	} else {
-		log.Println("PopFront: queue is empty, returned (0, false)")
-	}
-
 	// Test PushBack: Insert 1, 2, 3 from the back
 	// [1, _, _] -> [1, 2, _] -> [1, 2, 3]
 	log.Println("\nTesting PushBack:")
@@ -37,22 +24,27 @@ func main() {
 
 	// Test Peek operations
 	log.Println("\nTesting Peek:")
-	if val, ok := queue.Front(); ok {
-		log.Printf("Front: %d (oldest element)", val)
+	val, ok := queue.Front()
+	if !ok {
+		log.Fatal("Front: expected value")
 	}
-	if val, ok := queue.Back(); ok {
-		log.Printf("Back: %d (newest element)", val)
+	log.Printf("Front: %d (oldest element)", val)
+	val, ok = queue.Back()
+	if !ok {
+		log.Fatal("Back: expected value")
 	}
-	if val, ok := queue.Peek(1); ok {
-		log.Printf("Peek(1): %d (middle element)", val)
-	}
+	log.Printf("Back: %d (newest element)", val)
+	val = queue.Get(1)
+	log.Printf("Peek(1): %d (middle element)", val)
 
 	// Test PopBack: Remove 3 from the back
 	// [1, 2, 3] -> [1, 2, _]
 	log.Println("\nTesting PopBack:")
-	if val, ok := queue.PopBack(); ok {
-		log.Printf("PopBack: %d, values=%v, len=%d, full=%t", val, queue.Values(), queue.Len(), queue.Full())
+	val, ok = queue.PopBack()
+	if !ok {
+		log.Fatal("PopBack: expected value")
 	}
+	log.Printf("PopBack: %d, values=%v, len=%d, full=%t", val, queue.Values(), queue.Len(), queue.Full())
 
 	// Test PushFront: Insert 4 from the front
 	// [1, 2, _] -> [4, 1, 2]
@@ -69,9 +61,11 @@ func main() {
 	// Test PopFront: Remove 1 from the front
 	// [1, 2, 5] -> [2, 5, _]
 	log.Println("\nTesting PopFront:")
-	if val, ok := queue.PopFront(); ok {
-		log.Printf("PopFront: %d, values=%v, len=%d, full=%t", val, queue.Values(), queue.Len(), queue.Full())
+	val, ok = queue.PopFront()
+	if !ok {
+		log.Fatal("PopFront: expected value")
 	}
+	log.Printf("PopFront: %d, values=%v, len=%d, full=%t", val, queue.Values(), queue.Len(), queue.Full())
 
 	// Test PushFront: Insert 6 from the front
 	// [2, 5, _] -> [6, 2, 5]
@@ -82,11 +76,11 @@ func main() {
 	// [6, 2, 5] -> [6, 2, _] -> [6, _, _] -> [_, _, _]
 	log.Println("\nTesting continuous PopBack:")
 	for range 3 {
-		if val, ok := queue.PopBack(); ok {
-			log.Printf("PopBack: %d, values=%v, len=%d, full=%t", val, queue.Values(), queue.Len(), queue.Full())
-		} else {
-			log.Println("PopBack: queue is empty")
+		val, ok := queue.PopBack()
+		if !ok {
+			log.Fatal("PopBack: expected value")
 		}
+		log.Printf("PopBack: %d, values=%v, len=%d, full=%t", val, queue.Values(), queue.Len(), queue.Full())
 	}
 
 	// Test mixed PushFront and PushBack

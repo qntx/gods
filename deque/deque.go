@@ -7,7 +7,9 @@
 // (growable, doubles capacity when full), selected via a boolean flag.
 // Ideal for scenarios requiring bounded or dynamic deques with fast access at both ends.
 //
-// Reference: https://en.wikipedia.org/wiki/Circular_buffer
+// Reference:
+// - https://en.wikipedia.org/wiki/Circular_buffer
+// - https://en.wikipedia.org/wiki/Double-ended_queue
 package deque
 
 import (
@@ -20,12 +22,15 @@ import (
 // Constants and Errors
 
 const (
-	minCapacity = 1 // Minimum allowed capacity for the deque.
+	minCapacity  = 1 // Minimum allowed capacity for the deque.
+	growthFactor = 2 // Factor by which capacity grows when deque is full in expansion mode.
 )
 
 // Predefined errors for deque operations.
 var (
 	ErrInvalidCapacity = errors.New("capacity must be at least 1")
+	ErrIndexOutOfRange = errors.New("index out of range")
+	ErrEmptyDeque      = errors.New("deque is empty")
 )
 
 // --------------------------------------------------------------------------------
@@ -81,8 +86,7 @@ func NewWith[T comparable](capacity int, growable bool) *Deque[T] {
 
 // NewFrom creates a new Deque initialized with elements from the provided slice.
 //
-// The capacity parameter specifies the initial capacity. The actual capacity will be
-// max(capacity, len(values), minCapacity) to ensure all elements fit.
+// The capacity parameter specifies the initial capacity.
 // If growable is true, the deque will expand when full; otherwise, it will overwrite
 // the oldest elements when full.
 //
@@ -90,12 +94,8 @@ func NewWith[T comparable](capacity int, growable bool) *Deque[T] {
 //
 //	d := deque.NewFrom([]int{1, 2, 3}, 10, true) // Creates a growable deque with capacity 10 and initial elements [1,2,3]
 func NewFrom[T comparable](values []T, capacity int, growable bool) *Deque[T] {
-	// Ensure capacity is at least the size of input slice and respects minimum capacity
-	actualCapacity := max(max(capacity, len(values)), minCapacity)
+	d := NewWith[T](capacity, growable)
 
-	d := NewWith[T](actualCapacity, growable)
-
-	// Add all elements from the slice
 	for _, v := range values {
 		d.PushBack(v)
 	}
@@ -110,13 +110,13 @@ func NewFrom[T comparable](values []T, capacity int, growable bool) *Deque[T] {
 //
 // In overwrite mode (growable=false), overwrites the oldest element (back) if full.
 // In expansion mode (growable=true), doubles the capacity if full.
+//
 // Time complexity: O(1) amortized.
 func (d *Deque[T]) PushFront(val T) {
 	if d.Full() {
 		if d.growable {
-			d.grow()
+			d.Grow(d.Cap() * growthFactor)
 		} else {
-			// Overwrite mode: Move end backward to overwrite oldest
 			d.end = d.prev(d.end)
 		}
 	}
@@ -132,13 +132,13 @@ func (d *Deque[T]) PushFront(val T) {
 //
 // In overwrite mode (growable=false), overwrites the oldest element (front) if full.
 // In expansion mode (growable=true), doubles the capacity if full.
+//
 // Time complexity: O(1) amortized.
 func (d *Deque[T]) PushBack(val T) {
 	if d.Full() {
 		if d.growable {
-			d.grow()
+			d.Grow(d.Cap() * growthFactor)
 		} else {
-			// Overwrite mode: Move start forward to overwrite oldest
 			d.start = d.next(d.start)
 		}
 	}
@@ -153,6 +153,7 @@ func (d *Deque[T]) PushBack(val T) {
 // PopFront removes and returns the front element.
 //
 // Returns the zero value of T and false if the deque is empty.
+//
 // Time complexity: O(1).
 func (d *Deque[T]) PopFront() (val T, ok bool) {
 	if d.Empty() {
@@ -169,6 +170,7 @@ func (d *Deque[T]) PopFront() (val T, ok bool) {
 // PopBack removes and returns the back element.
 //
 // Returns the zero value of T and false if the deque is empty.
+//
 // Time complexity: O(1).
 func (d *Deque[T]) PopBack() (val T, ok bool) {
 	if d.Empty() {
@@ -180,6 +182,115 @@ func (d *Deque[T]) PopBack() (val T, ok bool) {
 	d.len--
 
 	return val, true
+}
+
+// Insert adds an element at the specified index, shifting subsequent elements toward the back.
+// Index 0 inserts at the front, Len() inserts at the back. If the deque is full and growable,
+// the capacity is doubled. Panics if the index is invalid (out of range [0, Len()]).
+//
+// Time complexity: O(n) where n is the number of elements after the insertion point.
+func (d *Deque[T]) Insert(idx int, val T) {
+	if idx < 0 || idx > d.len {
+		panic(fmt.Errorf("%w [0,%d]: %d", ErrIndexOutOfRange, d.len, idx))
+	}
+
+	if idx == 0 {
+		d.PushFront(val)
+		return
+	}
+	if idx == d.len {
+		d.PushBack(val)
+		return
+	}
+
+	if d.Full() {
+		if d.growable {
+			d.Grow(d.Cap() * growthFactor)
+		} else {
+			d.start = d.next(d.start)
+			d.len--
+		}
+	}
+
+	if idx <= d.len/2 {
+		// Shift [0..idx-1] left
+		newStart := d.prev(d.start)
+		d.buf[newStart] = d.buf[d.start]
+		for i := range idx - 1 {
+			d.buf[d.wrap(d.start+i)] = d.buf[d.wrap(d.start+i+1)]
+		}
+		d.buf[d.wrap(d.start+idx-1)] = val
+		d.start = newStart
+	} else {
+		// Shift [idx..len-1] right
+		newEnd := d.next(d.end)
+		d.buf[d.end] = d.buf[d.prev(d.end)]
+		for i := d.len - 1; i > idx; i-- {
+			d.buf[d.wrap(d.start+i)] = d.buf[d.wrap(d.start+i-1)]
+		}
+		d.buf[d.wrap(d.start+idx)] = val
+		d.end = newEnd
+	}
+	d.len++
+}
+
+// Remove removes and returns the element at the specified index.
+//
+// Shifts subsequent elements toward the front to fill the gap. Panics if the index
+// is invalid (out of range [0, Len()-1]). Time complexity: O(n) where n is the
+// number of elements after the removal point.
+func (d *Deque[T]) Remove(idx int) (val T, ok bool) {
+	if idx < 0 || idx >= d.len {
+		panic(fmt.Errorf("%w [0,%d): %d", ErrIndexOutOfRange, d.len, idx))
+	}
+
+	if idx == 0 {
+		return d.PopFront()
+	}
+
+	if idx == d.len-1 {
+		return d.PopBack()
+	}
+
+	val = d.buf[d.wrap(d.start+idx)]
+
+	if idx < d.len/2 {
+		// Shift [idx+1..len-1] left
+		for i := idx; i < d.len-1; i++ {
+			d.buf[d.wrap(d.start+i)] = d.buf[d.wrap(d.start+i+1)]
+		}
+		d.end = d.prev(d.end)
+	} else {
+		// Shift [0..idx-1] right
+		for i := idx; i > 0; i-- {
+			d.buf[d.wrap(d.start+i)] = d.buf[d.wrap(d.start+i-1)]
+		}
+		d.start = d.next(d.start)
+	}
+	d.len--
+
+	return val, true
+}
+
+// Swap exchanges the elements at indices i and j.
+//
+// Panics if either index is invalid (out of range [0, Len()-1]).
+// Time complexity: O(1).
+func (d *Deque[T]) Swap(i, j int) {
+	if i < 0 || i >= d.len {
+		panic(fmt.Errorf("%w: i [0,%d): %d", ErrIndexOutOfRange, d.len, i))
+	}
+	if j < 0 || j >= d.len {
+		panic(fmt.Errorf("%w: j [0,%d): %d", ErrIndexOutOfRange, d.len, j))
+	}
+
+	if i == j {
+		return
+	}
+	iPos := d.wrap(d.start + i)
+	jPos := d.wrap(d.start + j)
+
+	d.buf[iPos], d.buf[jPos] = d.buf[jPos], d.buf[iPos]
 }
 
 // Front retrieves the front element without removing it.
@@ -206,16 +317,28 @@ func (d *Deque[T]) Back() (val T, ok bool) {
 	return d.buf[d.prev(d.end)], true
 }
 
-// Peek retrieves the element at the specified index.
+// Get retrieves the element at the specified index.
 //
-// Index 0 is the front, Len()-1 is the back. Returns the zero value of T and false
-// if the index is invalid. Time complexity: O(1).
-func (d *Deque[T]) Peek(idx int) (val T, ok bool) {
+// Index 0 is the front, Len()-1 is the back. Panics if the index is invalid.
+// Time complexity: O(1).
+func (d *Deque[T]) Get(idx int) (val T) {
 	if idx < 0 || idx >= d.len {
-		return val, false
+		panic(fmt.Errorf("%w: idx [0,%d): %d", ErrIndexOutOfRange, d.len, idx))
 	}
 
-	return d.buf[d.wrap(d.start+idx)], true
+	return d.buf[d.wrap(d.start+idx)]
+}
+
+// Set sets the element at the specified index.
+//
+// Index 0 is the front, Len()-1 is the back. Panics if the index is invalid.
+// Time complexity: O(1).
+func (d *Deque[T]) Set(idx int, val T) {
+	if idx < 0 || idx >= d.len {
+		panic(fmt.Errorf("%w: idx [0,%d): %d", ErrIndexOutOfRange, d.len, idx))
+	}
+
+	d.buf[d.wrap(d.start+idx)] = val
 }
 
 // Empty checks if the deque has no elements.
@@ -246,10 +369,10 @@ func (d *Deque[T]) Len() int {
 	return d.len
 }
 
-// Capacity returns the current capacity of the deque.
+// Cap returns the current capacity of the deque.
 //
 // Time complexity: O(1).
-func (d *Deque[T]) Capacity() int {
+func (d *Deque[T]) Cap() int {
 	return d.capacity
 }
 
@@ -258,6 +381,32 @@ func (d *Deque[T]) Capacity() int {
 // Preserves capacity and mode but reinitializes the buffer. Time complexity: O(n).
 func (d *Deque[T]) Clear() {
 	*d = *NewWith[T](d.capacity, d.growable)
+}
+
+// Grow doubles the capacity of the deque when full (expansion mode only).
+//
+// Copies existing elements to a new buffer in FIFO order. Time complexity: O(n).
+func (d *Deque[T]) Grow(n int) {
+	if n < minCapacity {
+		panic(fmt.Errorf("%w: n >= %d: %d", ErrInvalidCapacity, minCapacity, n))
+	}
+
+	c := d.Cap()
+	l := d.Len()
+	// If already big enough.
+	if n <= c {
+		return
+	}
+
+	buf := make([]T, n)
+	for i := range l {
+		buf[i] = d.buf[d.wrap(d.start+i)]
+	}
+
+	d.buf = buf
+	d.start = 0
+	d.end = l
+	d.capacity = n
 }
 
 // Values returns a slice of all elements in FIFO order.
@@ -313,23 +462,4 @@ func (d *Deque[T]) prev(idx int) int {
 // wrap ensures the index stays within buffer bounds.
 func (d *Deque[T]) wrap(idx int) int {
 	return idx % d.capacity
-}
-
-// grow doubles the capacity of the deque when full (expansion mode only).
-//
-// Copies existing elements to a new buffer in FIFO order. Time complexity: O(n).
-func (d *Deque[T]) grow() {
-	newCapacity := max(d.capacity*2, minCapacity)
-
-	newBuf := make([]T, newCapacity)
-	// Copy elements in FIFO order
-	for i := range d.len {
-		newBuf[i] = d.buf[d.wrap(d.start+i)]
-	}
-
-	// Update deque state
-	d.buf = newBuf
-	d.start = 0
-	d.end = d.len
-	d.capacity = newCapacity
 }
