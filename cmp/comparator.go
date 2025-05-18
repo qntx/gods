@@ -58,7 +58,7 @@ func TimeComparator(a, b time.Time) int {
 // Float64 Comparators
 // --------------------------------------------------------------------------------
 
-// Float64Comparator compares two float64 values with an epsilon tolerance.
+// Float64Comparator compares two float64 values directly with an epsilon tolerance.
 //
 // Accounts for floating-point precision by considering values equal if their
 // difference is within epsilon. Handles special cases like NaN and ±0 consistently
@@ -104,6 +104,26 @@ func Float64Comparator(x, y, epsilon float64) int {
 	}
 
 	return 1
+}
+
+// NewFloat64Comparator creates a Comparator for float64 values with a specified epsilon tolerance.
+//
+// Creates a closure that remembers the epsilon value and returns a function conforming to
+// the Comparator[float64] type. This allows pre-configuring the epsilon tolerance
+// without passing it in every comparison operation.
+//
+// Parameters:
+//   - epsilon: Tolerance for equality (e.g., 1e-10). If ≤ 0, defaults to 1e-15.
+//
+// Returns:
+//   - A Comparator[float64] function that compares with the specified epsilon.
+//
+// Time complexity: O(1) for creation, O(1) for each comparison.
+func NewFloat64Comparator(epsilon float64) Comparator[float64] {
+	// Create and return a closure that remembers the epsilon value
+	return func(x, y float64) int {
+		return Float64Comparator(x, y, epsilon)
+	}
 }
 
 // Float64ReverseComparator compares two float64 values with an epsilon tolerance in reverse order.
@@ -153,6 +173,26 @@ func Float64ReverseComparator(x, y, epsilon float64) int {
 	return 1
 }
 
+// NewFloat64ReverseComparator creates a reverse Comparator for float64 values with a specified epsilon tolerance.
+//
+// Creates a closure that remembers the epsilon value and returns a function conforming to
+// the Comparator[float64] type. This allows pre-configuring the epsilon tolerance
+// for descending order comparisons without passing it in every operation.
+//
+// Parameters:
+//   - epsilon: Tolerance for equality (e.g., 1e-10). If ≤ 0, defaults to 1e-15.
+//
+// Returns:
+//   - A Comparator[float64] function that compares with the specified epsilon in reverse order.
+//
+// Time complexity: O(1) for creation, O(1) for each comparison.
+func NewFloat64ReverseComparator(epsilon float64) Comparator[float64] {
+	// Create and return a closure that remembers the epsilon value
+	return func(x, y float64) int {
+		return Float64ReverseComparator(x, y, epsilon)
+	}
+}
+
 // Float64SimpleComparator is a simplified version of Float64Comparator that implements Comparator[float64].
 //
 // Uses the default Epsilon value for comparison tolerance.
@@ -163,6 +203,8 @@ func Float64ReverseComparator(x, y, epsilon float64) int {
 //   - +1 if x > y
 //
 // Time complexity: O(1).
+//
+// Note: This is equivalent to calling NewFloat64Comparator(Epsilon) but avoids the closure overhead.
 func Float64SimpleComparator(x, y float64) int {
 	return Float64Comparator(x, y, Epsilon)
 }
@@ -177,6 +219,8 @@ func Float64SimpleComparator(x, y float64) int {
 //   - +1 if x < y
 //
 // Time complexity: O(1).
+//
+// Note: This is equivalent to calling NewFloat64ReverseComparator(Epsilon) but avoids the closure overhead.
 func Float64SimpleReverseComparator(x, y float64) int {
 	return Float64ReverseComparator(x, y, Epsilon)
 }

@@ -43,7 +43,7 @@ type Entry[K comparable, V any] struct {
 }
 
 // New instantiates a B-tree with the order (maximum number of children) and the built-in comparator for K.
-func New[K cmp.Ordered, V any](order int) *Tree[K, V] {
+func NewBtree[K cmp.Ordered, V any](order int) *Tree[K, V] {
 	return NewWith[K, V](order, cmp.Compare[K])
 }
 

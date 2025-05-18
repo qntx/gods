@@ -16,7 +16,7 @@ func TestBTreeGet(t *testing.T) {
 	t.Run("basic operations", func(t *testing.T) {
 		t.Parallel()
 
-		tree := New[int, string](3)
+		tree := NewBtree[int, string](3)
 
 		// Initialize test data using a map for clarity
 		testData := map[int]string{
@@ -74,7 +74,7 @@ func TestBTreeGet2(t *testing.T) {
 	t.Run("mixed order insertions", func(t *testing.T) {
 		t.Parallel()
 
-		tree := New[int, string](3)
+		tree := NewBtree[int, string](3)
 
 		// Initialize test data using a map for better readability
 		testData := map[int]string{
@@ -138,7 +138,7 @@ func TestBTreeGet3(t *testing.T) {
 	// Use t.Run to organize test scenarios
 	t.Run("tree operations", func(t *testing.T) {
 
-		tree := New[int, string](3)
+		tree := NewBtree[int, string](3)
 
 		// Test initial state
 		t.Run("initial size", func(t *testing.T) {
@@ -201,7 +201,7 @@ func TestBTreeGet3(t *testing.T) {
 
 func TestBTreePut1(t *testing.T) {
 	// https://upload.wikimedia.org/wikipedia/commons/3/33/B_tree_insertion_example.png
-	tree := New[int, int](3)
+	tree := NewBtree[int, int](3)
 	assertValidTree(t, tree, 0)
 
 	tree.Put(1, 0)
@@ -250,7 +250,7 @@ func TestBTreePut1(t *testing.T) {
 }
 
 func TestBTreePut2(t *testing.T) {
-	tree := New[int, int](4)
+	tree := NewBtree[int, int](4)
 	assertValidTree(t, tree, 0)
 
 	tree.Put(0, 0)
@@ -291,7 +291,7 @@ func TestBTreePut2(t *testing.T) {
 
 func TestBTreePut3(t *testing.T) {
 	// http://www.geeksforgeeks.org/b-tree-set-1-insert-2/
-	tree := New[int, int](6)
+	tree := NewBtree[int, int](6)
 	assertValidTree(t, tree, 0)
 
 	tree.Put(10, 0)
@@ -341,7 +341,7 @@ func TestBTreePut3(t *testing.T) {
 }
 
 func TestBTreePut4(t *testing.T) {
-	tree := New[int, *struct{}](3)
+	tree := NewBtree[int, *struct{}](3)
 	assertValidTree(t, tree, 0)
 
 	tree.Put(6, nil)
@@ -436,14 +436,14 @@ func TestBTreePut4(t *testing.T) {
 
 func TestBTreeRemove1(t *testing.T) {
 	// empty
-	tree := New[int, int](3)
+	tree := NewBtree[int, int](3)
 	tree.Remove(1)
 	assertValidTree(t, tree, 0)
 }
 
 func TestBTreeRemove2(t *testing.T) {
 	// leaf node (no underflow)
-	tree := New[int, *struct{}](3)
+	tree := NewBtree[int, *struct{}](3)
 	tree.Put(1, nil)
 	tree.Put(2, nil)
 
@@ -458,7 +458,7 @@ func TestBTreeRemove2(t *testing.T) {
 func TestBTreeRemove3(t *testing.T) {
 	// merge with right (underflow)
 	{
-		tree := New[int, *struct{}](3)
+		tree := NewBtree[int, *struct{}](3)
 		tree.Put(1, nil)
 		tree.Put(2, nil)
 		tree.Put(3, nil)
@@ -469,7 +469,7 @@ func TestBTreeRemove3(t *testing.T) {
 	}
 	// merge with left (underflow)
 	{
-		tree := New[int, *struct{}](3)
+		tree := NewBtree[int, *struct{}](3)
 		tree.Put(1, nil)
 		tree.Put(2, nil)
 		tree.Put(3, nil)
@@ -482,7 +482,7 @@ func TestBTreeRemove3(t *testing.T) {
 
 func TestBTreeRemove4(t *testing.T) {
 	// rotate left (underflow)
-	tree := New[int, *struct{}](3)
+	tree := NewBtree[int, *struct{}](3)
 	tree.Put(1, nil)
 	tree.Put(2, nil)
 	tree.Put(3, nil)
@@ -502,7 +502,7 @@ func TestBTreeRemove4(t *testing.T) {
 
 func TestBTreeRemove5(t *testing.T) {
 	// rotate right (underflow)
-	tree := New[int, *struct{}](3)
+	tree := NewBtree[int, *struct{}](3)
 	tree.Put(1, nil)
 	tree.Put(2, nil)
 	tree.Put(3, nil)
@@ -523,7 +523,7 @@ func TestBTreeRemove5(t *testing.T) {
 func TestBTreeRemove6(t *testing.T) {
 	// root height reduction after a series of underflows on right side
 	// use simulator: https://www.cs.usfca.edu/~galles/visualization/BTree.html
-	tree := New[int, *struct{}](3)
+	tree := NewBtree[int, *struct{}](3)
 	tree.Put(1, nil)
 	tree.Put(2, nil)
 	tree.Put(3, nil)
@@ -552,7 +552,7 @@ func TestBTreeRemove6(t *testing.T) {
 func TestBTreeRemove7(t *testing.T) {
 	// root height reduction after a series of underflows on left side
 	// use simulator: https://www.cs.usfca.edu/~galles/visualization/BTree.html
-	tree := New[int, *struct{}](3)
+	tree := NewBtree[int, *struct{}](3)
 	tree.Put(1, nil)
 	tree.Put(2, nil)
 	tree.Put(3, nil)
@@ -611,7 +611,7 @@ func TestBTreeRemove7(t *testing.T) {
 
 func TestBTreeRemove8(t *testing.T) {
 	// use simulator: https://www.cs.usfca.edu/~galles/visualization/BTree.html
-	tree := New[int, *struct{}](3)
+	tree := NewBtree[int, *struct{}](3)
 	tree.Put(1, nil)
 	tree.Put(2, nil)
 	tree.Put(3, nil)
@@ -648,7 +648,7 @@ func TestBTreeRemove9(t *testing.T) {
 
 	orders := []int{3, 4, 5, 6, 7, 8, 9, 10, 20, 100, 500, 1000, 5000, 10000}
 	for _, order := range orders {
-		tree := New[int, int](order)
+		tree := NewBtree[int, int](order)
 
 		{
 			for i := 1; i <= maxSize; i++ {
@@ -693,7 +693,7 @@ func TestBTreeRemove9(t *testing.T) {
 }
 
 func TestBTreeHeight(t *testing.T) {
-	tree := New[int, int](3)
+	tree := NewBtree[int, int](3)
 	if actualValue, expectedValue := tree.Height(), 0; actualValue != expectedValue {
 		t.Errorf("Got %v expected %v", actualValue, expectedValue)
 	}
@@ -754,7 +754,7 @@ func TestBTreeHeight(t *testing.T) {
 }
 
 func TestBTreeLeftAndRight(t *testing.T) {
-	tree := New[int, string](3)
+	tree := NewBtree[int, string](3)
 
 	if actualValue := tree.Left(); actualValue != nil {
 		t.Errorf("Got %v expected %v", actualValue, nil)
@@ -791,7 +791,7 @@ func TestBTreeLeftAndRight(t *testing.T) {
 }
 
 func TestBTreeIteratorValuesAndKeys(t *testing.T) {
-	tree := New[int, string](4)
+	tree := NewBtree[int, string](4)
 	tree.Put(4, "d")
 	tree.Put(5, "e")
 	tree.Put(6, "f")
@@ -815,7 +815,7 @@ func TestBTreeIteratorValuesAndKeys(t *testing.T) {
 }
 
 func TestBTreeIteratorNextOnEmpty(t *testing.T) {
-	tree := New[int, string](3)
+	tree := NewBtree[int, string](3)
 
 	it := tree.Iterator()
 	for it.Next() {
@@ -824,7 +824,7 @@ func TestBTreeIteratorNextOnEmpty(t *testing.T) {
 }
 
 func TestBTreeIteratorPrevOnEmpty(t *testing.T) {
-	tree := New[int, string](3)
+	tree := NewBtree[int, string](3)
 
 	it := tree.Iterator()
 	for it.Prev() {
@@ -833,7 +833,7 @@ func TestBTreeIteratorPrevOnEmpty(t *testing.T) {
 }
 
 func TestBTreeIterator1Next(t *testing.T) {
-	tree := New[int, string](3)
+	tree := NewBtree[int, string](3)
 	tree.Put(5, "e")
 	tree.Put(6, "f")
 	tree.Put(7, "g")
@@ -860,7 +860,7 @@ func TestBTreeIterator1Next(t *testing.T) {
 }
 
 func TestBTreeIterator1Prev(t *testing.T) {
-	tree := New[int, string](3)
+	tree := NewBtree[int, string](3)
 	tree.Put(5, "e")
 	tree.Put(6, "f")
 	tree.Put(7, "g")
@@ -891,7 +891,7 @@ func TestBTreeIterator1Prev(t *testing.T) {
 }
 
 func TestBTreeIterator2Next(t *testing.T) {
-	tree := New[int, string](3)
+	tree := NewBtree[int, string](3)
 	tree.Put(3, "c")
 	tree.Put(1, "a")
 	tree.Put(2, "b")
@@ -913,7 +913,7 @@ func TestBTreeIterator2Next(t *testing.T) {
 }
 
 func TestBTreeIterator2Prev(t *testing.T) {
-	tree := New[int, string](3)
+	tree := NewBtree[int, string](3)
 	tree.Put(3, "c")
 	tree.Put(1, "a")
 	tree.Put(2, "b")
@@ -939,7 +939,7 @@ func TestBTreeIterator2Prev(t *testing.T) {
 }
 
 func TestBTreeIterator3Next(t *testing.T) {
-	tree := New[int, string](3)
+	tree := NewBtree[int, string](3)
 	tree.Put(1, "a")
 	it := tree.Iterator()
 	count := 0
@@ -959,7 +959,7 @@ func TestBTreeIterator3Next(t *testing.T) {
 }
 
 func TestBTreeIterator3Prev(t *testing.T) {
-	tree := New[int, string](3)
+	tree := NewBtree[int, string](3)
 	tree.Put(1, "a")
 
 	it := tree.Iterator()
@@ -983,7 +983,7 @@ func TestBTreeIterator3Prev(t *testing.T) {
 }
 
 func TestBTreeIterator4Next(t *testing.T) {
-	tree := New[int, int](3)
+	tree := NewBtree[int, int](3)
 	tree.Put(13, 5)
 	tree.Put(8, 3)
 	tree.Put(17, 7)
@@ -1012,7 +1012,7 @@ func TestBTreeIterator4Next(t *testing.T) {
 }
 
 func TestBTreeIterator4Prev(t *testing.T) {
-	tree := New[int, int](3)
+	tree := NewBtree[int, int](3)
 	tree.Put(13, 5)
 	tree.Put(8, 3)
 	tree.Put(17, 7)
@@ -1044,7 +1044,7 @@ func TestBTreeIterator4Prev(t *testing.T) {
 }
 
 func TestBTreeIteratorBegin(t *testing.T) {
-	tree := New[int, string](3)
+	tree := NewBtree[int, string](3)
 	tree.Put(3, "c")
 	tree.Put(1, "a")
 	tree.Put(2, "b")
@@ -1077,7 +1077,7 @@ func TestBTreeIteratorBegin(t *testing.T) {
 }
 
 func TestBTreeIteratorEnd(t *testing.T) {
-	tree := New[int, string](3)
+	tree := NewBtree[int, string](3)
 	it := tree.Iterator()
 
 	if it.node != nil {
@@ -1107,7 +1107,7 @@ func TestBTreeIteratorEnd(t *testing.T) {
 }
 
 func TestBTreeIteratorFirst(t *testing.T) {
-	tree := New[int, string](3)
+	tree := NewBtree[int, string](3)
 	tree.Put(3, "c")
 	tree.Put(1, "a")
 	tree.Put(2, "b")
@@ -1123,7 +1123,7 @@ func TestBTreeIteratorFirst(t *testing.T) {
 }
 
 func TestBTreeIteratorLast(t *testing.T) {
-	tree := New[int, string](3)
+	tree := NewBtree[int, string](3)
 	tree.Put(3, "c")
 	tree.Put(1, "a")
 	tree.Put(2, "b")
@@ -1140,7 +1140,7 @@ func TestBTreeIteratorLast(t *testing.T) {
 
 func TestBTreeSearch(t *testing.T) {
 	{
-		tree := New[int, int](3)
+		tree := NewBtree[int, int](3)
 		tree.Root = &Node[int, int]{Entries: []*Entry[int, int]{}, Children: make([]*Node[int, int], 0)}
 		tests := [][]any{
 			{0, 0, false},
@@ -1160,7 +1160,7 @@ func TestBTreeSearch(t *testing.T) {
 		}
 	}
 	{
-		tree := New[int, int](3)
+		tree := NewBtree[int, int](3)
 		tree.Root = &Node[int, int]{Entries: []*Entry[int, int]{{2, 0}, {4, 1}, {6, 2}}, Children: []*Node[int, int]{}}
 		tests := [][]any{
 			{0, 0, false},
@@ -1226,7 +1226,7 @@ func TestBTreeIteratorNextTo(t *testing.T) {
 
 	// NextTo (empty)
 	{
-		tree := New[int, string](3)
+		tree := NewBtree[int, string](3)
 
 		it := tree.Iterator()
 		for it.NextTo(seek) {
@@ -1236,7 +1236,7 @@ func TestBTreeIteratorNextTo(t *testing.T) {
 
 	// NextTo (not found)
 	{
-		tree := New[int, string](3)
+		tree := NewBtree[int, string](3)
 		tree.Put(0, "xx")
 		tree.Put(1, "yy")
 
@@ -1248,7 +1248,7 @@ func TestBTreeIteratorNextTo(t *testing.T) {
 
 	// NextTo (found)
 	{
-		tree := New[int, string](3)
+		tree := NewBtree[int, string](3)
 		tree.Put(2, "cc")
 		tree.Put(0, "aa")
 		tree.Put(1, "bb")
@@ -1285,7 +1285,7 @@ func TestBTreeIteratorPrevTo(t *testing.T) {
 
 	// PrevTo (empty)
 	{
-		tree := New[int, string](3)
+		tree := NewBtree[int, string](3)
 		it := tree.Iterator()
 		it.End()
 
@@ -1296,7 +1296,7 @@ func TestBTreeIteratorPrevTo(t *testing.T) {
 
 	// PrevTo (not found)
 	{
-		tree := New[int, string](3)
+		tree := NewBtree[int, string](3)
 		tree.Put(0, "xx")
 		tree.Put(1, "yy")
 		it := tree.Iterator()
@@ -1309,7 +1309,7 @@ func TestBTreeIteratorPrevTo(t *testing.T) {
 
 	// PrevTo (found)
 	{
-		tree := New[int, string](3)
+		tree := NewBtree[int, string](3)
 		tree.Put(2, "cc")
 		tree.Put(0, "aa")
 		tree.Put(1, "bb")
@@ -1339,7 +1339,7 @@ func TestBTreeIteratorPrevTo(t *testing.T) {
 }
 
 func TestBTreeSerialization(t *testing.T) {
-	tree := New[string, string](3)
+	tree := NewBtree[string, string](3)
 	tree.Put("c", "3")
 	tree.Put("b", "2")
 	tree.Put("a", "1")
@@ -1379,7 +1379,7 @@ func TestBTreeSerialization(t *testing.T) {
 		t.Errorf("Got error %v", err)
 	}
 
-	intTree := New[string, int](3)
+	intTree := NewBtree[string, int](3)
 
 	err = json.Unmarshal([]byte(`{"a":1,"b":2}`), intTree)
 	if err != nil {
@@ -1400,7 +1400,7 @@ func TestBTreeSerialization(t *testing.T) {
 }
 
 func TestBTreeString(t *testing.T) {
-	c := New[string, int](3)
+	c := NewBtree[string, int](3)
 	c.Put("a", 1)
 
 	if !strings.HasPrefix(c.String(), "BTree") {
@@ -1442,7 +1442,7 @@ func BenchmarkBTreeGet100(b *testing.B) {
 	b.StopTimer()
 
 	size := 100
-	tree := New[int, struct{}](128)
+	tree := NewBtree[int, struct{}](128)
 
 	for n := range size {
 		tree.Put(n, struct{}{})
@@ -1456,7 +1456,7 @@ func BenchmarkBTreeGet1000(b *testing.B) {
 	b.StopTimer()
 
 	size := 1000
-	tree := New[int, struct{}](128)
+	tree := NewBtree[int, struct{}](128)
 
 	for n := range size {
 		tree.Put(n, struct{}{})
@@ -1470,7 +1470,7 @@ func BenchmarkBTreeGet10000(b *testing.B) {
 	b.StopTimer()
 
 	size := 10000
-	tree := New[int, struct{}](128)
+	tree := NewBtree[int, struct{}](128)
 
 	for n := range size {
 		tree.Put(n, struct{}{})
@@ -1484,7 +1484,7 @@ func BenchmarkBTreeGet100000(b *testing.B) {
 	b.StopTimer()
 
 	size := 100000
-	tree := New[int, struct{}](128)
+	tree := NewBtree[int, struct{}](128)
 
 	for n := range size {
 		tree.Put(n, struct{}{})
@@ -1498,7 +1498,7 @@ func BenchmarkBTreePut100(b *testing.B) {
 	b.StopTimer()
 
 	size := 100
-	tree := New[int, struct{}](128)
+	tree := NewBtree[int, struct{}](128)
 
 	b.StartTimer()
 	benchmarkPut(b, tree, size)
@@ -1508,7 +1508,7 @@ func BenchmarkBTreePut1000(b *testing.B) {
 	b.StopTimer()
 
 	size := 1000
-	tree := New[int, struct{}](128)
+	tree := NewBtree[int, struct{}](128)
 
 	for n := range size {
 		tree.Put(n, struct{}{})
@@ -1522,7 +1522,7 @@ func BenchmarkBTreePut10000(b *testing.B) {
 	b.StopTimer()
 
 	size := 10000
-	tree := New[int, struct{}](128)
+	tree := NewBtree[int, struct{}](128)
 
 	for n := range size {
 		tree.Put(n, struct{}{})
@@ -1536,7 +1536,7 @@ func BenchmarkBTreePut100000(b *testing.B) {
 	b.StopTimer()
 
 	size := 100000
-	tree := New[int, struct{}](128)
+	tree := NewBtree[int, struct{}](128)
 
 	for n := range size {
 		tree.Put(n, struct{}{})
@@ -1550,7 +1550,7 @@ func BenchmarkBTreeRemove100(b *testing.B) {
 	b.StopTimer()
 
 	size := 100
-	tree := New[int, struct{}](128)
+	tree := NewBtree[int, struct{}](128)
 
 	for n := range size {
 		tree.Put(n, struct{}{})
@@ -1564,7 +1564,7 @@ func BenchmarkBTreeRemove1000(b *testing.B) {
 	b.StopTimer()
 
 	size := 1000
-	tree := New[int, struct{}](128)
+	tree := NewBtree[int, struct{}](128)
 
 	for n := range size {
 		tree.Put(n, struct{}{})
@@ -1578,7 +1578,7 @@ func BenchmarkBTreeRemove10000(b *testing.B) {
 	b.StopTimer()
 
 	size := 10000
-	tree := New[int, struct{}](128)
+	tree := NewBtree[int, struct{}](128)
 
 	for n := range size {
 		tree.Put(n, struct{}{})
@@ -1592,7 +1592,7 @@ func BenchmarkBTreeRemove100000(b *testing.B) {
 	b.StopTimer()
 
 	size := 100000
-	tree := New[int, struct{}](128)
+	tree := NewBtree[int, struct{}](128)
 
 	for n := range size {
 		tree.Put(n, struct{}{})
