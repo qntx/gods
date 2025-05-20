@@ -8,18 +8,10 @@ import (
 	"time"
 )
 
-// --------------------------------------------------------------------------------
-// Constants
-// --------------------------------------------------------------------------------
-
 // Epsilon is the default tolerance for floating-point comparisons.
 //
 // Used in comparators to handle precision issues. Value is 1e-15.
 const Epsilon = 1e-15
-
-// --------------------------------------------------------------------------------
-// Types
-// --------------------------------------------------------------------------------
 
 // Comparator defines a function for comparing two values of type T.
 //
@@ -28,10 +20,6 @@ const Epsilon = 1e-15
 //   - 0 if x == y
 //   - +1 if x > y
 type Comparator[T any] func(x, y T) int
-
-// --------------------------------------------------------------------------------
-// Time Comparator
-// --------------------------------------------------------------------------------
 
 // TimeComparator compares two time.Time values.
 //
@@ -53,10 +41,6 @@ func TimeComparator(a, b time.Time) int {
 
 	return 0
 }
-
-// --------------------------------------------------------------------------------
-// Float64 Comparators
-// --------------------------------------------------------------------------------
 
 // Float64Comparator compares two float64 values directly with an epsilon tolerance.
 //
