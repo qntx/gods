@@ -12,15 +12,10 @@
 package container
 
 import (
-	"cmp"
 	"slices"
 
-	godscmp "github.com/qntx/gods/cmp"
+	"github.com/qntx/gods/cmp"
 )
-
-// --------------------------------------------------------------------------------
-// Base Container Interface
-// --------------------------------------------------------------------------------
 
 // Container defines the fundamental interface for all container data structures.
 //
@@ -54,10 +49,6 @@ type Container[T any] interface {
 	String() string
 }
 
-// --------------------------------------------------------------------------------
-// Sorting Utilities
-// --------------------------------------------------------------------------------
-
 // GetSortedValues returns a sorted slice of the container's elements for ordered types.
 //
 // It uses the natural ordering of type T, as defined by the cmp.Ordered constraint.
@@ -83,7 +74,7 @@ func GetSortedValues[T cmp.Ordered](c Container[T]) []T {
 // via the provided comparator function. The original container remains unchanged.
 //
 // Returns the original values slice if it has fewer than 2 elements, as sorting is unnecessary.
-func GetSortedValuesFunc[T any](c Container[T], cmp godscmp.Comparator[T]) []T {
+func GetSortedValuesFunc[T any](c Container[T], cmp cmp.Comparator[T]) []T {
 	values := c.Values()
 	if len(values) < 2 {
 		return values

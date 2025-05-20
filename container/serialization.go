@@ -3,10 +3,6 @@
 // to convert their elements to and from JSON format in a standardized way.
 package container
 
-// --------------------------------------------------------------------------------
-// JSON Serialization Interface
-// --------------------------------------------------------------------------------
-
 // JSONSerializer defines methods for serializing container elements into JSON format.
 //
 // This interface provides a standard way to convert a container's data into a JSON byte
@@ -33,10 +29,6 @@ type JSONSerializer interface {
 	MarshalJSON() ([]byte, error)
 }
 
-// --------------------------------------------------------------------------------
-// JSON Deserialization Interface
-// --------------------------------------------------------------------------------
-
 // JSONDeserializer defines methods for deserializing JSON data into container elements.
 //
 // This interface provides a standard way to populate a container's data from a JSON byte
@@ -62,10 +54,6 @@ type JSONDeserializer interface {
 	// JSON data or returns an error if deserialization fails.
 	UnmarshalJSON(data []byte) error
 }
-
-// --------------------------------------------------------------------------------
-// Combined Interface (Optional)
-// --------------------------------------------------------------------------------
 
 // JSONSerializable combines JSONSerializer and JSONDeserializer into a single interface.
 // It can be used for containers that support both serialization and deserialization.

@@ -12,10 +12,6 @@ import (
 	"github.com/qntx/gods/container"
 )
 
-// --------------------------------------------------------------------------------
-// Test Implementation of Container
-// --------------------------------------------------------------------------------
-
 // containerTest is a test implementation of the container.Container interface.
 type containerTest[T any] struct {
 	values []T
@@ -64,10 +60,6 @@ func (c *containerTest[T]) String() string {
 
 	return sb.String()
 }
-
-// --------------------------------------------------------------------------------
-// Test Cases
-// --------------------------------------------------------------------------------
 
 func TestContainerMethods(t *testing.T) {
 	t.Parallel()

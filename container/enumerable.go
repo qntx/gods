@@ -3,10 +3,6 @@
 // iteration, filtering, and querying capabilities across different container implementations.
 package container
 
-// --------------------------------------------------------------------------------
-// Indexed Container Interface
-// --------------------------------------------------------------------------------
-
 // EnumerableWithIndex defines a generic interface for ordered containers whose elements
 // can be accessed by an integer index.
 //
@@ -41,10 +37,6 @@ type EnumerableWithIndex[T any] interface {
 	// If no element satisfies the condition, it returns -1 and the zero value of T.
 	Find(fn func(index int, value T) bool) (int, T)
 }
-
-// --------------------------------------------------------------------------------
-// Key-Value Container Interface
-// --------------------------------------------------------------------------------
 
 // EnumerableWithKey defines a generic interface for containers whose elements are key-value pairs.
 //

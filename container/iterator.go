@@ -3,10 +3,6 @@
 // enabling flexible and type-safe iteration over various container implementations.
 package container
 
-// --------------------------------------------------------------------------------
-// Forward Iterator with Index
-// --------------------------------------------------------------------------------
-
 // IteratorWithIndex defines a generic, stateful iterator for ordered containers with indexed elements.
 //
 // This interface allows forward traversal of a container using integer indices. It maintains an
@@ -43,10 +39,6 @@ type IteratorWithIndex[T any] interface {
 	// can then be retrieved with Index() and Value().
 	NextTo(fn func(index int, value T) bool) bool
 }
-
-// --------------------------------------------------------------------------------
-// Forward Iterator with Key-Value Pairs
-// --------------------------------------------------------------------------------
 
 // IteratorWithKey defines a generic, stateful iterator for containers with key-value pairs.
 //
@@ -85,10 +77,6 @@ type IteratorWithKey[K, V any] interface {
 	NextTo(fn func(key K, value V) bool) bool
 }
 
-// --------------------------------------------------------------------------------
-// Reverse Iterator with Index
-// --------------------------------------------------------------------------------
-
 // ReverseIteratorWithIndex extends IteratorWithIndex with reverse traversal capabilities.
 //
 // This interface adds methods for backward iteration, including moving to the last element
@@ -115,10 +103,6 @@ type ReverseIteratorWithIndex[T any] interface {
 
 	IteratorWithIndex[T]
 }
-
-// --------------------------------------------------------------------------------
-// Reverse Iterator with Key-Value Pairs
-// --------------------------------------------------------------------------------
 
 // ReverseIteratorWithKey extends IteratorWithKey with reverse traversal capabilities.
 //

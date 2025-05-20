@@ -1,12 +1,11 @@
 package rbtreeset
 
 import (
-	"cmp"
 	"fmt"
 	"reflect"
 	"strings"
 
-	godscmp "github.com/qntx/gods/cmp"
+	"github.com/qntx/gods/cmp"
 	rbt "github.com/qntx/gods/rbtree"
 )
 
@@ -18,11 +17,11 @@ type Set[T comparable] struct {
 var itemExists = struct{}{}
 
 func New[T cmp.Ordered](values ...T) *Set[T] {
-	return NewWith(cmp.Compare[T], values...)
+	return NewWith(cmp.GenericComparator[T], values...)
 }
 
 // NewWith instantiates a new empty set with the custom comparator.
-func NewWith[T comparable](comparator godscmp.Comparator[T], values ...T) *Set[T] {
+func NewWith[T comparable](comparator cmp.Comparator[T], values ...T) *Set[T] {
 	set := &Set[T]{tree: rbt.NewWith[T, struct{}](comparator)}
 	if len(values) > 0 {
 		set.Add(values...)
