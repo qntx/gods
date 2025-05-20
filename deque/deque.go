@@ -18,10 +18,6 @@ import (
 	"strings"
 )
 
-// --------------------------------------------------------------------------------
-// Constants and Errors
-// --------------------------------------------------------------------------------
-
 const (
 	minCapacity  = 1 // Minimum allowed capacity for the deque.
 	growthFactor = 2 // Factor by which capacity grows when deque is full in expansion mode.
@@ -33,10 +29,6 @@ var (
 	ErrIndexOutOfRange = errors.New("index out of range")
 	ErrEmptyDeque      = errors.New("deque is empty")
 )
-
-// --------------------------------------------------------------------------------
-// Types and Interfaces
-// --------------------------------------------------------------------------------
 
 // Deque represents a double-ended queue implemented as a circular buffer.
 //
@@ -51,10 +43,6 @@ type Deque[T comparable] struct {
 	len      int  // Current number of elements.
 	growable bool // True for expansion mode, false for overwrite mode.
 }
-
-// --------------------------------------------------------------------------------
-// Constructors
-// --------------------------------------------------------------------------------
 
 // New initializes a new Deque with the given capacity in overwrite mode.
 //
@@ -105,10 +93,6 @@ func NewFrom[T comparable](values []T, capacity int, growable bool) *Deque[T] {
 
 	return d
 }
-
-// --------------------------------------------------------------------------------
-// Public Methods
-// --------------------------------------------------------------------------------
 
 // PushFront inserts an element at the front of the deque.
 //
@@ -449,10 +433,6 @@ func (d *Deque[T]) String() string {
 
 	return sb.String()
 }
-
-// --------------------------------------------------------------------------------
-// Private Helpers
-// --------------------------------------------------------------------------------
 
 // next calculates the next index in the circular buffer.
 func (d *Deque[T]) next(idx int) int {

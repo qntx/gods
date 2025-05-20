@@ -19,10 +19,6 @@ import (
 	godscmp "github.com/qntx/gods/cmp"
 )
 
-// --------------------------------------------------------------------------------
-// Constants and Types
-// --------------------------------------------------------------------------------
-
 // Error messages defined as constants.
 var (
 	// ErrValueNotFound indicates that a value was not found in the queue.
@@ -61,10 +57,6 @@ type PriorityQueue[T comparable, V cmp.Ordered] struct {
 	cmp    godscmp.Comparator[V]
 }
 
-// --------------------------------------------------------------------------------
-// Constructor Functions
-// --------------------------------------------------------------------------------
-
 // New creates a new priority queue with the default comparator for ordered types.
 // It initializes an empty queue with the specified heap kind (MinHeap or MaxHeap).
 // The type V must implement cmp.Ordered (e.g., int, float64, string).
@@ -82,7 +74,7 @@ type PriorityQueue[T comparable, V cmp.Ordered] struct {
 //	pq := New[int, int](MinHeap)
 //	pq.Put(1, 10)
 func New[T comparable, V cmp.Ordered](kind HeapKind) *PriorityQueue[T, V] {
-	return NewWith[T, V](kind, cmp.Compare[V])
+	return NewWith[T](kind, cmp.Compare[V])
 }
 
 // NewWith creates a new priority queue with a custom comparator for priorities.
@@ -114,10 +106,6 @@ func NewWith[T comparable, V cmp.Ordered](kind HeapKind, cmp godscmp.Comparator[
 	heap.Init(pq)
 	return pq
 }
-
-// --------------------------------------------------------------------------------
-// Heap Interface Implementation
-// --------------------------------------------------------------------------------
 
 // Len returns the number of items in the queue.
 // Time complexity: O(1).
@@ -164,10 +152,6 @@ func (pq *PriorityQueue[T, V]) Pop() any {
 	delete(pq.idxMap, item.Value)
 	return item
 }
-
-// --------------------------------------------------------------------------------
-// Public Methods
-// --------------------------------------------------------------------------------
 
 // Put adds a value with the specified priority to the queue.
 // If the value already exists, it updates the priority.
