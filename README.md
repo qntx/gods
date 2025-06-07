@@ -1,6 +1,25 @@
 # Go Data Structures
 
-A lightweight Go library inspired by [gods](https://github.com/emirpasic/gods), refactored and optimized based on its structure.
+A collection of data structures implemented in Go.
+
+## Containers
+
+| **Data** | **Structure**                         | **Ordered** | **Iterator** | **Enumerable** | **Referenced by** |
+| :--- |:--------------------------------------| :---: | :---: | :---: | :---: |
+| Set ||||||
+|   | `HashSet`                 | no | no | no | index |
+|   | `BTreeSet`                 | yes | yes | yes | index |
+|   | `RBTreeSet`                | yes | yes | yes | index |
+| Map ||||||
+|   | `HashMap`                 | no | no | no | key |
+|   | `BTreeMap`                | yes | yes | yes | key |
+|   | `RBTreeMap`                | yes | yes | yes | key |
+| Tree ||||||
+|   | `BTree`         | yes | yes | no | key |
+|   | `RBTree`                    | yes | yes | no | key |
+| Queue ||||||
+|   | `ArrayDeque`           | yes | yes | no | index |
+|   | `PriorityQueue`     | yes | yes | no | index |
 
 ## License
 
