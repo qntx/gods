@@ -14,6 +14,9 @@ import (
 	"github.com/qntx/gods/cmp"
 )
 
+// color represents the color of a red-black tree node (red or black).
+type color bool
+
 // Color constants for red-black tree nodes.
 const (
 	black color = true  // Represents a black node.
@@ -24,9 +27,6 @@ const (
 var (
 	ErrInvalidKeyType = errors.New("key type does not match comparator")
 )
-
-// color represents the color of a red-black tree node (red or black).
-type color bool
 
 // Tree manages a red-black tree with key-value pairs.
 //
@@ -304,9 +304,6 @@ func (t *Tree[K, V]) String() string {
 func (n *Node[K, V]) String() string {
 	return fmt.Sprintf("%v", n.Key)
 }
-
-// --------------------------------------------------------------------------------
-// Private Methods
 
 // validateKey ensures the key is compatible with the comparator.
 //
