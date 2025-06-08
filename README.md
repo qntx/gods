@@ -8,20 +8,20 @@ A collection of data structures implemented in Go.
 | -------- | --------------- | ----------- | ------------ | -------------- | ----------------- | --------------- |
 | Set      |                 |             |              |                |                   |                 |
 |          | `HashSet`       | N           | N            | N              | Index             | Y               |
-|          | `BTreeSet`      | Y           | Y            | Y              | Index             | N               |
-|          | `RBTreeSet`     | Y           | Y            | Y              | Index             | N               |
+|          | `BTreeSet`      | Y           | Y            | Y              | Index             | Y               |
+|          | `RBTreeSet`     | Y           | Y            | Y              | Index             | Y               |
 | Map      |                 |             |              |                |                   |                 |
-|          | `HashMap`       | N           | N            | N              | Key               | N               |
-|          | `HashBidiMap`   | N           | N            | N              | Key               | N               |
-|          | `BTreeMap`      | Y           | Y            | Y              | Key               | N               |
-|          | `RBTreeMap`     | Y           | Y            | Y              | Key               | N               |
-|          | `RBTreeBidiMap` | Y           | Y            | Y              | Key               | N               |
+|          | `HashMap`       | N           | N            | N              | Key               | Y               |
+|          | `HashBidiMap`   | N           | N            | N              | Key               | Y               |
+|          | `BTreeMap`      | Y           | Y            | Y              | Key               | Y               |
+|          | `RBTreeMap`     | Y           | Y            | Y              | Key               | Y               |
+|          | `RBTreeBidiMap` | Y           | Y            | Y              | Key               | Y               |
 | Tree     |                 |             |              |                |                   |                 |
-|          | `BTree`         | Y           | Y            | N              | Key               | N               |
-|          | `RBTree`        | Y           | Y            | N              | Key               | N               |
+|          | `BTree`         | Y           | Y            | N              | Key               | Y               |
+|          | `RBTree`        | Y           | Y            | N              | Key               | Y               |
 | Queue    |                 |             |              |                |                   |                 |
-|          | `ArrayDeque`    | Y           | Y            | N              | Index             | N               |
-|          | `PriorityQueue` | Y           | Y            | N              | Index             | N               |
+|          | `ArrayDeque`    | Y           | Y            | N              | Index             | Y               |
+|          | `PriorityQueue` | Y           | Y            | N              | Index             | Y               |
 
 ## License
 
