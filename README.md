@@ -13,8 +13,6 @@ A collection of data structures implemented in Go.
 | Map      |                 |             |              |                |                   |                 |
 |          | `HashMap`       | N           | N            | N              | Key               | Y               |
 |          | `HashBidiMap`   | N           | N            | N              | Key               | Y               |
-|          | `BTreeMap`      | Y           | Y            | Y              | Key               | Y               |
-|          | `RBTreeMap`     | Y           | Y            | Y              | Key               | Y               |
 |          | `RBTreeBidiMap` | Y           | Y            | Y              | Key               | Y               |
 | Tree     |                 |             |              |                |                   |                 |
 |          | `BTree`         | Y           | Y            | N              | Key               | Y               |

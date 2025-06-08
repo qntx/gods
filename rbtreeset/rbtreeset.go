@@ -6,12 +6,12 @@ import (
 	"strings"
 
 	"github.com/qntx/gods/cmp"
-	rbt "github.com/qntx/gods/rbtree"
+	"github.com/qntx/gods/rbtree"
 )
 
 // Set holds elements in a red-black tree
 type Set[T comparable] struct {
-	tree *rbt.Tree[T, struct{}]
+	tree *rbtree.Tree[T, struct{}]
 }
 
 var itemExists = struct{}{}
@@ -22,7 +22,7 @@ func New[T cmp.Ordered](values ...T) *Set[T] {
 
 // NewWith instantiates a new empty set with the custom comparator.
 func NewWith[T comparable](comparator cmp.Comparator[T], values ...T) *Set[T] {
-	set := &Set[T]{tree: rbt.NewWith[T, struct{}](comparator)}
+	set := &Set[T]{tree: rbtree.NewWith[T, struct{}](comparator)}
 	if len(values) > 0 {
 		set.Add(values...)
 	}
