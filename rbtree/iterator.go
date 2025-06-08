@@ -10,10 +10,9 @@ import (
 	"github.com/qntx/gods/container"
 )
 
-// --------------------------------------------------------------------------------
-// Constants and Errors
-
 // Position constants for iterator state.
+type position byte
+
 const (
 	begin   position = iota // Before the first element.
 	between                 // Between elements (valid position).
@@ -25,17 +24,8 @@ var (
 	ErrInvalidIteratorPosition = errors.New("iterator accessed at invalid position")
 )
 
-// --------------------------------------------------------------------------------
-// Interface Assertions
-
 // Ensure Iterator implements container.ReverseIteratorWithKey at compile time.
 var _ container.ReverseIteratorWithKey[string, int] = (*Iterator[string, int])(nil)
-
-// --------------------------------------------------------------------------------
-// Types
-
-// position represents the iterator's state relative to the tree's elements.
-type position byte
 
 // Iterator provides forward and reverse traversal over a Tree's key-value pairs.
 //
@@ -47,9 +37,6 @@ type Iterator[K comparable, V any] struct {
 	node     *Node[K, V] // Current node, nil if at begin or end.
 	position position    // Current state: begin, between, or end.
 }
-
-// --------------------------------------------------------------------------------
-// Constructors
 
 // Iterator creates a new iterator for the tree.
 //
@@ -65,9 +52,6 @@ func (t *Tree[K, V]) Iterator() *Iterator[K, V] {
 func (t *Tree[K, V]) IteratorAt(node *Node[K, V]) *Iterator[K, V] {
 	return &Iterator[K, V]{tree: t, node: node, position: between}
 }
-
-// --------------------------------------------------------------------------------
-// Public Methods
 
 // Next advances the iterator to the next element in in-order traversal.
 //
@@ -253,9 +237,6 @@ func (it *Iterator[K, V]) PrevTo(f func(key K, value V) bool) bool {
 
 	return false
 }
-
-// --------------------------------------------------------------------------------
-// Private Helpers
 
 // valid checks if the iterator is at a valid element position.
 func (it *Iterator[K, V]) valid() bool {

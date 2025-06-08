@@ -829,11 +829,11 @@ func TestQueueSerialization(t *testing.T) {
 
 	assert()
 
-	bytes, err := queue.ToJSON()
+	bytes, err := queue.MarshalJSON()
 
 	assert()
 
-	err = queue.FromJSON(bytes)
+	err = queue.UnmarshalJSON(bytes)
 
 	assert()
 

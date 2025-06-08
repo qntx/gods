@@ -4,22 +4,24 @@ A collection of data structures implemented in Go.
 
 ## Containers
 
-| **Data** | **Structure**                         | **Ordered** | **Iterator** | **Enumerable** | **Referenced by** |
-| :--- |:--------------------------------------| :---: | :---: | :---: | :---: |
-| Set ||||||
-|   | `HashSet`                 | no | no | no | index |
-|   | `BTreeSet`                 | yes | yes | yes | index |
-|   | `RBTreeSet`                | yes | yes | yes | index |
-| Map ||||||
-|   | `HashMap`                 | no | no | no | key |
-|   | `BTreeMap`                | yes | yes | yes | key |
-|   | `RBTreeMap`                | yes | yes | yes | key |
-| Tree ||||||
-|   | `BTree`         | yes | yes | no | key |
-|   | `RBTree`                    | yes | yes | no | key |
-| Queue ||||||
-|   | `ArrayDeque`           | yes | yes | no | index |
-|   | `PriorityQueue`     | yes | yes | no | index |
+| **Data** | **Structure**   | **Ordered** | **Iterator** | **Enumerable** | **Referenced by** | **Implemented** |
+| -------- | --------------- | ----------- | ------------ | -------------- | ----------------- | --------------- |
+| Set      |                 |             |              |                |                   |                 |
+|          | `HashSet`       | N           | N            | N              | Index             | Y               |
+|          | `BTreeSet`      | Y           | Y            | Y              | Index             | N               |
+|          | `RBTreeSet`     | Y           | Y            | Y              | Index             | N               |
+| Map      |                 |             |              |                |                   |                 |
+|          | `HashMap`       | N           | N            | N              | Key               | N               |
+|          | `HashBidiMap`   | N           | N            | N              | Key               | N               |
+|          | `BTreeMap`      | Y           | Y            | Y              | Key               | N               |
+|          | `RBTreeMap`     | Y           | Y            | Y              | Key               | N               |
+|          | `RBTreeBidiMap` | Y           | Y            | Y              | Key               | N               |
+| Tree     |                 |             |              |                |                   |                 |
+|          | `BTree`         | Y           | Y            | N              | Key               | N               |
+|          | `RBTree`        | Y           | Y            | N              | Key               | N               |
+| Queue    |                 |             |              |                |                   |                 |
+|          | `ArrayDeque`    | Y           | Y            | N              | Index             | N               |
+|          | `PriorityQueue` | Y           | Y            | N              | Index             | N               |
 
 ## License
 

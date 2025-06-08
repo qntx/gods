@@ -7,8 +7,7 @@ import (
 )
 
 // Assert Serialization implementation
-var _ container.JSONSerializer = (*Set[int])(nil)
-var _ container.JSONDeserializer = (*Set[int])(nil)
+var _ container.JSONSerializable = (*Set[int])(nil)
 
 // ToJSON outputs the JSON representation of the set.
 func (set *Set[T]) ToJSON() ([]byte, error) {
