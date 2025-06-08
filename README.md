@@ -13,6 +13,7 @@ A collection of data structures implemented in Go.
 | Map      |                 |             |              |                |                   |                 |
 |          | `HashMap`       | N           | N            | N              | Key               | Y               |
 |          | `HashBidiMap`   | N           | N            | N              | Key               | Y               |
+|          | `BTreeBidiMap`  | Y           | Y            | Y              | Key               | N               |
 |          | `RBTreeBidiMap` | Y           | Y            | Y              | Key               | Y               |
 | Tree     |                 |             |              |                |                   |                 |
 |          | `BTree`         | Y           | Y            | N              | Key               | N               |
@@ -20,6 +21,12 @@ A collection of data structures implemented in Go.
 | Queue    |                 |             |              |                |                   |                 |
 |          | `SliceDeque`    | Y           | Y            | N              | Index             | Y               |
 |          | `PriorityQueue` | Y           | Y            | N              | Index             | Y               |
+
+## Benchmarks
+
+```shell
+go test -run=NO_TEST -bench . -benchmem  -benchtime 1s ./...
+```
 
 ## License
 
