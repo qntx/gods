@@ -8,17 +8,17 @@ A collection of data structures implemented in Go.
 | -------- | --------------- | ----------- | ------------ | -------------- | ----------------- | --------------- |
 | Set      |                 |             |              |                |                   |                 |
 |          | `HashSet`       | N           | N            | N              | Index             | Y               |
-|          | `BTreeSet`      | Y           | Y            | Y              | Index             | Y               |
+|          | `BTreeSet`      | Y           | Y            | Y              | Index             | N               |
 |          | `RBTreeSet`     | Y           | Y            | Y              | Index             | Y               |
 | Map      |                 |             |              |                |                   |                 |
 |          | `HashMap`       | N           | N            | N              | Key               | Y               |
 |          | `HashBidiMap`   | N           | N            | N              | Key               | Y               |
 |          | `RBTreeBidiMap` | Y           | Y            | Y              | Key               | Y               |
 | Tree     |                 |             |              |                |                   |                 |
-|          | `BTree`         | Y           | Y            | N              | Key               | Y               |
+|          | `BTree`         | Y           | Y            | N              | Key               | N               |
 |          | `RBTree`        | Y           | Y            | N              | Key               | Y               |
 | Queue    |                 |             |              |                |                   |                 |
-|          | `ArrayDeque`    | Y           | Y            | N              | Index             | Y               |
+|          | `SliceDeque`    | Y           | Y            | N              | Index             | Y               |
 |          | `PriorityQueue` | Y           | Y            | N              | Index             | Y               |
 
 ## License
