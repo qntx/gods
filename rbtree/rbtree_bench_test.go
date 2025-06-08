@@ -1,72 +1,10 @@
 package rbtree_test
 
 import (
-	"sort"
 	"testing"
 
 	"github.com/qntx/gods/rbtree"
 )
-
-const (
-	defaultSize = 5000 // Default benchmark size for consistent testing
-)
-
-// BenchmarkRedBlackTree measures the performance of red-black tree operations.
-// It tests insertion and key retrieval separately for clarity.
-func BenchmarkRedBlackTree(b *testing.B) {
-	b.Run("Insert", func(b *testing.B) {
-		for b.Loop() {
-			t := rbtree.New[int, struct{}]()
-			for i := range defaultSize {
-				t.Put(i, struct{}{})
-			}
-		}
-	})
-
-	t := rbtree.New[int, struct{}]()
-	for i := range defaultSize {
-		t.Put(i, struct{}{})
-	}
-
-	b.Run("Keys", func(b *testing.B) {
-		b.ResetTimer()
-
-		for b.Loop() {
-			_ = t.Keys()
-		}
-	})
-}
-
-// BenchmarkMap measures the performance of Go map operations with sorted keys.
-// It tests insertion and sorted key retrieval separately for clarity.
-func BenchmarkMap(b *testing.B) {
-	b.Run("Insert", func(b *testing.B) {
-		for b.Loop() {
-			m := make(map[int]struct{}, defaultSize)
-			for i := range defaultSize {
-				m[i] = struct{}{}
-			}
-		}
-	})
-
-	m := make(map[int]struct{}, defaultSize)
-	for i := range defaultSize {
-		m[i] = struct{}{}
-	}
-
-	b.Run("SortedKeys", func(b *testing.B) {
-		b.ResetTimer()
-
-		for b.Loop() {
-			keys := make([]int, 0, defaultSize)
-			for k := range m {
-				keys = append(keys, k)
-			}
-
-			sort.Ints(keys)
-		}
-	})
-}
 
 func benchmarkGet(b *testing.B, tree *rbtree.Tree[int, struct{}], size int) {
 	b.Helper()
