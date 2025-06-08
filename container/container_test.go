@@ -27,8 +27,8 @@ func (c *containerTest[T]) Empty() bool {
 	return len(c.values) == 0
 }
 
-// Size returns the number of elements in the container.
-func (c *containerTest[T]) Size() int {
+// Len returns the number of elements in the container.
+func (c *containerTest[T]) Len() int {
 	return len(c.values)
 }
 
@@ -88,9 +88,9 @@ func TestContainerMethods(t *testing.T) {
 				t.Errorf("Empty() = %v, want %v", got, tt.wantEmpty)
 			}
 
-			// Test Size
-			if got := c.Size(); got != tt.wantSize {
-				t.Errorf("Size() = %d, want %d", got, tt.wantSize)
+			// Test Len
+			if got := c.Len(); got != tt.wantSize {
+				t.Errorf("Len() = %d, want %d", got, tt.wantSize)
 			}
 
 			// Test Values
@@ -106,8 +106,8 @@ func TestContainerMethods(t *testing.T) {
 			// Test Clear
 			c.Clear()
 
-			if !c.Empty() || c.Size() != 0 {
-				t.Errorf("Clear() failed: Empty() = %v, Size() = %d", c.Empty(), c.Size())
+			if !c.Empty() || c.Len() != 0 {
+				t.Errorf("Clear() failed: Empty() = %v, Len() = %d", c.Empty(), c.Len())
 			}
 		})
 	}

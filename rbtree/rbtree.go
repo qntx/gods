@@ -7,7 +7,6 @@
 package rbtree
 
 import (
-	"errors"
 	"fmt"
 	"strings"
 
@@ -17,26 +16,10 @@ import (
 // color represents the color of a red-black tree node (red or black).
 type color bool
 
-// Color constants for red-black tree nodes.
 const (
 	black color = true  // Represents a black node.
 	red   color = false // Represents a red node.
 )
-
-// Predefined errors for tree operations.
-var (
-	ErrInvalidKeyType = errors.New("key type does not match comparator")
-)
-
-// Tree manages a red-black tree with key-value pairs.
-//
-// K must be comparable and compatible with the provided comparator.
-// V can be any type.
-type Tree[K comparable, V any] struct {
-	Root       *Node[K, V]       // Root node of the tree.
-	len        int               // Number of nodes in the tree.
-	Comparator cmp.Comparator[K] // Comparator for ordering keys.
-}
 
 // Node represents a single element in the red-black tree.
 type Node[K comparable, V any] struct {
@@ -46,6 +29,16 @@ type Node[K comparable, V any] struct {
 	Left   *Node[K, V] // Left child.
 	Right  *Node[K, V] // Right child.
 	Parent *Node[K, V] // Parent node.
+}
+
+// Tree manages a red-black tree with key-value pairs.
+//
+// K must be comparable and compatible with the provided comparator.
+// V can be any type.
+type Tree[K comparable, V any] struct {
+	Root       *Node[K, V]       // Root node of the tree.
+	len        int               // Number of nodes in the tree.
+	Comparator cmp.Comparator[K] // Comparator for ordering keys.
 }
 
 // New creates a new red-black tree with the built-in comparator for ordered types.
@@ -62,14 +55,73 @@ func NewWith[K comparable, V any](comparator cmp.Comparator[K]) *Tree[K, V] {
 	return &Tree[K, V]{Comparator: comparator}
 }
 
+// Size returns the number of nodes in the subtree rooted at this node.
+//
+// Computed dynamically by traversing the subtree. Time complexity: O(n).
+func (n *Node[K, V]) Size() int {
+	if n == nil {
+		return 0
+	}
+
+	return 1 + n.Left.Size() + n.Right.Size()
+}
+
+// String returns a string representation of the node.
+//
+// Time complexity: O(1).
+func (n *Node[K, V]) String() string {
+	return fmt.Sprintf("%v", n.Key)
+}
+
+// uncle returns the uncle of the node.
+//
+// Returns nil if not applicable. Time complexity: O(1).
+func (n *Node[K, V]) uncle() *Node[K, V] {
+	if gp := n.grandparent(); gp != nil {
+		if n.Parent == gp.Left {
+			return gp.Right
+		}
+
+		return gp.Left
+	}
+
+	return nil
+}
+
+// sibling returns the sibling of the node.
+//
+// Returns nil if not applicable. Time complexity: O(1).
+func (n *Node[K, V]) sibling() *Node[K, V] {
+	if n != nil && n.Parent != nil {
+		if n == n.Parent.Left {
+			return n.Parent.Right
+		}
+
+		return n.Parent.Left
+	}
+
+	return nil
+}
+
+// grandparent returns the grandparent of the node.
+//
+// Returns nil if not applicable. Time complexity: O(1).
+func (n *Node[K, V]) grandparent() *Node[K, V] {
+	if n != nil && n.Parent != nil {
+		return n.Parent.Parent
+	}
+
+	return nil
+}
+
 // Put inserts or updates a key-value pair in the tree.
 //
 // If the key exists, its value is updated; otherwise, a new node is inserted.
 // Panics if the key type is incompatible with the comparator.
 // Time complexity: O(log n).
 func (t *Tree[K, V]) Put(key K, val V) {
-	t.validateKey(key)
-
+	// Case 1: Tree is empty.
+	// The new node becomes the root and is colored black (Property 2).
 	if t.Root == nil {
 		t.Root = &Node[K, V]{Key: key, Value: val, color: black}
 		t.len++
@@ -77,32 +129,43 @@ func (t *Tree[K, V]) Put(key K, val V) {
 		return
 	}
 
-	node, parent := t.Root, (*Node[K, V])(nil)
+	// Case 2: Tree is not empty.
+	// Traverse the tree to find the insertion point or an existing node with the same key.
+	node, parent := t.Root, (*Node[K, V])(nil) // `node` is current, `parent` trails `node`.
 	for node != nil {
-		parent = node
+		parent = node // `parent` will be the parent of the new node if key is not found.
 
 		switch cmp := t.Comparator(key, node.Key); {
 		case cmp == 0:
+			// Key already exists, update its value.
 			node.Value = val
 
 			return
 		case cmp < 0:
+			// Key is less than current node's key, go left.
 			node = node.Left
-		default:
+		default: // cmp > 0
+			// Key is greater than current node's key, go right.
 			node = node.Right
 		}
 	}
 
-	newNode := &Node[K, V]{Key: key, Value: val, color: red, Parent: parent}
+	// Key not found, insert a new node.
+	// New nodes are initially colored red to simplify maintaining Red-Black properties.
+	// The `parent` variable now holds the parent of the new node.
+	n := &Node[K, V]{Key: key, Value: val, color: red, Parent: parent}
+
+	// Link the new node to its parent.
 	if t.Comparator(key, parent.Key) < 0 {
-		parent.Left = newNode
+		parent.Left = n
 	} else {
-		parent.Right = newNode
+		parent.Right = n
 	}
 
-	t.insertFixup(newNode)
+	// Rebalance the tree to maintain Red-Black properties after insertion.
+	t.insertFixup(n)
 
-	t.len++
+	t.len++ // Increment the tree size.
 }
 
 // Get retrieves the value associated with the given key.
@@ -131,13 +194,57 @@ func (t *Tree[K, V]) GetNode(key K) *Node[K, V] {
 // Does nothing if the key is not found. Panics if the key type is incompatible
 // with the comparator. Time complexity: O(log n).
 func (t *Tree[K, V]) Remove(key K) {
-	node := t.lookup(key)
-	if node == nil {
-		return
+	// Step 1: Find the node to remove.
+	n := t.lookup(key)
+	if n == nil {
+		return // Not found.
 	}
 
-	t.deleteNode(node)
+	// `nodeToUnlink`: actual node to be unlinked.
+	// `childToReplace`: node that replaces `nodeToUnlink`.
+	var childToReplace *Node[K, V]
+	nodeToUnlink := n
 
+	// Step 2: If `nodeToUnlink` has two children, find its predecessor,
+	// copy predecessor's data to `nodeToUnlink`, then target predecessor for unlinking.
+	// The predecessor will have at most one child.
+	if nodeToUnlink.Left != nil && nodeToUnlink.Right != nil {
+		pred := t.maxNode(nodeToUnlink.Left) // In-order predecessor.
+		nodeToUnlink.Key, nodeToUnlink.Value = pred.Key, pred.Value
+		nodeToUnlink = pred // Now, unlink the predecessor.
+	}
+
+	// At this point, `nodeToUnlink` has at most one child. This is either:
+	// a) The original `n` if `n` had 0 or 1 child.
+	// b) The predecessor of the original `n` if `n` had 2 children.
+
+	// Step 3: Identify the child to replace `nodeToUnlink`.
+	// This is `nodeToUnlink`'s only child, or nil if it's a leaf.
+	childToReplace = ternary(nodeToUnlink.Left == nil, nodeToUnlink.Right, nodeToUnlink.Left)
+
+	// Step 4: If the unlinked node (`nodeToUnlink`) was black, fixup is needed
+	// to maintain Red-Black properties (black-height, red node's children).
+	originalColorOfNodeToUnlink := nodeToUnlink.color
+
+	// If `originalColorOfNodeToUnlink` is black, call `deleteFixup`.
+	// Temporarily color `nodeToUnlink` like `childToReplace` for `deleteFixup`:
+	// - If `childToReplace` was RED, `nodeToUnlink` becomes RED. `deleteFixup` makes it BLACK, absorbing extra black.
+	// - If `childToReplace` was BLACK/nil, `nodeToUnlink` becomes BLACK. `deleteFixup` handles black-height deficit.
+	if originalColorOfNodeToUnlink == black {
+		nodeToUnlink.color = nodeColor(childToReplace) // Prep color for fixup.
+		t.deleteFixup(nodeToUnlink)                    // Fix R-B properties at `nodeToUnlink`'s position.
+	}
+
+	// Step 5: Physically replace `nodeToUnlink` with `childToReplace`.
+	t.replaceNode(nodeToUnlink, childToReplace)
+
+	// Step 6: Ensure the new root (if any) is black.
+	// `deleteFixup` usually handles this, but this covers cases where fixup didn't run (e.g. red node deleted).
+	if nodeToUnlink.Parent == nil && childToReplace != nil {
+		childToReplace.color = black
+	}
+
+	// Step 7: Decrement tree size.
 	t.len--
 }
 
@@ -155,15 +262,28 @@ func (t *Tree[K, V]) Len() int {
 	return t.len
 }
 
-// Size returns the number of nodes in the subtree rooted at this node.
+// Clear removes all nodes from the tree.
 //
-// Computed dynamically by traversing the subtree. Time complexity: O(n).
-func (n *Node[K, V]) Size() int {
-	if n == nil {
-		return 0
+// Time complexity: O(1).
+func (t *Tree[K, V]) Clear() {
+	t.Root = nil
+	t.len = 0
+}
+
+// String returns a string representation of the tree.
+//
+// Time complexity: O(n).
+func (t *Tree[K, V]) String() string {
+	if t.Empty() {
+		return "RedBlackTree[]"
 	}
 
-	return 1 + n.Left.Size() + n.Right.Size()
+	var sb strings.Builder
+
+	sb.WriteString("RedBlackTree\n")
+	t.output(t.Root, "", true, &sb)
+
+	return sb.String()
 }
 
 // Keys returns all keys in in-order traversal.
@@ -229,8 +349,6 @@ func (t *Tree[K, V]) Right() *Node[K, V] {
 // Returns the node and true if found, nil and false otherwise. Panics if the
 // key type is incompatible with the comparator. Time complexity: O(log n).
 func (t *Tree[K, V]) Floor(key K) (*Node[K, V], bool) {
-	t.validateKey(key)
-
 	var floor *Node[K, V]
 
 	node := t.Root
@@ -254,8 +372,6 @@ func (t *Tree[K, V]) Floor(key K) (*Node[K, V], bool) {
 // Returns the node and true if found, nil and false otherwise. Panics if the
 // key type is incompatible with the comparator. Time complexity: O(log n).
 func (t *Tree[K, V]) Ceiling(key K) (*Node[K, V], bool) {
-	t.validateKey(key)
-
 	var ceil *Node[K, V]
 
 	node := t.Root
@@ -274,52 +390,10 @@ func (t *Tree[K, V]) Ceiling(key K) (*Node[K, V], bool) {
 	return ceil, ceil != nil
 }
 
-// Clear removes all nodes from the tree.
-//
-// Time complexity: O(1).
-func (t *Tree[K, V]) Clear() {
-	t.Root = nil
-	t.len = 0
-}
-
-// String returns a string representation of the tree.
-//
-// Time complexity: O(n).
-func (t *Tree[K, V]) String() string {
-	if t.Empty() {
-		return "RedBlackTree[]"
-	}
-
-	var sb strings.Builder
-
-	sb.WriteString("RedBlackTree\n")
-	t.output(t.Root, "", true, &sb)
-
-	return sb.String()
-}
-
-// String returns a string representation of the node.
-//
-// Time complexity: O(1).
-func (n *Node[K, V]) String() string {
-	return fmt.Sprintf("%v", n.Key)
-}
-
-// validateKey ensures the key is compatible with the comparator.
-//
-// Panics if the key type does not match the comparator's expectations.
-func (t *Tree[K, V]) validateKey(key K) {
-	if _, err := safeCompare(t.Comparator, key, key); err != nil {
-		panic(fmt.Sprintf("rbtree: %v", err))
-	}
-}
-
 // lookup finds the node with the given key.
 //
 // Returns nil if not found. Time complexity: O(log n).
 func (t *Tree[K, V]) lookup(key K) *Node[K, V] {
-	t.validateKey(key)
-
 	node := t.Root
 	for node != nil {
 		switch cmp := t.Comparator(key, node.Key); {
@@ -374,255 +448,368 @@ func (t *Tree[K, V]) output(node *Node[K, V], prefix string, isTail bool, sb *st
 	}
 }
 
-// grandparent returns the grandparent of the node.
+// replaceNode substitutes the `old` node with the `new` node in the tree structure.
+// It updates the parent of `old` to point to `new`, and sets `new`'s parent
+// to be `old`'s parent. This function does not modify children of `old` or `new`.
 //
-// Returns nil if not applicable. Time complexity: O(1).
-func (n *Node[K, V]) grandparent() *Node[K, V] {
-	if n != nil && n.Parent != nil {
-		return n.Parent.Parent
+// - old: The node to be replaced.
+// - new: The node to take `old`'s place. Can be nil (e.g., when deleting a leaf).
+func (t *Tree[K, V]) replaceNode(old, new *Node[K, V]) {
+	// Case 1: `old` is the root of the tree.
+	if old.Parent == nil {
+		t.Root = new
+	} else if old == old.Parent.Left {
+		// Case 2: `old` is a left child.
+		old.Parent.Left = new
+	} else {
+		// Case 3: `old` is a right child.
+		old.Parent.Right = new
 	}
 
-	return nil
-}
-
-// uncle returns the uncle of the node.
-//
-// Returns nil if not applicable. Time complexity: O(1).
-func (n *Node[K, V]) uncle() *Node[K, V] {
-	if gp := n.grandparent(); gp != nil {
-		if n.Parent == gp.Left {
-			return gp.Right
-		}
-
-		return gp.Left
+	// Update `new` node's parent pointer, if `new` is not nil.
+	if new != nil {
+		new.Parent = old.Parent
 	}
-
-	return nil
 }
 
-// sibling returns the sibling of the node.
+// rotateLeft performs a left rotation around the given node n.
+// This operation is a fundamental tree restructuring maneuver used in balancing.
 //
-// Returns nil if not applicable. Time complexity: O(1).
-func (n *Node[K, V]) sibling() *Node[K, V] {
-	if n != nil && n.Parent != nil {
-		if n == n.Parent.Left {
-			return n.Parent.Right
-		}
-
-		return n.Parent.Left
-	}
-
-	return nil
-}
-
-// rotateLeft performs a left rotation around the node.
+// Diagram (n is the pivot):
+//
+//	  P             P
+//	  |             |
+//	  n             r        (r becomes the new child of P)
+//	 / \           / \
+//	L   r   ==>   n   RR     (n becomes the left child of r)
+//	   / \       / \
+//	  RL  RR    L   RL       (r's original left child (RL) becomes n's new right child)
+//
+// - n: The node to rotate around. n.Right (r) must not be nil.
+// - r: The right child of n, which will become the new root of this subtree.
 func (t *Tree[K, V]) rotateLeft(n *Node[K, V]) {
-	r := n.Right
+	r := n.Right // r is n's right child, which will move up.
+
+	// Step 1: Replace n with r in n's parent's child link.
+	// r's parent becomes n's original parent.
 	t.replaceNode(n, r)
 
+	// Step 2: r's original left child (RL) becomes n's new right child.
 	n.Right = r.Left
 	if r.Left != nil {
-		r.Left.Parent = n
+		r.Left.Parent = n // Update RL's parent to n.
 	}
 
+	// Step 3: n becomes the left child of r.
 	r.Left = n
-	n.Parent = r
+	n.Parent = r // Update n's parent to r.
 }
 
-// rotateRight performs a right rotation around the node.
+// rotateRight performs a right rotation around the given node n.
+// This operation is the mirror image of a left rotation.
+//
+// Diagram (n is the pivot):
+//
+//	    P             P
+//	    |             |
+//	    n             l        (l becomes the new child of P)
+//	   / \           / \
+//	  l   R   ==>   LL  n      (n becomes the right child of l)
+//	 / \               / \
+//	LL  LR            LR  R      (l's original right child (LR) becomes n's new left child)
+//
+// - n: The node to rotate around. n.Left (l) must not be nil.
+// - l: The left child of n, which will become the new root of this subtree.
 func (t *Tree[K, V]) rotateRight(n *Node[K, V]) {
-	l := n.Left
+	l := n.Left // l is n's left child, which will move up.
+
+	// Step 1: Replace n with l in n's parent's child link.
+	// l's parent becomes n's original parent.
 	t.replaceNode(n, l)
 
+	// Step 2: l's original right child (LR) becomes n's new left child.
 	n.Left = l.Right
 	if l.Right != nil {
-		l.Right.Parent = n
+		l.Right.Parent = n // Update LR's parent to n.
 	}
 
+	// Step 3: n becomes the right child of l.
 	l.Right = n
-	n.Parent = l
+	n.Parent = l // Update n's parent to l.
 }
 
-// replaceNode replaces oldNode with newNode in the tree structure.
-func (t *Tree[K, V]) replaceNode(oldNode, newNode *Node[K, V]) {
-	if oldNode.Parent == nil {
-		t.Root = newNode
-	} else if oldNode == oldNode.Parent.Left {
-		oldNode.Parent.Left = newNode
-	} else {
-		oldNode.Parent.Right = newNode
-	}
-
-	if newNode != nil {
-		newNode.Parent = oldNode.Parent
-	}
-}
-
-// insertFixup balances the tree after insertion.
-func (t *Tree[K, V]) insertFixup(n *Node[K, V]) {
-	if n.Parent == nil {
-		n.color = black
-
-		return
-	}
-
-	if nodeColor(n.Parent) == black {
-		return
-	}
-
-	if uncle := n.uncle(); nodeColor(uncle) == red {
-		n.Parent.color = black
-		uncle.color = black
-		gp := n.grandparent()
-		gp.color = red
-		t.insertFixup(gp)
-
-		return
-	}
-
-	t.insertFixupStep(n)
-}
-
-// insertFixupStep handles rotation cases for insertion balancing.
-func (t *Tree[K, V]) insertFixupStep(n *Node[K, V]) {
-	gp := n.grandparent()
-	if n == n.Parent.Right && n.Parent == gp.Left {
-		t.rotateLeft(n.Parent)
-		n = n.Left
-	} else if n == n.Parent.Left && n.Parent == gp.Right {
-		t.rotateRight(n.Parent)
-		n = n.Right
-	}
-
-	n.Parent.color = black
-	gp.color = red
-
-	if n == n.Parent.Left {
-		t.rotateRight(gp)
-	} else {
-		t.rotateLeft(gp)
-	}
-}
-
-// deleteNode removes a node from the tree and rebalances.
-func (t *Tree[K, V]) deleteNode(n *Node[K, V]) {
-	var child *Node[K, V]
-
-	if n.Left != nil && n.Right != nil {
-		pred := t.maxNode(n.Left)
-		n.Key, n.Value = pred.Key, pred.Value
-		n = pred
-	}
-
-	child = ternary(n.Left == nil, n.Right, n.Left)
-	if n.color == black {
-		n.color = nodeColor(child)
-		t.deleteFixup(n)
-	}
-
-	t.replaceNode(n, child)
-
-	if n.Parent == nil && child != nil {
-		child.color = black
-	}
-}
-
-// deleteFixup balances the tree after deletion.
-func (t *Tree[K, V]) deleteFixup(n *Node[K, V]) {
-	if n.Parent == nil {
-		return
-	}
-
-	s := n.sibling()
-	if nodeColor(s) == red {
-		n.Parent.color = red
-		s.color = black
-
-		if n == n.Parent.Left {
-			t.rotateLeft(n.Parent)
-		} else {
-			t.rotateRight(n.Parent)
-		}
-
-		s = n.sibling()
-	}
-
-	t.deleteFixupCases(n, s)
-}
-
-// deleteFixupCases handles specific deletion balancing cases.
-func (t *Tree[K, V]) deleteFixupCases(n, s *Node[K, V]) {
-	if nodeColor(n.Parent) == black && nodeColor(s) == black &&
-		nodeColor(s.Left) == black && nodeColor(s.Right) == black {
-		s.color = red
-
-		t.deleteFixup(n.Parent)
-
-		return
-	}
-
-	if nodeColor(n.Parent) == red && nodeColor(s) == black &&
-		nodeColor(s.Left) == black && nodeColor(s.Right) == black {
-		s.color = red
-		n.Parent.color = black
-
-		return
-	}
-
-	t.deleteFixupRotations(n, s)
-}
-
-// deleteFixupRotations handles rotation cases for deletion balancing.
-func (t *Tree[K, V]) deleteFixupRotations(n, s *Node[K, V]) {
-	if n == n.Parent.Left && nodeColor(s) == black &&
-		nodeColor(s.Left) == red && nodeColor(s.Right) == black {
-		s.color = red
-		s.Left.color = black
-		t.rotateRight(s)
-		s = n.sibling()
-	} else if n == n.Parent.Right && nodeColor(s) == black &&
-		nodeColor(s.Right) == red && nodeColor(s.Left) == black {
-		s.color = red
-		s.Right.color = black
-		t.rotateLeft(s)
-		s = n.sibling()
-	}
-
-	s.color = nodeColor(n.Parent)
-	n.Parent.color = black
-
-	if n == n.Parent.Left {
-		s.Right.color = black
-
-		t.rotateLeft(n.Parent)
-	} else {
-		s.Left.color = black
-
-		t.rotateRight(n.Parent)
-	}
-}
-
-// nodeColor returns the color of a node, black if nil.
-func nodeColor[K comparable, V any](n *Node[K, V]) color {
-	if n == nil {
-		return black
-	}
-
-	return n.color
-}
-
-// safeCompare wraps a comparator call with error handling.
+// insertFixup restores Red-Black properties after a new node `n` (which is red) is inserted.
+// This function is called when `n` and its parent `n.Parent` are both red (a "double red" violation).
+// It iteratively moves up the tree, resolving violations until properties are restored.
 //
-// Returns the comparison result and any error from a panic.
-func safeCompare[K comparable](cmp cmp.Comparator[K], a, b K) (int, error) {
-	defer func() {
-		if r := recover(); r != nil {
-			err, _ := r.(error)
-			panic(fmt.Errorf("%w: %w", ErrInvalidKeyType, err))
-		}
-	}()
+// Legend for understanding cases:
+//
+//	N: Current node being fixed (initially the newly inserted node, always red at the start of a fixup iteration within the loop).
+//	P: Parent of N.
+//	G: Grandparent of N.
+//	U: Uncle of N (sibling of P).
+func (t *Tree[K, V]) insertFixup(n *Node[K, V]) {
+	parent := n.Parent
 
-	return cmp(a, b), nil
+	// Case 0: N is the root. Color it black.
+	if parent == nil {
+		n.color = black // Property 2: Root is black.
+		return
+	}
+
+	// Case 1: Parent P is black.
+	// If P is black, and N is red, no Red-Black properties are violated.
+	if parent.color == black {
+		return // Tree is already balanced with respect to N.
+	}
+
+	// At this point, N is red and P is red (double red violation).
+	// G (grandparent) must exist because P is red, and the root cannot be red if it has children.
+	// The main loop of fixup starts when P is red.
+	// The `insertFixupStep` handles the core logic when P is red and U (uncle) is black.
+	// If U is red, colors are flipped, and fixup continues from G.
+	uncle := n.uncle()
+	grandparent := n.grandparent() // Must exist as P is red.
+
+	// Case 2: Parent P is red, Uncle U is RED.
+	// This is the "color flip" case.
+	//
+	//       G(black)           G(red) <-- Recolor G, P, U
+	//      /    \             /    \
+	//   P(red)  U(red) ==> P(black) U(black)
+	//   /                  /
+	// N(red)             N(red) (N is the new node for next iteration)
+	//
+	// Recolor P and U to black, G to red.
+	// Then, recursively fixup G as it might now violate properties (e.g., G is root or G's parent is red).
+	if nodeColor(uncle) == red {
+		parent.color = black
+		uncle.color = black
+		grandparent.color = red
+		t.insertFixup(grandparent) // Recursively fixup from G.
+		return
+	}
+
+	// Case 3: Parent P is red, Uncle U is BLACK (or nil).
+	// This requires rotations. This logic is handled by insertFixupStep.
+	// `n` is red, `parent` is red, `uncle` is black, `grandparent` is black (initially).
+	// Determine if P is a left or right child of G.
+	if parent == grandparent.Left {
+		// P is G's left child. U (G.Right) is black.
+		// Case 3a: N is P's right child (forms a "triangle" G-P-N: G <-- P(L) --> N(R)).
+		// This requires a left rotation on P to make it a "line".
+		//
+		//       G(B)                G(B)
+		//      /    \              /    \
+		//   P(R)   U(B)  ==>    N(R)   U(B)  (N becomes new P for next step)
+		//     \                  /
+		//    N(R)              P(R) (Original P)
+		//
+		if n == parent.Right {
+			t.rotateLeft(parent)
+			// After rotation, the original `parent` is now the left child of `n` (original N).
+			// `n` (the original N) is now where P was, and becomes the new `parent` for the line case.
+			// The node that was `parent` (original P) is now `n.Left`.
+			// We update `parent` to be the new parent (original N) and `n` to be its child (original P).
+			parent = n      // The original N is now the parent in the G-N-P line.
+			n = parent.Left // The original P is now the child n.
+			// Corrected logic for variable reassignment after left rotation on parent:
+			// Original N (`n`) moves up. Original P (`parent`) becomes N's left child.
+			// So, the new `parent` for the line case is the original `n`.
+			// The new `n` for the line case is the original `parent`.
+			newNode := parent // original P
+			parent = n        // original N is now the parent
+			n = newNode       // original P is now n
+		}
+
+		// Case 3b: N is P's left child (forms a "line" G-P-N: G <-- P(L) <-- N(L)).
+		// This also covers the case after Case 3a's rotation.
+		//
+		//       G(B)                  P(B) <-- Recolor P, G
+		//      /    \                /    \
+		//   P(R)   U(B)   ==>    N(R)   G(R)
+		//   /                               \
+		// N(R)                               U(B)
+		//
+		// Recolor P to black, G to red. Perform a right rotation on G.
+		parent.color = black
+		grandparent.color = red
+		t.rotateRight(grandparent)
+	} else { // Symmetric case: P is G's right child. U (G.Left) is black.
+		// Case 3c: N is P's left child (forms a "triangle" G-P-N: G --> P(R) <-- N(L)).
+		// Requires a right rotation on P.
+		//
+		//       G(B)                G(B)
+		//      /    \              /    \
+		//   U(B)   P(R)   ==>   U(B)  N(R)  (N becomes new P)
+		//          /                        \
+		//       N(R)                        P(R) (Original P)
+		//
+		if n == parent.Left {
+			t.rotateRight(parent)
+			// Similar to Case 3a, adjust `n` and `parent` for the "line" case.
+			// Original N (`n`) moves up. Original P (`parent`) becomes N's right child.
+			// `n` (the original N) is now where P was, and becomes the new `parent` for the line case.
+			// The node that was `parent` (original P) is now `n.Right`.
+			// We update `parent` to be the new parent (original N) and `n` to be its child (original P).
+			parent = n       // The original N is now the parent in the G-N-P line.
+			n = parent.Right // The original P is now the child n.
+			// Corrected logic for variable reassignment after right rotation on parent:
+			// Original N (`n`) moves up. Original P (`parent`) becomes N's right child.
+			// So, the new `parent` for the line case is the original `n`.
+			// The new `n` for the line case is the original `parent`.
+			newNode := parent // original P
+			parent = n        // original N is now the parent
+			n = newNode       // original P is now n
+		}
+
+		// Case 3d: N is P's right child (forms a "line" G-P-N: G --> P(R) --> N(R)).
+		//
+		//       G(B)                  P(B) <-- Recolor P, G
+		//      /    \                /    \
+		//   U(B)   P(R)   ==>    G(R)   N(R)
+		//            \            /
+		//           N(R)        U(B)
+		//
+		// Recolor P to black, G to red. Perform a left rotation on G.
+		parent.color = black
+		grandparent.color = red
+		t.rotateLeft(grandparent)
+	}
+}
+
+// deleteFixup restores Red-Black properties after a node deletion.
+//
+// The parameter `x` is the node that has an "extra black" or whose removal
+// might have caused a violation. If `x` is nil, it represents a nil child
+// that was supposed to be black. The fixup proceeds by examining `x`'s sibling.
+// This implementation follows the logic similar to CLRS, handling cases iteratively.
+func (t *Tree[K, V]) deleteFixup(x *Node[K, V]) {
+	// Loop as long as `x` is not the root and `x` is black (or represents a missing black node).
+	// If `x` becomes red, it can absorb the "extra black", and the loop terminates.
+	for x != t.Root && nodeColor(x) == black {
+		// Determine if `x` is a left or right child to find its sibling `s`.
+		if x == x.Parent.Left {
+			// s := x.Parent.Right // Original way to get sibling
+			s := x.sibling() // `s` is `x`'s sibling.
+			// `s` cannot be nil here if the tree properties were maintained before deletion,
+			// because if `x` is black, its sibling must exist to maintain black-heights
+			// unless `x`'s parent is red and `s` was removed (which is not this scenario).
+			// Note: x.sibling() might return nil if x.Parent is nil, but x != t.Root ensures x.Parent exists.
+
+			// Case 1: `x`'s sibling `s` is red.
+			// Action: Recolor `s` to black, `x.Parent` to red. Rotate left at `x.Parent`.
+			//         Update `s` to be `x`'s new sibling (which will be black).
+			// Effect: Transforms Case 1 into Case 2, 3, or 4.
+			if nodeColor(s) == red {
+				if s != nil { // s should not be nil if it's red
+					s.color = black
+				}
+				x.Parent.color = red
+				t.rotateLeft(x.Parent)
+				s = x.Parent.Right // Update `s` to the new sibling. Crucial after rotation.
+			}
+
+			// At this point, `s` must be black (due to Case 1 transformation or initially).
+
+			// Case 2: `x`'s sibling `s` is black, and both of `s`'s children are black.
+			// Action: Recolor `s` to red. Move `x` up to `x.Parent`.
+			// Effect: The "extra black" is passed up the tree. The loop continues from `x.Parent`.
+			//         If `x.Parent` was red, it becomes black (absorbing the extra black), and the loop terminates.
+			if nodeColor(s.Left) == black && nodeColor(s.Right) == black {
+				if s != nil {
+					s.color = red
+				} // s could be nil if tree is malformed, but typically not.
+				x = x.Parent // Move `x` up.
+				continue     // Restart loop with new x; its sibling will be re-evaluated.
+			}
+
+			// If we reach here, s is black and at least one of s's children is red.
+			// Case 3: `x`'s sibling `s` is black, `s.Left` is red, and `s.Right` is black.
+			// Action: Recolor `s.Left` to black, `s` to red. Rotate right at `s`.
+			//         Update `s` to be `x`'s new sibling.
+			// Effect: Transforms Case 3 into Case 4. `x`'s new sibling `s` will have a red right child.
+			if nodeColor(s.Right) == black { // s.Left must be red here.
+				if s.Left != nil {
+					s.Left.color = black
+				}
+				if s != nil {
+					s.color = red
+				}
+				t.rotateRight(s)
+				s = x.Parent.Right // Update `s` to the new sibling. Crucial after rotation.
+			}
+
+			// Case 4: `x`'s sibling `s` is black, and `s.Right` is red.
+			// Action: Recolor `s` with `x.Parent`'s color. Recolor `x.Parent` to black.
+			//         Recolor `s.Right` to black. Rotate left at `x.Parent`.
+			//         Set `x` to `t.Root` to terminate the loop.
+			// Effect: Fixes the Red-Black properties. The "extra black" is absorbed.
+			// This is reached if Case 2 was false, and Case 3 was false (meaning s.Right was red).
+			if s != nil {
+				s.color = nodeColor(x.Parent)
+			}
+			x.Parent.color = black
+			if s.Right != nil {
+				s.Right.color = black
+			}
+			t.rotateLeft(x.Parent)
+			x = t.Root // Terminate loop.
+
+		} else { // Symmetric cases: `x` is a right child.
+			// s := x.Parent.Left // Original way to get sibling
+			s := x.sibling() // `s` is `x`'s sibling.
+
+			// Case 1 (symmetric): `x`'s sibling `s` is red.
+			if nodeColor(s) == red {
+				if s != nil { // s should not be nil if it's red
+					s.color = black
+				}
+				x.Parent.color = red
+				t.rotateRight(x.Parent)
+				s = x.Parent.Left // Update `s`. Crucial after rotation.
+			}
+
+			// Case 2 (symmetric): `s` is black, and both of `s`'s children are black.
+			if nodeColor(s.Right) == black && nodeColor(s.Left) == black {
+				if s != nil {
+					s.color = red
+				}
+				x = x.Parent
+				continue // Restart loop with new x; its sibling will be re-evaluated.
+			}
+
+			// If we reach here, s is black and at least one of s's children is red.
+			// Case 3 (symmetric): `s` is black, `s.Right` is red, `s.Left` is black.
+			if nodeColor(s.Left) == black { // s.Right must be red here.
+				if s.Right != nil {
+					s.Right.color = black
+				}
+				if s != nil {
+					s.color = red
+				}
+				t.rotateLeft(s)
+				s = x.Parent.Left // Update `s`. Crucial after rotation.
+			}
+
+			// Case 4 (symmetric): `s` is black, and `s.Left` is red.
+			// This is reached if Case 2 was false, and Case 3 was false (meaning s.Left was red).
+			if s != nil {
+				s.color = nodeColor(x.Parent)
+			}
+			x.Parent.color = black
+			if s.Left != nil {
+				s.Left.color = black
+			}
+			t.rotateRight(x.Parent) // RR
+			x = t.Root              // Terminate loop.
+		}
+	}
+	// Ensure `x` (which could be the original `x` if it became red, or the root) is black.
+	// This handles the case where `x` was red and absorbed the extra black, or `x` is the root.
+	if x != nil {
+		x.color = black
+	}
 }
 
 // ternary is a helper for conditional expressions.
@@ -632,4 +819,13 @@ func ternary[T any](cond bool, trueVal, falseVal T) T {
 	}
 
 	return falseVal
+}
+
+// nodeColor returns the color of a node, black if nil.
+func nodeColor[K comparable, V any](n *Node[K, V]) color {
+	if n == nil {
+		return black
+	}
+
+	return n.color
 }

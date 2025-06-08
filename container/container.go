@@ -26,7 +26,7 @@ import (
 //
 //	type IntList []int
 //	func (l IntList) Empty() bool { return len(l) == 0 }
-//	func (l IntList) Size() int { return len(l) }
+//	func (l IntList) Len() int { return len(l) }
 //	func (l IntList) Clear() { l = nil }
 //	func (l IntList) Values() []int { return l }
 //	func (l IntList) String() string { return fmt.Sprint(l) }
@@ -34,8 +34,8 @@ type Container[T any] interface {
 	// Empty returns true if the container has no elements.
 	Empty() bool
 
-	// Size returns the number of elements in the container.
-	Size() int
+	// Len returns the number of elements in the container.
+	Len() int
 
 	// Clear removes all elements from the container, resetting it to an empty state.
 	Clear()
