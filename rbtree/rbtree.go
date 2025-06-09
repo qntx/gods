@@ -716,9 +716,18 @@ func (t *Tree[K, V]) deleteFixup(x *Node[K, V]) {
 			// Note: x.sibling() might return nil if x.Parent is nil, but x != t.Root ensures x.Parent exists.
 
 			// Case 1: `x`'s sibling `s` is red.
+			// (P must be black; SL and SR must be black as children of red S)
+			//
+			//          P(B)                 S(B)  <-- s recolored black
+			//         /    \               /    \
+			//      X(B*)  S(R)  --L(P)--> P(R)  SR(B) <-- P recolored red
+			//             /   \           /   \
+			//         SL(B) SR(B)      X(B*) SL(B)
+			//                                 (New S for X is original SL, which is black)
+			//
 			// Action: Recolor `s` to black, `x.Parent` to red. Rotate left at `x.Parent`.
-			//         Update `s` to be `x`'s new sibling (which will be black).
-			// Effect: Transforms Case 1 into Case 2, 3, or 4.
+			//         Update `s` to `x`'s new sibling (original SL).
+			// Effect: Transforms Case 1 into Case 2, 3, or 4, where `x` has a black sibling.
 			if color(s) == red {
 				if s != nil { // s should not be nil if it's red
 					s.Color = black
@@ -730,10 +739,17 @@ func (t *Tree[K, V]) deleteFixup(x *Node[K, V]) {
 
 			// At this point, `s` must be black (due to Case 1 transformation or initially).
 
-			// Case 2: `x`'s sibling `s` is black, and both of `s`'s children are black.
+			// Case 2: `x`'s sibling `s` is black, and both of `s`'s children (SL, SR) are black.
+			//
+			//      P(c)                P(c) <-- Becomes X' if it was black
+			//     /    \              /    \
+			//  X(B*)  S(B)  ----->  X(B*)  S(R) <-- s recolored red
+			//         /   \                /   \
+			//      SL(B) SR(B)           SL(B) SR(B)
+			//
 			// Action: Recolor `s` to red. Move `x` up to `x.Parent`.
-			// Effect: The "extra black" is passed up the tree. The loop continues from `x.Parent`.
-			//         If `x.Parent` was red, it becomes black (absorbing the extra black), and the loop terminates.
+			// Effect: The "extra black" is passed up the tree. Loop continues from `x.Parent`.
+			//         If `x.Parent` was red, it becomes black (absorbing extra black), loop terminates.
 			if color(s.Left) == black && color(s.Right) == black {
 				if s != nil {
 					s.Color = red
@@ -743,10 +759,20 @@ func (t *Tree[K, V]) deleteFixup(x *Node[K, V]) {
 			}
 
 			// If we reach here, s is black and at least one of s's children is red.
-			// Case 3: `x`'s sibling `s` is black, `s.Left` is red, and `s.Right` is black.
+
+			// Case 3: `x`'s sibling `s` is black, `s.Left` (SL) is red, `s.Right` (SR) is black. (Triangle)
+			//
+			//      P(c)                   P(c)
+			//     /    \                 /    \
+			//  X(B*)  S(B)  --R(S) --> X(B*)  SL(B) <-- New S for X (orig SL, recolored black)
+			//         /   \                    \
+			//      SL(R) SR(B)                  S(R) <-- Orig S, recolored red
+			//                                    \
+			//                                    SR(B)
+			//
 			// Action: Recolor `s.Left` to black, `s` to red. Rotate right at `s`.
-			//         Update `s` to be `x`'s new sibling.
-			// Effect: Transforms Case 3 into Case 4. `x`'s new sibling `s` will have a red right child.
+			//         Update `s` to `x`'s new sibling (original SL).
+			// Effect: Transforms Case 3 into Case 4. `x`'s new sibling `s` is black and has a red right child.
 			if color(s.Right) == black { // s.Left must be red here.
 				if s.Left != nil {
 					s.Left.Color = black
@@ -758,7 +784,14 @@ func (t *Tree[K, V]) deleteFixup(x *Node[K, V]) {
 				s = x.Parent.Right // Update `s` to the new sibling. Crucial after rotation.
 			}
 
-			// Case 4: `x`'s sibling `s` is black, and `s.Right` is red.
+			// Case 4: `x`'s sibling `s` is black, and `s.Right` (SR) is red. (Line)
+			//
+			//      P(c1)                  S(c1) <-- s takes P's original color
+			//     /    \                 /     \
+			//  X(B*)  S(B)  --L(P) --> P(B)    SR(B) <-- P becomes black, SR becomes black
+			//         /   \            /   \
+			//      SL(c2)SR(R)      X(B*) SL(c2)
+			//
 			// Action: Recolor `s` with `x.Parent`'s color. Recolor `x.Parent` to black.
 			//         Recolor `s.Right` to black. Rotate left at `x.Parent`.
 			//         Set `x` to `t.Root` to terminate the loop.
@@ -779,6 +812,18 @@ func (t *Tree[K, V]) deleteFixup(x *Node[K, V]) {
 			s := x.sibling() // `s` is `x`'s sibling.
 
 			// Case 1 (symmetric): `x`'s sibling `s` is red.
+			// (P must be black; SL and SR must be black as children of red S)
+			//
+			//        P(B)                   S(B)  <-- s recolored black
+			//       /    \                 /    \
+			//    S(R)    X(B*) --R(P)--> SL(B)  P(R) <-- P recolored red
+			//   /   \                           /   \
+			// SL(B) SR(B)                    SR(B)  X(B*)
+			//                                (New S for X is original SR, which is black)
+			//
+			// Action: Recolor `s` to black, `x.Parent` to red. Rotate right at `x.Parent`.
+			//         Update `s` to `x`'s new sibling (original SR).
+			// Effect: Transforms Case 1 into Case 2, 3, or 4 (symmetric) where `x` has a black sibling.
 			if color(s) == red {
 				if s != nil { // s should not be nil if it's red
 					s.Color = black
@@ -788,7 +833,16 @@ func (t *Tree[K, V]) deleteFixup(x *Node[K, V]) {
 				s = x.Parent.Left // Update `s`. Crucial after rotation.
 			}
 
-			// Case 2 (symmetric): `s` is black, and both of `s`'s children are black.
+			// Case 2 (symmetric): `s` is black, and both of `s`'s children (SL, SR) are black.
+			//
+			//      P(c)                   P(c) <-- Becomes X' if it was black
+			//     /    \                 /    \
+			//  S(B)    X(B*) -------->  S(R)   X(B*) <-- s recolored red
+			//  /   \                    /   \
+			// SL(B) SR(B)              SL(B) SR(B)
+			//
+			// Action: Recolor `s` to red. Move `x` up to `x.Parent`.
+			// Effect: The "extra black" is passed up the tree. Loop continues from `x.Parent`.
 			if color(s.Right) == black && color(s.Left) == black {
 				if s != nil {
 					s.Color = red
@@ -798,7 +852,20 @@ func (t *Tree[K, V]) deleteFixup(x *Node[K, V]) {
 			}
 
 			// If we reach here, s is black and at least one of s's children is red.
-			// Case 3 (symmetric): `s` is black, `s.Right` is red, `s.Left` is black.
+
+			// Case 3 (symmetric): `s` is black, `s.Right` (SR) is red, `s.Left` (SL) is black. (Triangle)
+			//
+			//      P(c)                      P(c)
+			//     /    \                    /    \
+			//  S(B)    X(B*)  --L(S)-->  SR(B)  X(B*) <-- New S for X (orig SR, recolored black)
+			//  /   \                    /
+			// SL(B) SR(R)             S(R) <-- Orig S, recolored red
+			//                         /
+			//                       SL(B)
+			//
+			// Action: Recolor `s.Right` to black, `s` to red. Rotate left at `s`.
+			//         Update `s` to `x`'s new sibling (original SR).
+			// Effect: Transforms Case 3 into Case 4 (symmetric). `x`'s new sibling `s` is black and has a red left child.
 			if color(s.Left) == black { // s.Right must be red here.
 				if s.Right != nil {
 					s.Right.Color = black
@@ -810,7 +877,18 @@ func (t *Tree[K, V]) deleteFixup(x *Node[K, V]) {
 				s = x.Parent.Left // Update `s`. Crucial after rotation.
 			}
 
-			// Case 4 (symmetric): `s` is black, and `s.Left` is red.
+			// Case 4 (symmetric): `s` is black, and `s.Left` (SL) is red. (Line)
+			//
+			//      P(c1)                     S(c1) <-- s takes P's original color
+			//     /    \                    /     \
+			//   S(B)    X(B*)  --R(P)-->  SL(B)   P(B) <-- P becomes black, SL becomes black
+			//  /   \                             /   \
+			// SL(R) SR(c2)                     SR(c2) X(B*)
+			//
+			// Action: Recolor `s` with `x.Parent`'s color. Recolor `x.Parent` to black.
+			//         Recolor `s.Left` to black. Rotate right at `x.Parent`.
+			//         Set `x` to `t.Root` to terminate the loop.
+			// Effect: Fixes the Red-Black properties. The "extra black" is absorbed.
 			// This is reached if Case 2 was false, and Case 3 was false (meaning s.Left was red).
 			if s != nil {
 				s.Color = color(x.Parent)
@@ -819,8 +897,8 @@ func (t *Tree[K, V]) deleteFixup(x *Node[K, V]) {
 			if s.Left != nil {
 				s.Left.Color = black
 			}
-			t.rotateRight(x.Parent) // RR
-			x = t.Root              // Terminate loop.
+			t.rotateRight(x.Parent)
+			x = t.Root // Terminate loop.
 		}
 	}
 	// Ensure `x` (which could be the original `x` if it became red, or the root) is black.
