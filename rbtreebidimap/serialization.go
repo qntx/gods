@@ -7,7 +7,7 @@ import (
 )
 
 // Assert Serialization implementation
-var _ container.JSONSerializable = (*Map[string, int])(nil)
+var _ container.JSONCodec = (*Map[string, int])(nil)
 
 // MarshalJSON @implements json.Marshaler
 func (m *Map[K, V]) MarshalJSON() ([]byte, error) {

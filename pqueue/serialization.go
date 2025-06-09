@@ -19,7 +19,7 @@ var (
 )
 
 // Ensure PriorityQueue implements required interfaces at compile time.
-var _ container.JSONSerializable = (*PriorityQueue[int, int])(nil)
+var _ container.JSONCodec = (*PriorityQueue[int, int])(nil)
 
 // pqJSON is a helper struct for serializing the priority queue to JSON.
 type pqJSON[T comparable, V any] struct {

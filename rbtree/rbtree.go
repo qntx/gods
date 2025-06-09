@@ -466,6 +466,29 @@ func (t *Tree[K, V]) Clear() {
 	t.len = 0
 }
 
+// String returns a string representation of the tree.
+//
+// Time complexity: O(n).
+func (t *Tree[K, V]) String() string {
+	if t.Empty() {
+		return "RedBlackTree[]"
+	}
+
+	var sb strings.Builder
+
+	sb.WriteString("RedBlackTree\n")
+	t.output(t.root, "", true, &sb)
+
+	return sb.String()
+}
+
+// Comparator returns the comparator used by the tree.
+//
+// Time complexity: O(1).
+func (t *Tree[K, V]) Comparator() cmp.Comparator[K] {
+	return t.comparator
+}
+
 // Iter returns an iterator over all key-value pairs in sorted order.
 // Yields pairs in in-order traversal.
 //
@@ -487,29 +510,6 @@ func (t *Tree[K, V]) Iter() iter.Seq2[K, V] {
 			}
 		}
 	}
-}
-
-// Comparator returns the comparator used by the tree.
-//
-// Time complexity: O(1).
-func (t *Tree[K, V]) Comparator() cmp.Comparator[K] {
-	return t.comparator
-}
-
-// String returns a string representation of the tree.
-//
-// Time complexity: O(n).
-func (t *Tree[K, V]) String() string {
-	if t.Empty() {
-		return "RedBlackTree[]"
-	}
-
-	var sb strings.Builder
-
-	sb.WriteString("RedBlackTree\n")
-	t.output(t.root, "", true, &sb)
-
-	return sb.String()
 }
 
 // lookup finds the node with the given key.

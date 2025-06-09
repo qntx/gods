@@ -14,12 +14,12 @@ import (
 
 // Predefined errors for JSON operations.
 var (
-	ErrMarshalJSONFailure   = errors.New("failed to marshal rbtree to JSON")
-	ErrUnmarshalJSONFailure = errors.New("failed to unmarshal JSON into rbtree")
+	ErrMarshalJSON   = errors.New("failed to marshal rbtree to JSON")
+	ErrUnmarshalJSON = errors.New("failed to unmarshal JSON into rbtree")
 )
 
 // Ensure Tree implements required interfaces at compile time.
-var _ container.JSONSerializable = (*Tree[string, int])(nil)
+var _ container.JSONCodec = (*Tree[string, int])(nil)
 
 // MarshalJSON serializes the tree into a JSON object.
 //
@@ -44,7 +44,7 @@ func (t *Tree[K, V]) MarshalJSON() ([]byte, error) {
 
 	data, err := json.Marshal(elems)
 	if err != nil {
-		return nil, fmt.Errorf("rbtree: %w: %w", ErrMarshalJSONFailure, err)
+		return nil, fmt.Errorf("rbtree: %w: %w", ErrMarshalJSON, err)
 	}
 
 	return data, nil
@@ -65,7 +65,7 @@ func (t *Tree[K, V]) MarshalJSON() ([]byte, error) {
 func (t *Tree[K, V]) UnmarshalJSON(data []byte) error {
 	var elems map[K]V
 	if err := json.Unmarshal(data, &elems); err != nil {
-		return fmt.Errorf("rbtree: %w: %w", ErrUnmarshalJSONFailure, err)
+		return fmt.Errorf("rbtree: %w: %w", ErrUnmarshalJSON, err)
 	}
 
 	t.Clear()

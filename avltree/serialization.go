@@ -7,7 +7,7 @@ import (
 )
 
 // Assert Serialization implementation
-var _ container.JSONSerializable = (*Tree[string, int])(nil)
+var _ container.JSONCodec = (*Tree[string, int])(nil)
 
 // ToJSON outputs the JSON representation of the tree.
 func (tree *Tree[K, V]) ToJSON() ([]byte, error) {

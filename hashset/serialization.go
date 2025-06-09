@@ -8,7 +8,7 @@ import (
 	"github.com/qntx/gods/container"
 )
 
-var _ container.JSONSerializable = (*Set[int])(nil)
+var _ container.JSONCodec = (*Set[int])(nil)
 
 // MarshalJSON creates a JSON array from the set, it marshals all elements
 func (s Set[T]) MarshalJSON() ([]byte, error) {

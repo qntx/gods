@@ -1,15 +1,16 @@
-// Package container provides interfaces for working with container data structures.
-// It includes support for JSON serialization and deserialization, enabling containers
-// to convert their elements to and from JSON format in a standardized way.
+// Package container provides interfaces for managing container data structures.
+// It supports JSON serialization and deserialization, allowing containers to
+// convert their elements to and from JSON in a standardized manner.
 package container
 
 import "encoding/json"
 
-// JSONSerializable combines JSONSerializer and JSONDeserializer into a single interface.
-// It can be used for containers that support both serialization and deserialization.
+// JSONCodec defines an interface for containers that support both JSON
+// serialization and deserialization. It combines the Marshaler and Unmarshaler
+// interfaces for convenience.
 //
-// This is an optional convenience interface and may be implemented as needed.
-type JSONSerializable interface {
+// This interface is optional and may be implemented as needed.
+type JSONCodec interface {
 	json.Marshaler
 	json.Unmarshaler
 }

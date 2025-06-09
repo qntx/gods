@@ -14,9 +14,6 @@ type Set[T comparable] interface {
 	// the number of elements added.
 	Append(val ...T) int
 
-	// Len returns the number of elements in the set.
-	Len() int
-
 	// Clear removes all elements from the set, leaving
 	// the empty set.
 	Clear()
@@ -54,6 +51,10 @@ type Set[T comparable] interface {
 	// of the method. Otherwise, Difference will
 	// panic.
 	Difference(other Set[T]) Set[T]
+
+	// Each iterates over elements and executes the passed func against each element.
+	// If passed func returns true, stop iteration at the time.
+	Each(func(T) bool)
 
 	// Equal determines if two sets are equal to each
 	// other. If they have the same cardinality
@@ -115,13 +116,15 @@ type Set[T comparable] interface {
 	// panic.
 	IsSuperset(other Set[T]) bool
 
-	// Each iterates over elements and executes the passed func against each element.
-	// If passed func returns true, stop iteration at the time.
-	Each(func(T) bool)
-
 	// Iter returns a channel of elements that you can
 	// range over.
 	Iter() iter.Seq[T]
+
+	// Len returns the number of elements in the set.
+	Len() int
+
+	// Pop removes and returns an arbitrary item from the set.
+	Pop() (T, bool)
 
 	// Iterator returns an Iterator object that you can
 	// use to range over the set.
@@ -152,9 +155,6 @@ type Set[T comparable] interface {
 	// same type as the receiver of the method.
 	// Otherwise, Union will panic.
 	Union(other Set[T]) Set[T]
-
-	// Pop removes and returns an arbitrary item from the set.
-	Pop() (T, bool)
 
 	// ToSlice returns the members of the set as a slice.
 	ToSlice() []T

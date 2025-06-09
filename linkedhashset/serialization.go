@@ -7,7 +7,7 @@ import (
 )
 
 // Assert Serialization implementation
-var _ container.JSONSerializable = (*Set[int])(nil)
+var _ container.JSONCodec = (*Set[int])(nil)
 
 // MarshalJSON outputs the JSON representation of the set.
 func (set *Set[T]) MarshalJSON() ([]byte, error) {
