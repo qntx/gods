@@ -1,7 +1,3 @@
-// Copyright (c) 2015, Emir Pasic. All rights reserved.
-// Use of this source code is governed by a BSD-style
-// license that can be found in the LICENSE file.
-
 package linkedhashmap
 
 import (
@@ -16,8 +12,8 @@ import (
 // Assert Serialization implementation
 var _ container.JSONSerializable = (*Map[string, int])(nil)
 
-// ToJSON outputs the JSON representation of map.
-func (m *Map[K, V]) ToJSON() ([]byte, error) {
+// MarshalJSON @implements json.Marshaler
+func (m *Map[K, V]) MarshalJSON() ([]byte, error) {
 	var b []byte
 	buf := bytes.NewBuffer(b)
 
@@ -54,21 +50,8 @@ func (m *Map[K, V]) ToJSON() ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
-// FromJSON populates map from the input JSON representation.
-//func (m *Map[K, V]) FromJSON(data []byte) error {
-//	elements := make(map[string]interface{})
-//	err := json.Unmarshal(data, &elements)
-//	if err == nil {
-//		m.Clear()
-//		for key, value := range elements {
-//			m.Put(key, value)
-//		}
-//	}
-//	return err
-//}
-
-// FromJSON populates map from the input JSON representation.
-func (m *Map[K, V]) FromJSON(data []byte) error {
+// UnmarshalJSON @implements json.Unmarshaler
+func (m *Map[K, V]) UnmarshalJSON(data []byte) error {
 	elements := make(map[K]V)
 	err := json.Unmarshal(data, &elements)
 	if err != nil {
@@ -96,14 +79,4 @@ func (m *Map[K, V]) FromJSON(data []byte) error {
 	}
 
 	return nil
-}
-
-// UnmarshalJSON @implements json.Unmarshaler
-func (m *Map[K, V]) UnmarshalJSON(bytes []byte) error {
-	return m.FromJSON(bytes)
-}
-
-// MarshalJSON @implements json.Marshaler
-func (m *Map[K, V]) MarshalJSON() ([]byte, error) {
-	return m.ToJSON()
 }

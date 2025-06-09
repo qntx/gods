@@ -540,13 +540,13 @@ func TestMapSerialization(t *testing.T) {
 		original.Put("b", "2")
 		original.Put("a", "1")
 
-		serialized, err := original.ToJSON()
+		serialized, err := original.MarshalJSON()
 		if err != nil {
 			t.Errorf("Got error %v", err)
 		}
 
 		deserialized := New[string, string]()
-		err = deserialized.FromJSON(serialized)
+		err = deserialized.UnmarshalJSON(serialized)
 		if err != nil {
 			t.Errorf("Got error %v", err)
 		}
