@@ -62,7 +62,7 @@ func (it *Iterator[K, V]) Next() bool {
 	case end:
 		return false
 	case begin:
-		if left := it.tree.GetLeftNode(); left != nil {
+		if left := it.tree.GetBeginNode(); left != nil {
 			it.node = left
 			it.position = between
 
@@ -107,7 +107,7 @@ func (it *Iterator[K, V]) Prev() bool {
 	case begin:
 		return false
 	case end:
-		if right := it.tree.GetRightNode(); right != nil {
+		if right := it.tree.GetEndNode(); right != nil {
 			it.node = right
 			it.position = between
 

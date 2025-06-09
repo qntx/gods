@@ -47,10 +47,10 @@ func NewWith[K, V comparable](keyComparator cmp.Comparator[K], valueComparator c
 // Put inserts element into the map.
 func (m *Map[K, V]) Put(key K, value V) {
 	if v, ok := m.forwardMap.Get(key); ok {
-		m.inverseMap.Remove(v)
+		m.inverseMap.Delete(v)
 	}
 	if k, ok := m.inverseMap.Get(value); ok {
-		m.forwardMap.Remove(k)
+		m.forwardMap.Delete(k)
 	}
 	m.forwardMap.Put(key, value)
 	m.inverseMap.Put(value, key)
@@ -71,8 +71,8 @@ func (m *Map[K, V]) GetKey(value V) (key K, found bool) {
 // Remove removes the element from the map by key.
 func (m *Map[K, V]) Remove(key K) {
 	if v, found := m.forwardMap.Get(key); found {
-		m.forwardMap.Remove(key)
-		m.inverseMap.Remove(v)
+		m.forwardMap.Delete(key)
+		m.inverseMap.Delete(v)
 	}
 }
 

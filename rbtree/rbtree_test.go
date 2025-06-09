@@ -133,11 +133,11 @@ func TestRedBlackTreeRemove(t *testing.T) {
 
 	// Test partial removal
 	t.Run("PartialRemoval", func(t *testing.T) {
-		tree.Remove(5)
-		tree.Remove(6)
-		tree.Remove(7)
-		tree.Remove(8) // Non-existent key
-		tree.Remove(5) // Already removed
+		tree.Delete(5)
+		tree.Delete(6)
+		tree.Delete(7)
+		tree.Delete(8) // Non-existent key
+		tree.Delete(5) // Already removed
 
 		wantKeys := []int{1, 2, 3, 4}
 		if got := tree.Keys(); !slices.Equal(got, wantKeys) {
@@ -183,12 +183,12 @@ func TestRedBlackTreeRemove(t *testing.T) {
 	t.Run("FullRemoval", func(t *testing.T) {
 		t.Parallel()
 
-		tree.Remove(1)
-		tree.Remove(4)
-		tree.Remove(2)
-		tree.Remove(3)
-		tree.Remove(2) // Already removed
-		tree.Remove(2) // Already removed
+		tree.Delete(1)
+		tree.Delete(4)
+		tree.Delete(2)
+		tree.Delete(3)
+		tree.Delete(2) // Already removed
+		tree.Delete(2) // Already removed
 
 		wantKeys := []int{}
 		if got := tree.Keys(); !slices.Equal(got, wantKeys) {
@@ -200,7 +200,7 @@ func TestRedBlackTreeRemove(t *testing.T) {
 			t.Errorf("Values() = %v, want %v", got, wantValues)
 		}
 
-		if gotEmpty, gotSize := tree.Empty(), tree.Len(); !gotEmpty || gotSize != 0 {
+		if gotEmpty, gotSize := tree.IsEmpty(), tree.Len(); !gotEmpty || gotSize != 0 {
 			t.Errorf("Empty() = %v, Len() = %d, want true, 0", gotEmpty, gotSize)
 		}
 	})
@@ -211,11 +211,11 @@ func TestRedBlackTreeLeftAndRight(t *testing.T) {
 
 	tree := rbtree.New[int, string]()
 
-	if actualValue := tree.GetLeftNode(); actualValue != nil {
+	if actualValue := tree.GetBeginNode(); actualValue != nil {
 		t.Errorf("Got %v expected %v", actualValue, nil)
 	}
 
-	if actualValue := tree.GetRightNode(); actualValue != nil {
+	if actualValue := tree.GetEndNode(); actualValue != nil {
 		t.Errorf("Got %v expected %v", actualValue, nil)
 	}
 
@@ -228,19 +228,19 @@ func TestRedBlackTreeLeftAndRight(t *testing.T) {
 	tree.Put(1, "x") // overwrite
 	tree.Put(2, "b")
 
-	if actualValue, expectedValue := tree.GetLeftNode().Key(), 1; actualValue != expectedValue {
+	if actualValue, expectedValue := tree.GetBeginNode().Key(), 1; actualValue != expectedValue {
 		t.Errorf("Got %v expected %v", actualValue, expectedValue)
 	}
 
-	if actualValue, expectedValue := tree.GetLeftNode().Value(), "x"; actualValue != expectedValue {
+	if actualValue, expectedValue := tree.GetBeginNode().Value(), "x"; actualValue != expectedValue {
 		t.Errorf("Got %v expected %v", actualValue, expectedValue)
 	}
 
-	if actualValue, expectedValue := tree.GetRightNode().Key(), 7; actualValue != expectedValue {
+	if actualValue, expectedValue := tree.GetEndNode().Key(), 7; actualValue != expectedValue {
 		t.Errorf("Got %v expected %v", actualValue, expectedValue)
 	}
 
-	if actualValue, expectedValue := tree.GetRightNode().Value(), "g"; actualValue != expectedValue {
+	if actualValue, expectedValue := tree.GetEndNode().Value(), "g"; actualValue != expectedValue {
 		t.Errorf("Got %v expected %v", actualValue, expectedValue)
 	}
 }

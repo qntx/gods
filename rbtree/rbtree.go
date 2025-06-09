@@ -12,6 +12,7 @@ import (
 	"strings"
 
 	"github.com/qntx/gods/cmp"
+	"github.com/qntx/gods/container"
 )
 
 // Color represents the color of a red-black tree node (red or black).
@@ -137,6 +138,8 @@ func (n *Node[K, V]) grandparent() *Node[K, V] {
 	return nil
 }
 
+var _ container.Map[int, int] = (*Tree[int, int])(nil)
+
 // Tree manages a red-black tree with key-value pairs.
 //
 // K must be comparable and compatible with the provided comparator.
@@ -215,15 +218,15 @@ func (t *Tree[K, V]) Put(key K, val V) {
 	t.len++ // Increment the tree size.
 }
 
-// Remove deletes the node with the given key from the tree.
+// Delete deletes the node with the given key from the tree.
 //
 // Does nothing if key not found. Panics if key type is incompatible with comparator.
 // Time complexity: O(log n).
-func (t *Tree[K, V]) Remove(key K) {
+func (t *Tree[K, V]) Delete(key K) bool {
 	// Step 1: Find node to remove.
 	n := t.lookup(key)
 	if n == nil {
-		return // Not found.
+		return false // Not found.
 	}
 
 	// unlink: node to be unlinked.
@@ -263,6 +266,16 @@ func (t *Tree[K, V]) Remove(key K) {
 
 	// Step 7: Decrement tree size.
 	t.len--
+
+	return true
+}
+
+// Has checks if the given key exists in the tree.
+// Returns true if the key is found, false otherwise.
+// Panics if the key type is incompatible with the comparator.
+// Time complexity: O(log n).
+func (t *Tree[K, V]) Has(key K) bool {
+	return t.lookup(key) != nil
 }
 
 // Get retrieves the value associated with the given key.
@@ -289,22 +302,22 @@ func (t *Tree[K, V]) GetNode(key K) *Node[K, V] {
 // GetLeftNode returns the leftmost (minimum key) node or nil if the tree is empty.
 // Renamed from MinNode for clarity.
 // Time complexity: O(log n).
-func (t *Tree[K, V]) GetLeftNode() *Node[K, V] {
+func (t *Tree[K, V]) GetBeginNode() *Node[K, V] {
 	return t.getLeftNode(t.root)
 }
 
-// GetRightNode returns the rightmost (maximum key) node or nil if the tree is empty.
+// GetEndNode returns the rightmost (maximum key) node or nil if the tree is empty.
 // Renamed from MaxNode for clarity.
 // Time complexity: O(log n).
-func (t *Tree[K, V]) GetRightNode() *Node[K, V] {
+func (t *Tree[K, V]) GetEndNode() *Node[K, V] {
 	return t.getRightNode(t.root)
 }
 
-// Left returns the minimum key and value in the tree.
+// Begin returns the minimum key and value in the tree.
 // Returns found as true if an element is found, otherwise false.
 // Time complexity: O(log n).
-func (t *Tree[K, V]) Left() (key K, value V, found bool) {
-	node := t.GetLeftNode()
+func (t *Tree[K, V]) Begin() (key K, value V, found bool) {
+	node := t.GetBeginNode()
 	if node != nil {
 		return node.key, node.value, true
 	}
@@ -313,11 +326,11 @@ func (t *Tree[K, V]) Left() (key K, value V, found bool) {
 	return zeroKey, zeroValue, false
 }
 
-// Right returns the maximum key and value in the tree.
+// End returns the maximum key and value in the tree.
 // Returns found as true if an element is found, otherwise false.
 // Time complexity: O(log n).
-func (t *Tree[K, V]) Right() (key K, value V, found bool) {
-	node := t.GetRightNode()
+func (t *Tree[K, V]) End() (key K, value V, found bool) {
+	node := t.GetEndNode()
 	if node != nil {
 		return node.key, node.value, true
 	}
@@ -326,14 +339,14 @@ func (t *Tree[K, V]) Right() (key K, value V, found bool) {
 	return zeroKey, zeroValue, false
 }
 
-// RemoveLeft removes the minimum key-value pair from the tree.
+// DeleteBegin removes the minimum key-value pair from the tree.
 // Returns the removed key, value, and true if an element was removed, otherwise false.
 // Time complexity: O(log n).
-func (t *Tree[K, V]) RemoveLeft() (key K, value V, removed bool) {
-	node := t.GetLeftNode()
+func (t *Tree[K, V]) DeleteBegin() (key K, value V, removed bool) {
+	node := t.GetBeginNode()
 	if node != nil {
 		k, v := node.key, node.value
-		t.Remove(k)
+		t.Delete(k)
 		return k, v, true
 	}
 	var zeroKey K
@@ -341,14 +354,14 @@ func (t *Tree[K, V]) RemoveLeft() (key K, value V, removed bool) {
 	return zeroKey, zeroValue, false
 }
 
-// RemoveRight removes the maximum key-value pair from the tree.
+// DeleteEnd removes the maximum key-value pair from the tree.
 // Returns the removed key, value, and true if an element was removed, otherwise false.
 // Time complexity: O(log n).
-func (t *Tree[K, V]) RemoveRight() (key K, value V, removed bool) {
-	node := t.GetRightNode()
+func (t *Tree[K, V]) DeleteEnd() (key K, value V, removed bool) {
+	node := t.GetEndNode()
 	if node != nil {
 		k, v := node.key, node.value
-		t.Remove(k)
+		t.Delete(k)
 		return k, v, true
 	}
 	var zeroKey K
@@ -428,6 +441,13 @@ func (t *Tree[K, V]) Values() []V {
 	return vals
 }
 
+// ToSlice returns all values in in-order traversal based on keys.
+//
+// Time complexity: O(n).
+func (t *Tree[K, V]) ToSlice() []V {
+	return t.Values()
+}
+
 // Entries returns all keys and values in in-order traversal.
 //
 // More efficient than calling Keys() and Values() separately as it traverses
@@ -444,6 +464,23 @@ func (t *Tree[K, V]) Entries() ([]K, []V) {
 	return keys, vals
 }
 
+// Clone creates a deep copy of the tree.
+// The new tree will have its own nodes, independent of the original tree.
+// Time complexity: O(n), where n is the number of nodes in the tree.
+func (t *Tree[K, V]) Clone() container.Map[K, V] {
+	newTree := &Tree[K, V]{
+		comparator: t.comparator,
+		len:        t.len,
+	}
+
+	if t.root == nil {
+		return newTree // Original tree is empty
+	}
+
+	newTree.root = cloneNode(t.root, nil)
+	return newTree
+}
+
 // Len returns the number of nodes in the tree.
 //
 // Time complexity: O(1).
@@ -451,10 +488,10 @@ func (t *Tree[K, V]) Len() int {
 	return t.len
 }
 
-// Empty checks if the tree contains no nodes.
+// IsEmpty checks if the tree contains no nodes.
 //
 // Time complexity: O(1).
-func (t *Tree[K, V]) Empty() bool {
+func (t *Tree[K, V]) IsEmpty() bool {
 	return t.len == 0
 }
 
@@ -470,7 +507,7 @@ func (t *Tree[K, V]) Clear() {
 //
 // Time complexity: O(n).
 func (t *Tree[K, V]) String() string {
-	if t.Empty() {
+	if t.IsEmpty() {
 		return "RedBlackTree[]"
 	}
 
@@ -495,7 +532,7 @@ func (t *Tree[K, V]) Comparator() cmp.Comparator[K] {
 // Time complexity: O(log n) per element.
 func (t *Tree[K, V]) Iter() iter.Seq2[K, V] {
 	return func(yield func(K, V) bool) {
-		node := t.GetLeftNode()
+		node := t.GetBeginNode()
 		for node != nil {
 			if !yield(node.Key(), node.Value()) {
 				return
@@ -1017,4 +1054,25 @@ func ternary[T any](cond bool, trueVal, falseVal T) T {
 	}
 
 	return falseVal
+}
+
+// cloneNode creates a deep copy of a node and its subtree.
+// node is the node to be copied.
+// parent is the parent for the new node in the cloned tree.
+func cloneNode[K comparable, V any](node *Node[K, V], parent *Node[K, V]) *Node[K, V] {
+	if node == nil {
+		return nil
+	}
+
+	n := &Node[K, V]{
+		key:    node.key,
+		value:  node.value,
+		color:  node.color,
+		parent: parent,
+	}
+
+	n.left = cloneNode(node.left, n)
+	n.right = cloneNode(node.right, n)
+
+	return n
 }

@@ -31,7 +31,7 @@ func benchmarkRemove(b *testing.B, tree *rbtree.Tree[int, struct{}], size int) {
 
 	for b.N > 0 {
 		for n := range size {
-			tree.Remove(n)
+			tree.Delete(n)
 		}
 	}
 }

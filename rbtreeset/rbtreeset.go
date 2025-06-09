@@ -43,7 +43,7 @@ func (s *Set[T]) Add(values ...T) {
 // Remove deletes one or more elements from the set.
 func (s *Set[T]) Remove(values ...T) {
 	for _, v := range values {
-		s.tree.Remove(v)
+		s.tree.Delete(v)
 	}
 }
 
