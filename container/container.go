@@ -31,22 +31,22 @@ import (
 //	func (l IntList) Values() []int { return l }
 //	func (l IntList) String() string { return fmt.Sprint(l) }
 type Container[T any] interface {
-	// Empty returns true if the container has no elements.
-	Empty() bool
+	// Clear removes all elements from the container, resetting it to an empty state.
+	Clear()
+
+	// IsEmpty returns true if the container has no elements.
+	IsEmpty() bool
 
 	// Len returns the number of elements in the container.
 	Len() int
 
-	// Clear removes all elements from the container, resetting it to an empty state.
-	Clear()
-
-	// Values returns a slice containing all elements in the container.
-	// The order of elements is implementation-dependent.
-	Values() []T
-
 	// String returns a string representation of the container's elements,
 	// suitable for logging or debugging.
 	String() string
+
+	// ToSlice returns a slice containing all elements in the container.
+	// The order of elements is implementation-dependent.
+	ToSlice() []T
 }
 
 // GetSortedValues returns a sorted slice of the container's elements for ordered types.
@@ -56,13 +56,14 @@ type Container[T any] interface {
 //
 // Returns the original values slice if it has fewer than 2 elements, as sorting is unnecessary.
 func GetSortedValues[T cmp.Ordered](c Container[T]) []T {
-	values := c.Values()
-	if len(values) < 2 {
-		return values
+	v := c.ToSlice()
+	if len(v) < 2 {
+		return v
 	}
+
 	// Create a copy to avoid modifying the original slice
-	sorted := make([]T, len(values))
-	copy(sorted, values)
+	sorted := make([]T, len(v))
+	copy(sorted, v)
 	slices.Sort(sorted)
 
 	return sorted
@@ -75,13 +76,14 @@ func GetSortedValues[T cmp.Ordered](c Container[T]) []T {
 //
 // Returns the original values slice if it has fewer than 2 elements, as sorting is unnecessary.
 func GetSortedValuesFunc[T any](c Container[T], cmp cmp.Comparator[T]) []T {
-	values := c.Values()
-	if len(values) < 2 {
-		return values
+	v := c.ToSlice()
+	if len(v) < 2 {
+		return v
 	}
+
 	// Create a copy to avoid modifying the original slice
-	sorted := make([]T, len(values))
-	copy(sorted, values)
+	sorted := make([]T, len(v))
+	copy(sorted, v)
 	slices.SortFunc(sorted, cmp)
 
 	return sorted
