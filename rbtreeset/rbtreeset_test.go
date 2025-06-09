@@ -9,7 +9,7 @@ import (
 
 func TestSetNew(t *testing.T) {
 	set := New(2, 1)
-	if actualValue := set.Size(); actualValue != 2 {
+	if actualValue := set.Len(); actualValue != 2 {
 		t.Errorf("Got %v expected %v", actualValue, 2)
 	}
 	values := set.Values()
@@ -31,7 +31,7 @@ func TestSetAdd(t *testing.T) {
 	if actualValue := set.Empty(); actualValue != false {
 		t.Errorf("Got %v expected %v", actualValue, false)
 	}
-	if actualValue := set.Size(); actualValue != 3 {
+	if actualValue := set.Len(); actualValue != 3 {
 		t.Errorf("Got %v expected %v", actualValue, 3)
 	}
 }
@@ -57,18 +57,18 @@ func TestSetRemove(t *testing.T) {
 	set := New[int]()
 	set.Add(3, 1, 2)
 	set.Remove()
-	if actualValue := set.Size(); actualValue != 3 {
+	if actualValue := set.Len(); actualValue != 3 {
 		t.Errorf("Got %v expected %v", actualValue, 3)
 	}
 	set.Remove(1)
-	if actualValue := set.Size(); actualValue != 2 {
+	if actualValue := set.Len(); actualValue != 2 {
 		t.Errorf("Got %v expected %v", actualValue, 2)
 	}
 	set.Remove(3)
 	set.Remove(3)
 	set.Remove()
 	set.Remove(2)
-	if actualValue := set.Size(); actualValue != 0 {
+	if actualValue := set.Len(); actualValue != 0 {
 		t.Errorf("Got %v expected %v", actualValue, 0)
 	}
 }
@@ -108,8 +108,8 @@ func TestSetMap(t *testing.T) {
 	if actualValue, expectedValue := mappedSet.Contains("mapped: a", "mapped: b", "mapped: x"), false; actualValue != expectedValue {
 		t.Errorf("Got %v expected %v", actualValue, expectedValue)
 	}
-	if mappedSet.Size() != 3 {
-		t.Errorf("Got %v expected %v", mappedSet.Size(), 3)
+	if mappedSet.Len() != 3 {
+		t.Errorf("Got %v expected %v", mappedSet.Len(), 3)
 	}
 }
 
@@ -126,8 +126,8 @@ func TestSetSelect(t *testing.T) {
 	if actualValue, expectedValue := selectedSet.Contains("a", "b", "c"), false; actualValue != expectedValue {
 		t.Errorf("Got %v (%v) expected %v (%v)", actualValue, selectedSet.Values(), expectedValue, "[a b]")
 	}
-	if selectedSet.Size() != 2 {
-		t.Errorf("Got %v expected %v", selectedSet.Size(), 3)
+	if selectedSet.Len() != 2 {
+		t.Errorf("Got %v expected %v", selectedSet.Len(), 3)
 	}
 }
 
@@ -302,13 +302,13 @@ func TestSetIteratorEnd(t *testing.T) {
 
 	set.Add("a", "b", "c")
 	it.End()
-	if index := it.Index(); index != set.Size() {
-		t.Errorf("Got %v expected %v", index, set.Size())
+	if index := it.Index(); index != set.Len() {
+		t.Errorf("Got %v expected %v", index, set.Len())
 	}
 
 	it.Prev()
-	if index, value := it.Index(), it.Value(); index != set.Size()-1 || value != "c" {
-		t.Errorf("Got %v,%v expected %v,%v", index, value, set.Size()-1, "c")
+	if index, value := it.Index(), it.Value(); index != set.Len()-1 || value != "c" {
+		t.Errorf("Got %v,%v expected %v,%v", index, value, set.Len()-1, "c")
 	}
 }
 
@@ -442,7 +442,7 @@ func TestSetSerialization(t *testing.T) {
 
 	var err error
 	assert := func() {
-		if actualValue, expectedValue := set.Size(), 3; actualValue != expectedValue {
+		if actualValue, expectedValue := set.Len(), 3; actualValue != expectedValue {
 			t.Errorf("Got %v expected %v", actualValue, expectedValue)
 		}
 		if actualValue := set.Contains("a", "b", "c"); actualValue != true {
@@ -485,7 +485,7 @@ func TestSetIntersection(t *testing.T) {
 	another := New[string]()
 
 	intersection := set.Intersection(another)
-	if actualValue, expectedValue := intersection.Size(), 0; actualValue != expectedValue {
+	if actualValue, expectedValue := intersection.Len(), 0; actualValue != expectedValue {
 		t.Errorf("Got %v expected %v", actualValue, expectedValue)
 	}
 
@@ -494,7 +494,7 @@ func TestSetIntersection(t *testing.T) {
 
 	intersection = set.Intersection(another)
 
-	if actualValue, expectedValue := intersection.Size(), 2; actualValue != expectedValue {
+	if actualValue, expectedValue := intersection.Len(), 2; actualValue != expectedValue {
 		t.Errorf("Got %v expected %v", actualValue, expectedValue)
 	}
 	if actualValue := intersection.Contains("c", "d"); actualValue != true {
@@ -507,7 +507,7 @@ func TestSetUnion(t *testing.T) {
 	another := New[string]()
 
 	union := set.Union(another)
-	if actualValue, expectedValue := union.Size(), 0; actualValue != expectedValue {
+	if actualValue, expectedValue := union.Len(), 0; actualValue != expectedValue {
 		t.Errorf("Got %v expected %v", actualValue, expectedValue)
 	}
 
@@ -516,7 +516,7 @@ func TestSetUnion(t *testing.T) {
 
 	union = set.Union(another)
 
-	if actualValue, expectedValue := union.Size(), 6; actualValue != expectedValue {
+	if actualValue, expectedValue := union.Len(), 6; actualValue != expectedValue {
 		t.Errorf("Got %v expected %v", actualValue, expectedValue)
 	}
 	if actualValue := union.Contains("a", "b", "c", "d", "e", "f"); actualValue != true {
@@ -529,7 +529,7 @@ func TestSetDifference(t *testing.T) {
 	another := New[string]()
 
 	difference := set.Difference(another)
-	if actualValue, expectedValue := difference.Size(), 0; actualValue != expectedValue {
+	if actualValue, expectedValue := difference.Len(), 0; actualValue != expectedValue {
 		t.Errorf("Got %v expected %v", actualValue, expectedValue)
 	}
 
@@ -538,163 +538,10 @@ func TestSetDifference(t *testing.T) {
 
 	difference = set.Difference(another)
 
-	if actualValue, expectedValue := difference.Size(), 2; actualValue != expectedValue {
+	if actualValue, expectedValue := difference.Len(), 2; actualValue != expectedValue {
 		t.Errorf("Got %v expected %v", actualValue, expectedValue)
 	}
 	if actualValue := difference.Contains("a", "b"); actualValue != true {
 		t.Errorf("Got %v expected %v", actualValue, true)
 	}
-}
-
-func benchmarkContains(b *testing.B, set *Set[int], size int) {
-	for i := 0; i < b.N; i++ {
-		for n := 0; n < size; n++ {
-			set.Contains(n)
-		}
-	}
-}
-
-func benchmarkAdd(b *testing.B, set *Set[int], size int) {
-	for i := 0; i < b.N; i++ {
-		for n := 0; n < size; n++ {
-			set.Add(n)
-		}
-	}
-}
-
-func benchmarkRemove(b *testing.B, set *Set[int], size int) {
-	for i := 0; i < b.N; i++ {
-		for n := 0; n < size; n++ {
-			set.Remove(n)
-		}
-	}
-}
-
-func BenchmarkTreeSetContains100(b *testing.B) {
-	b.StopTimer()
-	size := 100
-	set := New[int]()
-	for n := 0; n < size; n++ {
-		set.Add(n)
-	}
-	b.StartTimer()
-	benchmarkContains(b, set, size)
-}
-
-func BenchmarkTreeSetContains1000(b *testing.B) {
-	b.StopTimer()
-	size := 1000
-	set := New[int]()
-	for n := 0; n < size; n++ {
-		set.Add(n)
-	}
-	b.StartTimer()
-	benchmarkContains(b, set, size)
-}
-
-func BenchmarkTreeSetContains10000(b *testing.B) {
-	b.StopTimer()
-	size := 10000
-	set := New[int]()
-	for n := 0; n < size; n++ {
-		set.Add(n)
-	}
-	b.StartTimer()
-	benchmarkContains(b, set, size)
-}
-
-func BenchmarkTreeSetContains100000(b *testing.B) {
-	b.StopTimer()
-	size := 100000
-	set := New[int]()
-	for n := 0; n < size; n++ {
-		set.Add(n)
-	}
-	b.StartTimer()
-	benchmarkContains(b, set, size)
-}
-
-func BenchmarkTreeSetAdd100(b *testing.B) {
-	b.StopTimer()
-	size := 100
-	set := New[int]()
-	b.StartTimer()
-	benchmarkAdd(b, set, size)
-}
-
-func BenchmarkTreeSetAdd1000(b *testing.B) {
-	b.StopTimer()
-	size := 1000
-	set := New[int]()
-	for n := 0; n < size; n++ {
-		set.Add(n)
-	}
-	b.StartTimer()
-	benchmarkAdd(b, set, size)
-}
-
-func BenchmarkTreeSetAdd10000(b *testing.B) {
-	b.StopTimer()
-	size := 10000
-	set := New[int]()
-	for n := 0; n < size; n++ {
-		set.Add(n)
-	}
-	b.StartTimer()
-	benchmarkAdd(b, set, size)
-}
-
-func BenchmarkTreeSetAdd100000(b *testing.B) {
-	b.StopTimer()
-	size := 100000
-	set := New[int]()
-	for n := 0; n < size; n++ {
-		set.Add(n)
-	}
-	b.StartTimer()
-	benchmarkAdd(b, set, size)
-}
-
-func BenchmarkTreeSetRemove100(b *testing.B) {
-	b.StopTimer()
-	size := 100
-	set := New[int]()
-	for n := 0; n < size; n++ {
-		set.Add(n)
-	}
-	b.StartTimer()
-	benchmarkRemove(b, set, size)
-}
-
-func BenchmarkTreeSetRemove1000(b *testing.B) {
-	b.StopTimer()
-	size := 1000
-	set := New[int]()
-	for n := 0; n < size; n++ {
-		set.Add(n)
-	}
-	b.StartTimer()
-	benchmarkRemove(b, set, size)
-}
-
-func BenchmarkTreeSetRemove10000(b *testing.B) {
-	b.StopTimer()
-	size := 10000
-	set := New[int]()
-	for n := 0; n < size; n++ {
-		set.Add(n)
-	}
-	b.StartTimer()
-	benchmarkRemove(b, set, size)
-}
-
-func BenchmarkTreeSetRemove100000(b *testing.B) {
-	b.StopTimer()
-	size := 100000
-	set := New[int]()
-	for n := 0; n < size; n++ {
-		set.Add(n)
-	}
-	b.StartTimer()
-	benchmarkRemove(b, set, size)
 }

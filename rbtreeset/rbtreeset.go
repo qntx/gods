@@ -1,3 +1,4 @@
+// Package rbtreeset provides a set implementation using a red-black tree.
 package rbtreeset
 
 import (
@@ -9,155 +10,156 @@ import (
 	"github.com/qntx/gods/rbtree"
 )
 
-// Set holds elements in a red-black tree
+// present is a marker for set membership.
+var present = struct{}{}
+
+// Set is a red-black tree-based set of comparable elements.
 type Set[T comparable] struct {
 	tree *rbtree.Tree[T, struct{}]
 }
 
-var itemExists = struct{}{}
-
+// New creates a new set for ordered types with optional initial values.
 func New[T cmp.Ordered](values ...T) *Set[T] {
 	return NewWith(cmp.GenericComparator[T], values...)
 }
 
-// NewWith instantiates a new empty set with the custom comparator.
+// NewWith creates a new set with a custom comparator and optional initial values.
 func NewWith[T comparable](comparator cmp.Comparator[T], values ...T) *Set[T] {
-	set := &Set[T]{tree: rbtree.NewWith[T, struct{}](comparator)}
-	if len(values) > 0 {
-		set.Add(values...)
+	s := &Set[T]{tree: rbtree.NewWith[T, struct{}](comparator)}
+	for _, v := range values {
+		s.tree.Put(v, present)
 	}
-	return set
+	return s
 }
 
-// Add adds the items (one or more) to the set.
-func (set *Set[T]) Add(items ...T) {
-	for _, item := range items {
-		set.tree.Put(item, itemExists)
-	}
-}
-
-// Remove removes the items (one or more) from the set.
-func (set *Set[T]) Remove(items ...T) {
-	for _, item := range items {
-		set.tree.Remove(item)
+// Add inserts one or more elements into the set.
+func (s *Set[T]) Add(values ...T) {
+	for _, v := range values {
+		s.tree.Put(v, present)
 	}
 }
 
-// Contains checks weather items (one or more) are present in the set.
-// All items have to be present in the set for the method to return true.
-// Returns true if no arguments are passed at all, i.e. set is always superset of empty set.
-func (set *Set[T]) Contains(items ...T) bool {
-	for _, item := range items {
-		if _, contains := set.tree.Get(item); !contains {
+// Remove deletes one or more elements from the set.
+func (s *Set[T]) Remove(values ...T) {
+	for _, v := range values {
+		s.tree.Remove(v)
+	}
+}
+
+// Contains checks if all specified elements are present in the set.
+// Returns true if no elements are provided, as a set is a superset of an empty set.
+func (s *Set[T]) Contains(values ...T) bool {
+	for _, v := range values {
+		if _, ok := s.tree.Get(v); !ok {
 			return false
 		}
 	}
 	return true
 }
 
-// Empty returns true if set does not contain any elements.
-func (set *Set[T]) Empty() bool {
-	return set.tree.Len() == 0
+// Empty reports whether the set contains no elements.
+func (s *Set[T]) Empty() bool {
+	return s.tree.Len() == 0
 }
 
-// Size returns number of elements within the set.
-func (set *Set[T]) Size() int {
-	return set.tree.Len()
+// Len returns the number of elements in the set.
+func (s *Set[T]) Len() int {
+	return s.tree.Len()
 }
 
-// Clear clears all values in the set.
-func (set *Set[T]) Clear() {
-	set.tree.Clear()
+// Clear removes all elements from the set.
+func (s *Set[T]) Clear() {
+	s.tree.Clear()
 }
 
-// Values returns all items in the set.
-func (set *Set[T]) Values() []T {
-	return set.tree.Keys()
+// Values returns a slice of all elements in the set.
+func (s *Set[T]) Values() []T {
+	return s.tree.Keys()
 }
 
-// String returns a string representation of container
-func (set *Set[T]) String() string {
-	str := "TreeSet\n"
-	items := []string{}
-	for _, v := range set.tree.Keys() {
-		items = append(items, fmt.Sprintf("%v", v))
+// String returns a string representation of the set.
+func (s *Set[T]) String() string {
+	var b strings.Builder
+	b.WriteString("TreeSet\n")
+	keys := s.tree.Keys()
+	for i, k := range keys {
+		if i > 0 {
+			b.WriteString(", ")
+		}
+		fmt.Fprintf(&b, "%v", k)
 	}
-	str += strings.Join(items, ", ")
-	return str
+	return b.String()
 }
 
-// Intersection returns the intersection between two sets.
-// The new set consists of all elements that are both in "set" and "another".
-// The two sets should have the same comparators, otherwise the result is empty set.
+// Intersection returns a new set containing elements present in both s and other.
+// Returns an empty set if comparators differ.
 // Ref: https://en.wikipedia.org/wiki/Intersection_(set_theory)
-func (set *Set[T]) Intersection(another *Set[T]) *Set[T] {
-	result := NewWith(set.tree.Comparator())
+func (s *Set[T]) Intersection(other *Set[T]) *Set[T] {
+	res := NewWith(s.tree.Comparator())
 
-	setComparator := reflect.ValueOf(set.tree.Comparator)
-	anotherComparator := reflect.ValueOf(another.tree.Comparator)
-	if setComparator.Pointer() != anotherComparator.Pointer() {
-		return result
+	sCmp := reflect.ValueOf(s.tree.Comparator())
+	oCmp := reflect.ValueOf(other.tree.Comparator())
+	if sCmp.Pointer() != oCmp.Pointer() {
+		return res
 	}
 
-	// Iterate over smaller set (optimization)
-	if set.Size() <= another.Size() {
-		for it := set.Iterator(); it.Next(); {
-			if another.Contains(it.Value()) {
-				result.Add(it.Value())
+	// Iterate over smaller set for efficiency.
+	if s.Len() <= other.Len() {
+		for it := s.Iterator(); it.Next(); {
+			if other.Contains(it.Value()) {
+				res.Add(it.Value())
 			}
 		}
 	} else {
-		for it := another.Iterator(); it.Next(); {
-			if set.Contains(it.Value()) {
-				result.Add(it.Value())
+		for it := other.Iterator(); it.Next(); {
+			if s.Contains(it.Value()) {
+				res.Add(it.Value())
 			}
 		}
 	}
 
-	return result
+	return res
 }
 
-// Union returns the union of two sets.
-// The new set consists of all elements that are in "set" or "another" (possibly both).
-// The two sets should have the same comparators, otherwise the result is empty set.
+// Union returns a new set containing all elements from s or other.
+// Returns an empty set if comparators differ.
 // Ref: https://en.wikipedia.org/wiki/Union_(set_theory)
-func (set *Set[T]) Union(another *Set[T]) *Set[T] {
-	result := NewWith(set.tree.Comparator())
+func (s *Set[T]) Union(other *Set[T]) *Set[T] {
+	res := NewWith(s.tree.Comparator())
 
-	setComparator := reflect.ValueOf(set.tree.Comparator)
-	anotherComparator := reflect.ValueOf(another.tree.Comparator)
-	if setComparator.Pointer() != anotherComparator.Pointer() {
-		return result
+	sCmp := reflect.ValueOf(s.tree.Comparator())
+	oCmp := reflect.ValueOf(other.tree.Comparator())
+	if sCmp.Pointer() != oCmp.Pointer() {
+		return res
 	}
 
-	for it := set.Iterator(); it.Next(); {
-		result.Add(it.Value())
+	for it := s.Iterator(); it.Next(); {
+		res.Add(it.Value())
 	}
-	for it := another.Iterator(); it.Next(); {
-		result.Add(it.Value())
+	for it := other.Iterator(); it.Next(); {
+		res.Add(it.Value())
 	}
 
-	return result
+	return res
 }
 
-// Difference returns the difference between two sets.
-// The two sets should have the same comparators, otherwise the result is empty set.
-// The new set consists of all elements that are in "set" but not in "another".
+// Difference returns a new set containing elements in s but not in other.
+// Returns an empty set if comparators differ.
 // Ref: https://proofwiki.org/wiki/Definition:Set_Difference
-func (set *Set[T]) Difference(another *Set[T]) *Set[T] {
-	result := NewWith(set.tree.Comparator())
+func (s *Set[T]) Difference(other *Set[T]) *Set[T] {
+	res := NewWith(s.tree.Comparator())
 
-	setComparator := reflect.ValueOf(set.tree.Comparator)
-	anotherComparator := reflect.ValueOf(another.tree.Comparator)
-	if setComparator.Pointer() != anotherComparator.Pointer() {
-		return result
+	sCmp := reflect.ValueOf(s.tree.Comparator())
+	oCmp := reflect.ValueOf(other.tree.Comparator())
+	if sCmp.Pointer() != oCmp.Pointer() {
+		return res
 	}
 
-	for it := set.Iterator(); it.Next(); {
-		if !another.Contains(it.Value()) {
-			result.Add(it.Value())
+	for it := s.Iterator(); it.Next(); {
+		if !other.Contains(it.Value()) {
+			res.Add(it.Value())
 		}
 	}
 
-	return result
+	return res
 }

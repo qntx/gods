@@ -2,22 +2,21 @@ package rbtreeset
 
 import (
 	"github.com/qntx/gods/container"
-	rbt "github.com/qntx/gods/rbtree"
+	"github.com/qntx/gods/rbtree"
 )
 
-// Assert Iterator implementation
+// Iterator holding the iterator's state
+func (s *Set[T]) Iterator() Iterator[T] {
+	return Iterator[T]{index: -1, iterator: s.tree.Iterator(), tree: s.tree}
+}
+
 var _ container.ReverseIteratorWithIndex[int] = (*Iterator[int])(nil)
 
 // Iterator returns a stateful iterator whose values can be fetched by an index.
 type Iterator[T comparable] struct {
 	index    int
-	iterator *rbt.Iterator[T, struct{}]
-	tree     *rbt.Tree[T, struct{}]
-}
-
-// Iterator holding the iterator's state
-func (set *Set[T]) Iterator() Iterator[T] {
-	return Iterator[T]{index: -1, iterator: set.tree.Iterator(), tree: set.tree}
+	iterator *rbtree.Iterator[T, struct{}]
+	tree     *rbtree.Tree[T, struct{}]
 }
 
 // Next moves the iterator to the next element and returns true if there was a next element in the container.

@@ -6,7 +6,6 @@ import (
 	"github.com/qntx/gods/container"
 )
 
-// Assert Serialization implementation
 var _ container.JSONSerializable = (*Set[int])(nil)
 
 // MarshalJSON outputs the JSON representation of the set.
@@ -22,5 +21,6 @@ func (set *Set[T]) UnmarshalJSON(data []byte) error {
 		set.Clear()
 		set.Add(elements...)
 	}
+
 	return err
 }
