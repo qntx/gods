@@ -1,5 +1,7 @@
 package container
 
+import "iter"
+
 // Set is the primary interface provided by the mapset package.  It
 // represents an unordered set of data and a large number of
 // operations that can be applied to that set.
@@ -12,8 +14,8 @@ type Set[T comparable] interface {
 	// the number of elements added.
 	Append(val ...T) int
 
-	// Cardinality returns the number of elements in the set.
-	Cardinality() int
+	// Len returns the number of elements in the set.
+	Len() int
 
 	// Clear removes all elements from the set, leaving
 	// the empty set.
@@ -119,7 +121,7 @@ type Set[T comparable] interface {
 
 	// Iter returns a channel of elements that you can
 	// range over.
-	Iter() <-chan T
+	Iter() iter.Seq[T]
 
 	// Iterator returns an Iterator object that you can
 	// use to range over the set.
@@ -156,11 +158,4 @@ type Set[T comparable] interface {
 
 	// ToSlice returns the members of the set as a slice.
 	ToSlice() []T
-
-	// MarshalJSON will marshal the set into a JSON-based representation.
-	MarshalJSON() ([]byte, error)
-
-	// UnmarshalJSON will unmarshal a JSON-based byte slice into a full Set datastructure.
-	// For this to work, set subtypes must implemented the Marshal/Unmarshal interface.
-	UnmarshalJSON(b []byte) error
 }

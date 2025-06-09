@@ -2,35 +2,39 @@ package hashset
 
 import (
 	"encoding/json"
+	"fmt"
+	"strings"
 
 	"github.com/qntx/gods/container"
 )
 
-// Assert Serialization implementation
 var _ container.JSONSerializable = (*Set[int])(nil)
 
-// ToJSON outputs the JSON representation of the set.
-func (set *Set[T]) ToJSON() ([]byte, error) {
-	return json.Marshal(set.Values())
-}
+// MarshalJSON creates a JSON array from the set, it marshals all elements
+func (s Set[T]) MarshalJSON() ([]byte, error) {
+	items := make([]string, 0, s.Len())
 
-// FromJSON populates the set from the input JSON representation.
-func (set *Set[T]) FromJSON(data []byte) error {
-	var elements []T
-	err := json.Unmarshal(data, &elements)
-	if err == nil {
-		set.Clear()
-		set.Add(elements...)
+	for elem := range s {
+		b, err := json.Marshal(elem)
+		if err != nil {
+			return nil, err
+		}
+
+		items = append(items, string(b))
 	}
-	return err
+
+	return []byte(fmt.Sprintf("[%s]", strings.Join(items, ","))), nil
 }
 
-// UnmarshalJSON @implements json.Unmarshaler
-func (set *Set[T]) UnmarshalJSON(bytes []byte) error {
-	return set.FromJSON(bytes)
-}
+// UnmarshalJSON recreates a set from a JSON array, it only decodes
+// primitive types. Numbers are decoded as json.Number.
+func (s *Set[T]) UnmarshalJSON(b []byte) error {
+	var i []T
+	err := json.Unmarshal(b, &i)
+	if err != nil {
+		return err
+	}
+	s.Append(i...)
 
-// MarshalJSON @implements json.Marshaler
-func (set *Set[T]) MarshalJSON() ([]byte, error) {
-	return set.ToJSON()
+	return nil
 }

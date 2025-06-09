@@ -3,6 +3,7 @@ package rbtreeset
 
 import (
 	"fmt"
+	"iter"
 	"reflect"
 	"strings"
 
@@ -77,16 +78,23 @@ func (s *Set[T]) Values() []T {
 	return s.tree.Keys()
 }
 
+// All returns an iterator over all elements in the set in sorted order.
+func (s *Set[T]) Iter() iter.Seq[T] {
+	return func(yield func(T) bool) {
+		for it := s.tree.Iterator(); it.Next(); {
+			if !yield(it.Key()) {
+				return
+			}
+		}
+	}
+}
+
 // String returns a string representation of the set.
 func (s *Set[T]) String() string {
 	var b strings.Builder
 	b.WriteString("TreeSet\n")
-	keys := s.tree.Keys()
-	for i, k := range keys {
-		if i > 0 {
-			b.WriteString(", ")
-		}
-		fmt.Fprintf(&b, "%v", k)
+	for v := range s.Iter() {
+		fmt.Fprintf(&b, "%v", v)
 	}
 	return b.String()
 }
@@ -104,17 +112,13 @@ func (s *Set[T]) Intersection(other *Set[T]) *Set[T] {
 	}
 
 	// Iterate over smaller set for efficiency.
-	if s.Len() <= other.Len() {
-		for it := s.Iterator(); it.Next(); {
-			if other.Contains(it.Value()) {
-				res.Add(it.Value())
-			}
-		}
-	} else {
-		for it := other.Iterator(); it.Next(); {
-			if s.Contains(it.Value()) {
-				res.Add(it.Value())
-			}
+	src, dst := s, other
+	if s.Len() > other.Len() {
+		src, dst = other, s
+	}
+	for v := range src.Iter() {
+		if dst.Contains(v) {
+			res.Add(v)
 		}
 	}
 
@@ -133,11 +137,11 @@ func (s *Set[T]) Union(other *Set[T]) *Set[T] {
 		return res
 	}
 
-	for it := s.Iterator(); it.Next(); {
-		res.Add(it.Value())
+	for v := range s.Iter() {
+		res.Add(v)
 	}
-	for it := other.Iterator(); it.Next(); {
-		res.Add(it.Value())
+	for v := range other.Iter() {
+		res.Add(v)
 	}
 
 	return res
@@ -155,9 +159,9 @@ func (s *Set[T]) Difference(other *Set[T]) *Set[T] {
 		return res
 	}
 
-	for it := s.Iterator(); it.Next(); {
-		if !other.Contains(it.Value()) {
-			res.Add(it.Value())
+	for v := range s.Iter() {
+		if !other.Contains(v) {
+			res.Add(v)
 		}
 	}
 
