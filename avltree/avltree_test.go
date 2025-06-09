@@ -677,7 +677,7 @@ func TestAVLTreeSerialization(t *testing.T) {
 	err = tree.FromJSON(bytes)
 	assert()
 
-	bytes, err = json.Marshal([]interface{}{"a", "b", "c", tree})
+	_, err = json.Marshal([]any{"a", "b", "c", tree})
 	if err != nil {
 		t.Errorf("Got error %v", err)
 	}

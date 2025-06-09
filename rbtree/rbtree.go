@@ -719,8 +719,8 @@ func (t *Tree[K, V]) insertFixup(n *Node[K, V]) {
 			// `n` (the original N) is now where P was, and becomes the new `parent` for the line case.
 			// The node that was `parent` (original P) is now `n.left`.
 			// We update `parent` to be the new parent (original N) and `n` to be its child (original P).
-			parent = n      // The original N is now the parent in the G-N-P line.
-			n = parent.left // The original P is now the child n.
+			parent = n // The original N is now the parent in the G-N-P line.
+			// n = parent.left // The original P is now the child n.
 		}
 
 		// Case 3b: N is P's left child (forms a "line" G-P-N: G <-- P(L) <-- N(L)).
@@ -753,8 +753,8 @@ func (t *Tree[K, V]) insertFixup(n *Node[K, V]) {
 			// `n` (the original N) is now where P was, and becomes the new `parent` for the line case.
 			// The node that was `parent` (original P) is now `n.right`.
 			// We update `parent` to be the new parent (original N) and `n` to be its child (original P).
-			parent = n       // The original N is now the parent in the G-N-P line.
-			n = parent.right // The original P is now the child n.
+			parent = n // The original N is now the parent in the G-N-P line.
+			// n = parent.right // The original P is now the child n.
 		}
 
 		// Case 3d: N is P's right child (forms a "line" G-P-N: G --> P(R) --> N(R)).

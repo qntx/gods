@@ -176,7 +176,7 @@ func TestMapSerialization(t *testing.T) {
 	err = m.UnmarshalJSON(bytes)
 	assert()
 
-	bytes, err = json.Marshal([]interface{}{"a", "b", "c", m})
+	_, err = json.Marshal([]any{"a", "b", "c", m})
 	if err != nil {
 		t.Errorf("Got error %v", err)
 	}

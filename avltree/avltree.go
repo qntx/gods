@@ -234,8 +234,7 @@ func (tree *Tree[K, V]) put(key K, value V, p *Node[K, V], qp **Node[K, V]) bool
 		c = 1
 	}
 	a := (c + 1) / 2
-	var fix bool
-	fix = tree.put(key, value, q, &q.Children[a])
+	fix := tree.put(key, value, q, &q.Children[a])
 	if fix {
 		return putFix(int8(c), qp)
 	}

@@ -277,7 +277,6 @@ func TestMapChaining(t *testing.T) {
 func TestMapIteratorNextOnEmpty(t *testing.T) {
 	m := New[string, int]()
 	it := m.Iterator()
-	it = m.Iterator()
 	for it.Next() {
 		t.Errorf("Shouldn't iterate on empty map")
 	}
@@ -286,7 +285,6 @@ func TestMapIteratorNextOnEmpty(t *testing.T) {
 func TestMapIteratorPrevOnEmpty(t *testing.T) {
 	m := New[string, int]()
 	it := m.Iterator()
-	it = m.Iterator()
 	for it.Prev() {
 		t.Errorf("Shouldn't iterate on empty map")
 	}
