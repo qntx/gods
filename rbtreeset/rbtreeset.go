@@ -91,7 +91,7 @@ func (set *Set[T]) String() string {
 // The two sets should have the same comparators, otherwise the result is empty set.
 // Ref: https://en.wikipedia.org/wiki/Intersection_(set_theory)
 func (set *Set[T]) Intersection(another *Set[T]) *Set[T] {
-	result := NewWith(set.tree.Comparator)
+	result := NewWith(set.tree.Comparator())
 
 	setComparator := reflect.ValueOf(set.tree.Comparator)
 	anotherComparator := reflect.ValueOf(another.tree.Comparator)
@@ -122,7 +122,7 @@ func (set *Set[T]) Intersection(another *Set[T]) *Set[T] {
 // The two sets should have the same comparators, otherwise the result is empty set.
 // Ref: https://en.wikipedia.org/wiki/Union_(set_theory)
 func (set *Set[T]) Union(another *Set[T]) *Set[T] {
-	result := NewWith(set.tree.Comparator)
+	result := NewWith(set.tree.Comparator())
 
 	setComparator := reflect.ValueOf(set.tree.Comparator)
 	anotherComparator := reflect.ValueOf(another.tree.Comparator)
@@ -145,7 +145,7 @@ func (set *Set[T]) Union(another *Set[T]) *Set[T] {
 // The new set consists of all elements that are in "set" but not in "another".
 // Ref: https://proofwiki.org/wiki/Definition:Set_Difference
 func (set *Set[T]) Difference(another *Set[T]) *Set[T] {
-	result := NewWith(set.tree.Comparator)
+	result := NewWith(set.tree.Comparator())
 
 	setComparator := reflect.ValueOf(set.tree.Comparator)
 	anotherComparator := reflect.ValueOf(another.tree.Comparator)

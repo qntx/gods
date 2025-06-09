@@ -228,19 +228,19 @@ func TestRedBlackTreeLeftAndRight(t *testing.T) {
 	tree.Put(1, "x") // overwrite
 	tree.Put(2, "b")
 
-	if actualValue, expectedValue := tree.GetLeftNode().Key, 1; actualValue != expectedValue {
+	if actualValue, expectedValue := tree.GetLeftNode().Key(), 1; actualValue != expectedValue {
 		t.Errorf("Got %v expected %v", actualValue, expectedValue)
 	}
 
-	if actualValue, expectedValue := tree.GetLeftNode().Value, "x"; actualValue != expectedValue {
+	if actualValue, expectedValue := tree.GetLeftNode().Value(), "x"; actualValue != expectedValue {
 		t.Errorf("Got %v expected %v", actualValue, expectedValue)
 	}
 
-	if actualValue, expectedValue := tree.GetRightNode().Key, 7; actualValue != expectedValue {
+	if actualValue, expectedValue := tree.GetRightNode().Key(), 7; actualValue != expectedValue {
 		t.Errorf("Got %v expected %v", actualValue, expectedValue)
 	}
 
-	if actualValue, expectedValue := tree.GetRightNode().Value, "g"; actualValue != expectedValue {
+	if actualValue, expectedValue := tree.GetRightNode().Value(), "g"; actualValue != expectedValue {
 		t.Errorf("Got %v expected %v", actualValue, expectedValue)
 	}
 }
@@ -266,16 +266,16 @@ func TestRedBlackTreeCeilingAndFloor(t *testing.T) {
 	tree.Put(1, "x")
 	tree.Put(2, "b")
 
-	if node, found := tree.Floor(4); node.Key != 4 || !found {
-		t.Errorf("Got %v expected %v", node.Key, 4)
+	if node, found := tree.Floor(4); node.Key() != 4 || !found {
+		t.Errorf("Got %v expected %v", node.Key(), 4)
 	}
 
 	if node, found := tree.Floor(0); node != nil || found {
 		t.Errorf("Got %v expected %v", node, "<nil>")
 	}
 
-	if node, found := tree.Ceiling(4); node.Key != 4 || !found {
-		t.Errorf("Got %v expected %v", node.Key, 4)
+	if node, found := tree.Ceiling(4); node.Key() != 4 || !found {
+		t.Errorf("Got %v expected %v", node.Key(), 4)
 	}
 
 	if node, found := tree.Ceiling(8); node != nil || found {

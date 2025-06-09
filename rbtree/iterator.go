@@ -73,20 +73,20 @@ func (it *Iterator[K, V]) Next() bool {
 
 		return false
 	case between:
-		if it.node.Right != nil {
-			it.node = it.node.Right
-			for it.node.Left != nil {
-				it.node = it.node.Left
+		if it.node.Right() != nil {
+			it.node = it.node.Right()
+			for it.node.Left() != nil {
+				it.node = it.node.Left()
 			}
 
 			return true
 		}
 
-		for it.node.Parent != nil {
+		for it.node.Parent() != nil {
 			node := it.node
-			it.node = it.node.Parent
+			it.node = it.node.Parent()
 
-			if node == it.node.Left {
+			if node == it.node.Left() {
 				return true
 			}
 		}
@@ -118,20 +118,20 @@ func (it *Iterator[K, V]) Prev() bool {
 
 		return false
 	case between:
-		if it.node.Left != nil {
-			it.node = it.node.Left
-			for it.node.Right != nil {
-				it.node = it.node.Right
+		if it.node.Left() != nil {
+			it.node = it.node.Left()
+			for it.node.Right() != nil {
+				it.node = it.node.Right()
 			}
 
 			return true
 		}
 
-		for it.node.Parent != nil {
+		for it.node.Parent() != nil {
 			node := it.node
-			it.node = it.node.Parent
+			it.node = it.node.Parent()
 
-			if node == it.node.Right {
+			if node == it.node.Right() {
 				return true
 			}
 		}
@@ -152,7 +152,7 @@ func (it *Iterator[K, V]) Key() K {
 		panic("rbtree: " + ErrInvalidIteratorPosition.Error())
 	}
 
-	return it.node.Key
+	return it.node.Key()
 }
 
 // Value returns the current element's value.
@@ -164,7 +164,7 @@ func (it *Iterator[K, V]) Value() V {
 		panic("rbtree: " + ErrInvalidIteratorPosition.Error())
 	}
 
-	return it.node.Value
+	return it.node.Value()
 }
 
 // Node returns the current node.

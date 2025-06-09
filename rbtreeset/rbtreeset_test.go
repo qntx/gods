@@ -8,7 +8,7 @@ import (
 )
 
 func TestSetNew(t *testing.T) {
-	set := New[int](2, 1)
+	set := New(2, 1)
 	if actualValue := set.Size(); actualValue != 2 {
 		t.Errorf("Got %v expected %v", actualValue, 2)
 	}
