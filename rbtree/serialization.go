@@ -14,8 +14,8 @@ import (
 
 // Predefined errors for JSON operations.
 var (
-	ErrMarshalJSONFailure   = errors.New("failed to marshal tree to JSON")
-	ErrUnmarshalJSONFailure = errors.New("failed to unmarshal JSON into tree")
+	ErrMarshalJSONFailure   = errors.New("failed to marshal rbtree to JSON")
+	ErrUnmarshalJSONFailure = errors.New("failed to unmarshal JSON into rbtree")
 )
 
 // Ensure Tree implements required interfaces at compile time.

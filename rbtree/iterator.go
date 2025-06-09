@@ -24,20 +24,6 @@ var (
 	ErrInvalidIteratorPosition = errors.New("iterator accessed at invalid position")
 )
 
-// Ensure Iterator implements container.ReverseIteratorWithKey at compile time.
-var _ container.ReverseIteratorWithKey[string, int] = (*Iterator[string, int])(nil)
-
-// Iterator provides forward and reverse traversal over a Tree's key-value pairs.
-//
-// It maintains a position in the tree, allowing O(log n) navigation between elements.
-// The iterator is read-only and does not modify the underlying tree. Most operations
-// are O(log n) due to tree traversal, except Begin and End which are O(1).
-type Iterator[K comparable, V any] struct {
-	tree     *Tree[K, V] // Reference to the tree being iterated.
-	node     *Node[K, V] // Current node, nil if at begin or end.
-	position position    // Current state: begin, between, or end.
-}
-
 // Iterator creates a new iterator for the tree.
 //
 // Starts before the first element (begin state). Use Next() to reach the first
@@ -51,6 +37,20 @@ func (t *Tree[K, V]) Iterator() *Iterator[K, V] {
 // Starts in the between state at the given node. Time complexity: O(1).
 func (t *Tree[K, V]) IteratorAt(node *Node[K, V]) *Iterator[K, V] {
 	return &Iterator[K, V]{tree: t, node: node, position: between}
+}
+
+// Ensure Iterator implements container.ReverseIteratorWithKey at compile time.
+var _ container.ReverseIteratorWithKey[string, int] = (*Iterator[string, int])(nil)
+
+// Iterator provides forward and reverse traversal over a Tree's key-value pairs.
+//
+// It maintains a position in the tree, allowing O(log n) navigation between elements.
+// The iterator is read-only and does not modify the underlying tree. Most operations
+// are O(log n) due to tree traversal, except Begin and End which are O(1).
+type Iterator[K comparable, V any] struct {
+	tree     *Tree[K, V] // Reference to the tree being iterated.
+	node     *Node[K, V] // Current node, nil if at begin or end.
+	position position    // Current state: begin, between, or end.
 }
 
 // Next advances the iterator to the next element in in-order traversal.
