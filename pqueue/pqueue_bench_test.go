@@ -5,13 +5,13 @@ import (
 )
 
 type Element struct {
-	priority int
-	name     string
+	// priority int
+	// name string
 }
 
 func benchmarkEnqueue(b *testing.B, queue *PriorityQueue[Element, int], size int) {
 	for i := 0; i < b.N; i++ {
-		for n := 0; n < size; n++ {
+		for n := range size {
 			queue.Put(Element{}, n)
 		}
 	}
@@ -19,7 +19,7 @@ func benchmarkEnqueue(b *testing.B, queue *PriorityQueue[Element, int], size int
 
 func benchmarkDequeue(b *testing.B, queue *PriorityQueue[Element, int], size int) {
 	for i := 0; i < b.N; i++ {
-		for n := 0; n < size; n++ {
+		for range size {
 			queue.Get()
 		}
 	}
@@ -29,7 +29,7 @@ func BenchmarkBinaryQueueDequeue100(b *testing.B) {
 	b.StopTimer()
 	size := 100
 	queue := New[Element, int](MinHeap)
-	for n := 0; n < size; n++ {
+	for n := range size {
 		queue.Put(Element{}, n)
 	}
 	b.StartTimer()
@@ -40,7 +40,7 @@ func BenchmarkBinaryQueueDequeue1000(b *testing.B) {
 	b.StopTimer()
 	size := 1000
 	queue := New[Element, int](MinHeap)
-	for n := 0; n < size; n++ {
+	for n := range size {
 		queue.Put(Element{}, n)
 	}
 	b.StartTimer()
@@ -51,7 +51,7 @@ func BenchmarkBinaryQueueDequeue10000(b *testing.B) {
 	b.StopTimer()
 	size := 10000
 	queue := New[Element, int](MinHeap)
-	for n := 0; n < size; n++ {
+	for n := range size {
 		queue.Put(Element{}, n)
 	}
 	b.StartTimer()
@@ -62,7 +62,7 @@ func BenchmarkBinaryQueueDequeue100000(b *testing.B) {
 	b.StopTimer()
 	size := 100000
 	queue := New[Element, int](MinHeap)
-	for n := 0; n < size; n++ {
+	for n := range size {
 		queue.Put(Element{}, n)
 	}
 	b.StartTimer()
@@ -73,7 +73,7 @@ func BenchmarkBinaryQueueEnqueue100(b *testing.B) {
 	b.StopTimer()
 	size := 100
 	queue := New[Element, int](MinHeap)
-	for n := 0; n < size; n++ {
+	for n := range size {
 		queue.Put(Element{}, n)
 	}
 	b.StartTimer()
@@ -84,7 +84,7 @@ func BenchmarkBinaryQueueEnqueue1000(b *testing.B) {
 	b.StopTimer()
 	size := 1000
 	queue := New[Element, int](MinHeap)
-	for n := 0; n < size; n++ {
+	for n := range size {
 		queue.Put(Element{}, n)
 	}
 	b.StartTimer()
@@ -95,7 +95,7 @@ func BenchmarkBinaryQueueEnqueue10000(b *testing.B) {
 	b.StopTimer()
 	size := 10000
 	queue := New[Element, int](MinHeap)
-	for n := 0; n < size; n++ {
+	for n := range size {
 		queue.Put(Element{}, n)
 	}
 	b.StartTimer()
@@ -106,7 +106,7 @@ func BenchmarkBinaryQueueEnqueue100000(b *testing.B) {
 	b.StopTimer()
 	size := 100000
 	queue := New[Element, int](MinHeap)
-	for n := 0; n < size; n++ {
+	for n := range size {
 		queue.Put(Element{}, n)
 	}
 	b.StartTimer()

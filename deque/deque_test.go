@@ -864,7 +864,7 @@ func TestQueueString(t *testing.T) {
 func benchmarkPushBack(b *testing.B, queue *deque.Deque[int], size int) {
 	b.Helper()
 
-	for b.Loop() {
+	for b.N > 0 {
 		for n := range size {
 			queue.PushBack(n)
 		}
@@ -874,7 +874,7 @@ func benchmarkPushBack(b *testing.B, queue *deque.Deque[int], size int) {
 func benchmarkPopFront(b *testing.B, queue *deque.Deque[int], size int) {
 	b.Helper()
 
-	for b.Loop() {
+	for b.N > 0 {
 		for range size {
 			queue.PopFront()
 		}
