@@ -10,13 +10,15 @@ A collection of data structures implemented in Go.
 |          | `HashSet`       | N           | N            | N              | Index             | Y               |
 |          | `BTreeSet`      | Y           | Y            | Y              | Index             | N               |
 |          | `RBTreeSet`     | Y           | Y            | Y              | Index             | Y               |
+|          | `LinkedHashSet` | Y           | Y            | Y              | Index             | Y               |
 | Map      |                 |             |              |                |                   |                 |
 |          | `HashMap`       | N           | N            | N              | Key               | Y               |
-|          | `LinkedHashMap` | Y           | Y            | Y              | Key               | Y               |
 |          | `HashBidiMap`   | N           | N            | N              | Key               | Y               |
 |          | `BTreeBidiMap`  | Y           | Y            | Y              | Key               | N               |
 |          | `RBTreeBidiMap` | Y           | Y            | Y              | Key               | Y               |
+|          | `LinkedHashMap` | Y           | Y            | Y              | Key               | Y               |
 | Tree     |                 |             |              |                |                   |                 |
+|          | `AVLTree`       | Y           | Y            | N              | Key               | N               |
 |          | `BTree`         | Y           | Y            | N              | Key               | N               |
 |          | `RBTree`        | Y           | Y            | N              | Key               | Y               |
 | Queue    |                 |             |              |                |                   |                 |
