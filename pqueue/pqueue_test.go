@@ -7,10 +7,6 @@ package pqueue
 // 	"testing"
 // )
 
-type Element struct {
-	priority int
-	name     string
-}
 
 // func TestBinaryQueueEnqueue(t *testing.T) {
 // 	queue := New[Element, int](MaxHeap)

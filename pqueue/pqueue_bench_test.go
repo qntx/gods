@@ -4,6 +4,11 @@ import (
 	"testing"
 )
 
+type Element struct {
+	priority int
+	name     string
+}
+
 func benchmarkEnqueue(b *testing.B, queue *PriorityQueue[Element, int], size int) {
 	for i := 0; i < b.N; i++ {
 		for n := 0; n < size; n++ {
