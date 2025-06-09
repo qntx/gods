@@ -8,6 +8,7 @@ package rbtree
 
 import (
 	"fmt"
+	"iter"
 	"strings"
 
 	"github.com/qntx/gods/cmp"
@@ -405,11 +406,10 @@ func (t *Tree[K, V]) Ceiling(key K) (*Node[K, V], bool) {
 //
 // Time complexity: O(n).
 func (t *Tree[K, V]) Keys() []K {
-	keys := make([]K, t.len)
-	it := t.Iterator()
+	keys := make([]K, 0, t.len)
 
-	for i := 0; it.Next(); i++ {
-		keys[i] = it.Key()
+	for k := range t.Iter() {
+		keys = append(keys, k)
 	}
 
 	return keys
@@ -419,11 +419,10 @@ func (t *Tree[K, V]) Keys() []K {
 //
 // Time complexity: O(n).
 func (t *Tree[K, V]) Values() []V {
-	vals := make([]V, t.len)
-	it := t.Iterator()
+	vals := make([]V, 0, t.len)
 
-	for i := 0; it.Next(); i++ {
-		vals[i] = it.Value()
+	for _, v := range t.Iter() {
+		vals = append(vals, v)
 	}
 
 	return vals
@@ -434,12 +433,12 @@ func (t *Tree[K, V]) Values() []V {
 // More efficient than calling Keys() and Values() separately as it traverses
 // the tree only once. Time complexity: O(n).
 func (t *Tree[K, V]) Entries() ([]K, []V) {
-	keys := make([]K, t.len)
-	vals := make([]V, t.len)
-	it := t.Iterator()
+	keys := make([]K, 0, t.len)
+	vals := make([]V, 0, t.len)
 
-	for i := 0; it.Next(); i++ {
-		keys[i], vals[i] = it.Key(), it.Value()
+	for k, v := range t.Iter() {
+		keys = append(keys, k)
+		vals = append(vals, v)
 	}
 
 	return keys, vals
@@ -453,6 +452,7 @@ func (t *Tree[K, V]) Len() int {
 }
 
 // Empty checks if the tree contains no nodes.
+//
 // Time complexity: O(1).
 func (t *Tree[K, V]) Empty() bool {
 	return t.len == 0
@@ -464,6 +464,29 @@ func (t *Tree[K, V]) Empty() bool {
 func (t *Tree[K, V]) Clear() {
 	t.root = nil
 	t.len = 0
+}
+
+// Iter returns an iterator over all key-value pairs in sorted order.
+// Yields pairs in in-order traversal.
+//
+// Time complexity: O(log n) per element.
+func (t *Tree[K, V]) Iter() iter.Seq2[K, V] {
+	return func(yield func(K, V) bool) {
+		node := t.GetLeftNode()
+		for node != nil {
+			if !yield(node.Key(), node.Value()) {
+				return
+			}
+			if node.Right() != nil {
+				node = t.getLeftNode(node.Right())
+			} else {
+				for node.Parent() != nil && node == node.Parent().Right() {
+					node = node.Parent()
+				}
+				node = node.Parent()
+			}
+		}
+	}
 }
 
 // Comparator returns the comparator used by the tree.
