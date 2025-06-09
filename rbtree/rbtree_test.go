@@ -211,11 +211,11 @@ func TestRedBlackTreeLeftAndRight(t *testing.T) {
 
 	tree := rbtree.New[int, string]()
 
-	if actualValue := tree.Left(); actualValue != nil {
+	if actualValue := tree.GetLeftNode(); actualValue != nil {
 		t.Errorf("Got %v expected %v", actualValue, nil)
 	}
 
-	if actualValue := tree.Right(); actualValue != nil {
+	if actualValue := tree.GetRightNode(); actualValue != nil {
 		t.Errorf("Got %v expected %v", actualValue, nil)
 	}
 
@@ -228,19 +228,19 @@ func TestRedBlackTreeLeftAndRight(t *testing.T) {
 	tree.Put(1, "x") // overwrite
 	tree.Put(2, "b")
 
-	if actualValue, expectedValue := tree.Left().Key, 1; actualValue != expectedValue {
+	if actualValue, expectedValue := tree.GetLeftNode().Key, 1; actualValue != expectedValue {
 		t.Errorf("Got %v expected %v", actualValue, expectedValue)
 	}
 
-	if actualValue, expectedValue := tree.Left().Value, "x"; actualValue != expectedValue {
+	if actualValue, expectedValue := tree.GetLeftNode().Value, "x"; actualValue != expectedValue {
 		t.Errorf("Got %v expected %v", actualValue, expectedValue)
 	}
 
-	if actualValue, expectedValue := tree.Right().Key, 7; actualValue != expectedValue {
+	if actualValue, expectedValue := tree.GetRightNode().Key, 7; actualValue != expectedValue {
 		t.Errorf("Got %v expected %v", actualValue, expectedValue)
 	}
 
-	if actualValue, expectedValue := tree.Right().Value, "g"; actualValue != expectedValue {
+	if actualValue, expectedValue := tree.GetRightNode().Value, "g"; actualValue != expectedValue {
 		t.Errorf("Got %v expected %v", actualValue, expectedValue)
 	}
 }

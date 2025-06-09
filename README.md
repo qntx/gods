@@ -18,7 +18,7 @@ A collection of data structures implemented in Go.
 |          | `RBTreeBidiMap` | Y           | Y            | Y              | Key               | Y               |
 |          | `LinkedHashMap` | Y           | Y            | Y              | Key               | Y               |
 | Tree     |                 |             |              |                |                   |                 |
-|          | `AVLTree`       | Y           | Y            | N              | Key               | N               |
+|          | `AVLTree`       | Y           | Y            | N              | Key               | Y               |
 |          | `BTree`         | Y           | Y            | N              | Key               | N               |
 |          | `RBTree`        | Y           | Y            | N              | Key               | Y               |
 | Queue    |                 |             |              |                |                   |                 |
