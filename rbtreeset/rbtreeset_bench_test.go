@@ -7,7 +7,7 @@ import (
 func benchmarkContains(b *testing.B, set *Set[int], size int) {
 	b.Helper()
 
-	for b.Loop() {
+	for b.N > 0 {
 		for n := range size {
 			set.Contains(n)
 		}
@@ -17,7 +17,7 @@ func benchmarkContains(b *testing.B, set *Set[int], size int) {
 func benchmarkAdd(b *testing.B, set *Set[int], size int) {
 	b.Helper()
 
-	for b.Loop() {
+	for b.N > 0 {
 		for n := range size {
 			set.Add(n)
 		}
@@ -27,7 +27,7 @@ func benchmarkAdd(b *testing.B, set *Set[int], size int) {
 func benchmarkRemove(b *testing.B, set *Set[int], size int) {
 	b.Helper()
 
-	for b.Loop() {
+	for b.N > 0 {
 		for n := range size {
 			set.Remove(n)
 		}

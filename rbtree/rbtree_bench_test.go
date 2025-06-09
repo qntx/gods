@@ -9,7 +9,7 @@ import (
 func benchmarkGet(b *testing.B, tree *rbtree.Tree[int, struct{}], size int) {
 	b.Helper()
 
-	for b.Loop() {
+	for b.N > 0 {
 		for n := range size {
 			tree.Get(n)
 		}
@@ -19,7 +19,7 @@ func benchmarkGet(b *testing.B, tree *rbtree.Tree[int, struct{}], size int) {
 func benchmarkPut(b *testing.B, tree *rbtree.Tree[int, struct{}], size int) {
 	b.Helper()
 
-	for b.Loop() {
+	for b.N > 0 {
 		for n := range size {
 			tree.Put(n, struct{}{})
 		}
@@ -29,7 +29,7 @@ func benchmarkPut(b *testing.B, tree *rbtree.Tree[int, struct{}], size int) {
 func benchmarkRemove(b *testing.B, tree *rbtree.Tree[int, struct{}], size int) {
 	b.Helper()
 
-	for b.Loop() {
+	for b.N > 0 {
 		for n := range size {
 			tree.Remove(n)
 		}
