@@ -70,14 +70,9 @@ func (f *FreeList[T]) freeNode(n *node[T]) (out bool) {
 // associated Ascend* function will immediately return.
 type ItemIterator[T any] func(item T) bool
 
-// Less[T] returns a default LessFunc that uses the '<' operator for types that support it.
-func Less[T cmp.Ordered]() LessFunc[T] {
-	return func(a, b T) bool { return a < b }
-}
-
 // New creates a new B-Tree for ordered types.
 func New[T cmp.Ordered](degree int) *Tree[T] {
-	return NewWith(degree, Less[T]())
+	return NewWith(degree, cmp.GenericComparator[T])
 }
 
 // NewWith creates a new B-Tree with the given degree.
@@ -86,19 +81,19 @@ func New[T cmp.Ordered](degree int) *Tree[T] {
 // and 2-4 children).
 //
 // The passed-in LessFunc determines how objects of type T are ordered.
-func NewWith[T any](degree int, less LessFunc[T]) *Tree[T] {
-	return NewWithFreeList(degree, less, NewFreeList[T](DefaultFreeListSize))
+func NewWith[T any](degree int, cmp cmp.Comparator[T]) *Tree[T] {
+	return NewWithFreeList(degree, cmp, NewFreeList[T](DefaultFreeListSize))
 }
 
 // NewWithFreeList creates a new B-Tree that uses the given node free list.
-func NewWithFreeList[T any](degree int, less LessFunc[T], f *FreeList[T]) *Tree[T] {
+func NewWithFreeList[T any](degree int, cmp cmp.Comparator[T], f *FreeList[T]) *Tree[T] {
 	if degree <= 1 {
 		panic("bad degree")
 	}
 
 	return &Tree[T]{
 		degree: degree,
-		cow:    &copyOnWriteContext[T]{freelist: f, less: less},
+		cow:    &copyOnWriteContext[T]{freelist: f, cmp: cmp},
 	}
 }
 
@@ -159,11 +154,11 @@ func (s *items[T]) truncate(index int) {
 // find returns the index where the given item should be inserted into this
 // list.  'found' is true if the item already exists in the list at the given
 // index.
-func (s items[T]) find(item T, less func(T, T) bool) (index int, found bool) {
+func (s items[T]) find(item T, cmp cmp.Comparator[T]) (index int, found bool) {
 	i := sort.Search(len(s), func(i int) bool {
-		return less(item, s[i])
+		return cmp(item, s[i]) < 0
 	})
-	if i > 0 && !less(s[i-1], item) {
+	if i > 0 && cmp(s[i-1], item) == 0 {
 		return i - 1, true
 	}
 
@@ -249,7 +244,7 @@ func (n *node[T]) maybeSplitChild(i, maxItems int) bool {
 // no nodes in the subtree exceed maxItems items.  Should an equivalent item be
 // found/replaced by insert, it will be returned.
 func (n *node[T]) insert(item T, maxItems int) (_ T, _ bool) {
-	i, found := n.items.find(item, n.cow.less)
+	i, found := n.items.find(item, n.cow.cmp)
 	if found {
 		out := n.items[i]
 		n.items[i] = item
@@ -266,16 +261,17 @@ func (n *node[T]) insert(item T, maxItems int) (_ T, _ bool) {
 	if n.maybeSplitChild(i, maxItems) {
 		inTree := n.items[i]
 
+		cmp := n.cow.cmp(item, inTree)
 		switch {
-		case n.cow.less(item, inTree):
-			// no change, we want first split node
-		case n.cow.less(inTree, item):
-			i++ // we want second split node
+		case cmp < 0:
+			// item < inTree, no change
+		case cmp > 0:
+			i++ // item > inTree, go to next
 		default:
 			out := n.items[i]
 			n.items[i] = item
 
-			return out, true
+			return out, true // item == inTree, replace
 		}
 	}
 
@@ -284,7 +280,7 @@ func (n *node[T]) insert(item T, maxItems int) (_ T, _ bool) {
 
 // get finds the given key in the subtree and returns it.
 func (n *node[T]) get(key T) (_ T, _ bool) {
-	i, found := n.items.find(key, n.cow.less)
+	i, found := n.items.find(key, n.cow.cmp)
 	if found {
 		return n.items[i], true
 	} else if len(n.children) > 0 {
@@ -357,7 +353,7 @@ func (n *node[T]) remove(item T, minItems int, typ toRemove) (_ T, _ bool) {
 
 		i = 0
 	case removeItem:
-		i, found = n.items.find(item, n.cow.less)
+		i, found = n.items.find(item, n.cow.cmp)
 		if len(n.children) == 0 {
 			if found {
 				return n.items.removeAt(i), true
@@ -494,7 +490,7 @@ func (n *node[T]) iterate(dir direction, start, stop optionalItem[T], includeSta
 	switch dir {
 	case ascend:
 		if start.valid {
-			index, _ = n.items.find(start.item, n.cow.less)
+			index, _ = n.items.find(start.item, n.cow.cmp)
 		}
 
 		for i := index; i < len(n.items); i++ {
@@ -504,14 +500,14 @@ func (n *node[T]) iterate(dir direction, start, stop optionalItem[T], includeSta
 				}
 			}
 
-			if !includeStart && !hit && start.valid && !n.cow.less(start.item, n.items[i]) {
+			if !includeStart && !hit && start.valid && n.cow.cmp(start.item, n.items[i]) >= 0 {
 				hit = true
 
 				continue
 			}
 
 			hit = true
-			if stop.valid && !n.cow.less(n.items[i], stop.item) {
+			if stop.valid && n.cow.cmp(n.items[i], stop.item) >= 0 {
 				return hit, false
 			}
 
@@ -527,7 +523,7 @@ func (n *node[T]) iterate(dir direction, start, stop optionalItem[T], includeSta
 		}
 	case descend:
 		if start.valid {
-			index, found = n.items.find(start.item, n.cow.less)
+			index, found = n.items.find(start.item, n.cow.cmp)
 			if !found {
 				index = index - 1
 			}
@@ -536,8 +532,8 @@ func (n *node[T]) iterate(dir direction, start, stop optionalItem[T], includeSta
 		}
 
 		for i := index; i >= 0; i-- {
-			if start.valid && !n.cow.less(n.items[i], start.item) {
-				if !includeStart || hit || n.cow.less(start.item, n.items[i]) {
+			if start.valid && n.cow.cmp(n.items[i], start.item) >= 0 {
+				if !includeStart || hit || n.cow.cmp(start.item, n.items[i]) < 0 {
 					continue
 				}
 			}
@@ -548,7 +544,7 @@ func (n *node[T]) iterate(dir direction, start, stop optionalItem[T], includeSta
 				}
 			}
 
-			if stop.valid && !n.cow.less(stop.item, n.items[i]) {
+			if stop.valid && n.cow.cmp(stop.item, n.items[i]) >= 0 {
 				return hit, false //	continue
 			}
 
@@ -602,7 +598,7 @@ type LessFunc[T any] func(a, b T) bool
 // copy.
 type copyOnWriteContext[T any] struct {
 	freelist *FreeList[T]
-	less     LessFunc[T]
+	cmp      cmp.Comparator[T]
 }
 
 // Clone clones the btree, lazily.  Clone should not be called concurrently,

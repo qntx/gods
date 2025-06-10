@@ -3,6 +3,8 @@ package btree
 import (
 	"math/rand"
 	"testing"
+
+	"github.com/qntx/gods/cmp"
 )
 
 func BenchmarkDeleteAndRestoreG(b *testing.B) {
@@ -12,7 +14,7 @@ func BenchmarkDeleteAndRestoreG(b *testing.B) {
 	b.Run(`CopyBigFreeList`, func(b *testing.B) {
 		fl := NewFreeList[int](16392)
 
-		tr := NewWithFreeList(*btreeDegree, Less[int](), fl)
+		tr := NewWithFreeList(*btreeDegree, cmp.GenericComparator[int], fl)
 		for _, v := range items {
 			tr.Put(v)
 		}
@@ -32,7 +34,7 @@ func BenchmarkDeleteAndRestoreG(b *testing.B) {
 				tr.Delete(del)
 			}
 			// tr is now empty, we make a new empty copy of it.
-			tr = NewWithFreeList(*btreeDegree, Less[int](), fl)
+			tr = NewWithFreeList(*btreeDegree, cmp.GenericComparator[int], fl)
 			for _, v := range items {
 				tr.Put(v)
 			}
@@ -68,7 +70,7 @@ func BenchmarkDeleteAndRestoreG(b *testing.B) {
 	b.Run(`ClearBigFreelist`, func(b *testing.B) {
 		fl := NewFreeList[int](16392)
 
-		tr := NewWithFreeList(*btreeDegree, Less[int](), fl)
+		tr := NewWithFreeList(*btreeDegree, cmp.GenericComparator[int], fl)
 		for _, v := range items {
 			tr.Put(v)
 		}
