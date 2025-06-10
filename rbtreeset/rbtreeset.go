@@ -26,8 +26,8 @@ func New[T cmp.Ordered](values ...T) *Set[T] {
 }
 
 // NewWith creates a new set with a custom comparator and optional initial values.
-func NewWith[T comparable](comparator cmp.Comparator[T], values ...T) *Set[T] {
-	s := &Set[T]{tree: rbtree.NewWith[T, struct{}](comparator)}
+func NewWith[T comparable](cmp cmp.Comparator[T], values ...T) *Set[T] {
+	s := &Set[T]{tree: rbtree.NewWith[T, struct{}](cmp)}
 	for _, v := range values {
 		s.tree.Put(v, present)
 	}

@@ -147,23 +147,23 @@ var _ container.OrderedMap[int, int] = (*Tree[int, int])(nil)
 // K must be comparable and compatible with the provided comparator.
 // V can be any type.
 type Tree[K comparable, V any] struct {
-	root       *Node[K, V]       // Root node of the tree.
-	len        int               // Number of nodes in the tree.
-	comparator cmp.Comparator[K] // Comparator for ordering keys.
+	root *Node[K, V]       // Root node of the tree.
+	len  int               // Number of nodes in the tree.
+	cmp  cmp.Comparator[K] // Comparator for ordering keys.
 }
 
 // New creates a new red-black tree with the built-in comparator for ordered types.
 //
 // K must implement cmp.Ordered (e.g., int, string). Time complexity: O(1).
 func New[K cmp.Ordered, V any]() *Tree[K, V] {
-	return &Tree[K, V]{comparator: cmp.GenericComparator[K]}
+	return &Tree[K, V]{cmp: cmp.GenericComparator[K]}
 }
 
 // NewWith creates a new red-black tree with a custom comparator.
 //
 // The comparator defines the ordering of keys. Time complexity: O(1).
-func NewWith[K comparable, V any](comparator cmp.Comparator[K]) *Tree[K, V] {
-	return &Tree[K, V]{comparator: comparator}
+func NewWith[K comparable, V any](cmp cmp.Comparator[K]) *Tree[K, V] {
+	return &Tree[K, V]{cmp: cmp}
 }
 
 // Put inserts or updates a key-value pair in the tree.
@@ -187,7 +187,7 @@ func (t *Tree[K, V]) Put(key K, val V) {
 	for node != nil {
 		parent = node // `parent` will be the parent of the new node if key is not found.
 
-		switch cmp := t.comparator(key, node.key); {
+		switch cmp := t.cmp(key, node.key); {
 		case cmp == 0:
 			// Key already exists, update its value.
 			node.value = val
@@ -208,7 +208,7 @@ func (t *Tree[K, V]) Put(key K, val V) {
 	n := &Node[K, V]{key: key, value: val, color: red, parent: parent}
 
 	// Link the new node to its parent.
-	if t.comparator(key, parent.key) < 0 {
+	if t.cmp(key, parent.key) < 0 {
 		parent.left = n
 	} else {
 		parent.right = n
@@ -395,7 +395,7 @@ func (t *Tree[K, V]) Floor(key K) (*Node[K, V], bool) {
 
 	node := t.root
 	for node != nil {
-		switch cmp := t.comparator(key, node.key); {
+		switch cmp := t.cmp(key, node.key); {
 		case cmp == 0:
 			return node, true
 		case cmp > 0:
@@ -418,7 +418,7 @@ func (t *Tree[K, V]) Ceiling(key K) (*Node[K, V], bool) {
 
 	node := t.root
 	for node != nil {
-		switch cmp := t.comparator(key, node.key); {
+		switch cmp := t.cmp(key, node.key); {
 		case cmp == 0:
 			return node, true
 		case cmp < 0:
@@ -486,8 +486,8 @@ func (t *Tree[K, V]) Entries() ([]K, []V) {
 // Time complexity: O(n), where n is the number of nodes in the tree.
 func (t *Tree[K, V]) Clone() container.Map[K, V] {
 	newTree := &Tree[K, V]{
-		comparator: t.comparator,
-		len:        t.len,
+		cmp: t.cmp,
+		len: t.len,
 	}
 
 	if t.root == nil {
@@ -584,7 +584,7 @@ func (t *Tree[K, V]) String() string {
 //
 // Time complexity: O(1).
 func (t *Tree[K, V]) Comparator() cmp.Comparator[K] {
-	return t.comparator
+	return t.cmp
 }
 
 // Iter returns an iterator over all key-value pairs in sorted order.
@@ -643,7 +643,7 @@ func (t *Tree[K, V]) RIter() iter.Seq2[K, V] {
 func (t *Tree[K, V]) lookup(key K) *Node[K, V] {
 	node := t.root
 	for node != nil {
-		switch cmp := t.comparator(key, node.key); {
+		switch cmp := t.cmp(key, node.key); {
 		case cmp == 0:
 			return node
 		case cmp < 0:
