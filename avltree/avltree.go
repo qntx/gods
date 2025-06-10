@@ -19,12 +19,12 @@ import (
 
 // Node represents a single element in the AVL tree.
 type Node[K comparable, V any] struct {
-	key           K           // The key used for ordering
-	value         V           // The value associated with the key
-	parent        *Node[K, V] // Parent node
-	left          *Node[K, V] // Left child node
-	right         *Node[K, V] // Right child node
-	balanceFactor int8        // Balance factor: height(right) - height(left)
+	b      int         // Balance factor: height(right) - height(left)
+	key    K           // The key used for ordering
+	value  V           // The value associated with the key
+	parent *Node[K, V] // Parent node
+	left   *Node[K, V] // Left child node
+	right  *Node[K, V] // Right child node
 }
 
 // Key returns the key stored in the node.
@@ -73,7 +73,7 @@ func (n *Node[K, V]) String() string {
 	return fmt.Sprintf("%v", n.key)
 }
 
-var _ container.Map[int, int] = (*Tree[int, int])(nil)
+var _ container.OrderedMap[int, int] = (*Tree[int, int])(nil)
 
 // Tree manages an AVL tree storing key-value pairs.
 //
@@ -114,29 +114,29 @@ func (t *Tree[K, V]) Put(key K, val V) {
 
 	node, parent := t.root, (*Node[K, V])(nil)
 
-	var cmpResult int
+	var cmp int
 
 	for node != nil {
 		parent = node
-		cmpResult = t.comparator(key, node.key)
+		cmp = t.comparator(key, node.key)
 
 		switch {
-		case cmpResult < 0:
+		case cmp < 0:
 			node = node.left
-		case cmpResult > 0:
+		case cmp > 0:
 			node = node.right
-		default: // cmpResult == 0
+		default: // cmp == 0
 			node.value = val
 
 			return
 		}
 	}
 
-	newNode := &Node[K, V]{key: key, value: val, parent: parent}
-	if cmpResult < 0 {
-		parent.left = newNode
+	n := &Node[K, V]{key: key, value: val, parent: parent}
+	if cmp < 0 {
+		parent.left = n
 	} else {
-		parent.right = newNode
+		parent.right = n
 	}
 
 	t.len++
@@ -161,8 +161,7 @@ func (t *Tree[K, V]) Delete(key K) bool {
 		// Node has two children: find the in-order successor (smallest node in right subtree)
 		successor := t.getLeftNode(node.right)
 		// Copy successor's data to the current node
-		node.key = successor.key
-		node.value = successor.value
+		node.key, node.value = successor.key, successor.value
 		// Mark successor for deletion (simplifies the problem)
 		node = successor
 	}
@@ -357,9 +356,9 @@ func (t *Tree[K, V]) Ceiling(key K) (*Node[K, V], bool) {
 // Time complexity: O(n).
 func (t *Tree[K, V]) Keys() []K {
 	keys := make([]K, 0, t.len)
-	t.inOrderTraversal(func(n *Node[K, V]) {
-		keys = append(keys, n.key)
-	})
+	for k := range t.Iter() {
+		keys = append(keys, k)
+	}
 
 	return keys
 }
@@ -368,9 +367,9 @@ func (t *Tree[K, V]) Keys() []K {
 // Time complexity: O(n).
 func (t *Tree[K, V]) Values() []V {
 	values := make([]V, 0, t.len)
-	t.inOrderTraversal(func(n *Node[K, V]) {
-		values = append(values, n.value)
-	})
+	for _, v := range t.Iter() {
+		values = append(values, v)
+	}
 
 	return values
 }
@@ -388,10 +387,11 @@ func (t *Tree[K, V]) ToSlice() []V {
 func (t *Tree[K, V]) Entries() ([]K, []V) {
 	keys := make([]K, 0, t.len)
 	vals := make([]V, 0, t.len)
-	t.inOrderTraversal(func(n *Node[K, V]) {
-		keys = append(keys, n.key)
-		vals = append(vals, n.value)
-	})
+
+	for k, v := range t.Iter() {
+		keys = append(keys, k)
+		vals = append(vals, v)
+	}
 
 	return keys, vals
 }
@@ -535,8 +535,6 @@ func (t *Tree[K, V]) Comparator() cmp.Comparator[K] {
 	return t.comparator
 }
 
-// --- Internal and Helper Methods ---
-
 // lookup finds the node with the specified key, or nil if not found.
 // Time complexity: O(log n).
 func (t *Tree[K, V]) lookup(key K) *Node[K, V] {
@@ -553,6 +551,24 @@ func (t *Tree[K, V]) lookup(key K) *Node[K, V] {
 	}
 
 	return nil
+}
+
+// height returns the height of a node. A nil node has height -1.
+func (t *Tree[K, V]) height(n *Node[K, V]) int {
+	if n == nil {
+		return -1
+	}
+
+	return 1 + max(t.height(n.left), t.height(n.right))
+}
+
+// updateBalanceFactor recalculates and updates the balance factor of a node.
+func (t *Tree[K, V]) updateBalanceFactor(n *Node[K, V]) {
+	if n == nil {
+		return
+	}
+
+	n.b = t.height(n.right) - t.height(n.left)
 }
 
 // getLeftNode finds the leftmost node in the subtree, or nil if empty.
@@ -590,64 +606,6 @@ func (t *Tree[K, V]) replaceNode(old, new *Node[K, V]) {
 	}
 }
 
-// --- AVL Balance Logic ---
-
-// insertFixup rebalances the tree upward from the given node after insertion.
-func (t *Tree[K, V]) insertFixup(node *Node[K, V]) {
-	for node != nil {
-		t.updateBalanceFactor(node)
-
-		bf := node.balanceFactor
-		if bf < -1 || bf > 1 {
-			t.rebalance(node)
-
-			break
-		}
-
-		if bf == 0 {
-			break
-		}
-
-		node = node.parent
-	}
-}
-
-// deleteFixup rebalances the tree upward from the given node after deletion.
-func (t *Tree[K, V]) deleteFixup(node *Node[K, V]) {
-	for node != nil {
-		t.updateBalanceFactor(node)
-
-		bf := node.balanceFactor
-		if bf < -1 || bf > 1 {
-			t.rebalance(node)
-		}
-
-		if node.balanceFactor != 0 {
-			break
-		}
-
-		node = node.parent
-	}
-}
-
-// rebalance balances the subtree rooted at the unbalanced node.
-// Assumes the node has a balance factor > 1 or < -1.
-func (t *Tree[K, V]) rebalance(node *Node[K, V]) {
-	if node.balanceFactor < -1 {
-		if node.left.balanceFactor > 0 {
-			t.rotateLeft(node.left)
-		}
-
-		t.rotateRight(node)
-	} else {
-		if node.right.balanceFactor < 0 {
-			t.rotateRight(node.right)
-		}
-
-		t.rotateLeft(node)
-	}
-}
-
 // rotateLeft performs a left rotation around the pivot node.
 func (t *Tree[K, V]) rotateLeft(pivot *Node[K, V]) {
 	r := pivot.right
@@ -682,39 +640,113 @@ func (t *Tree[K, V]) rotateRight(pivot *Node[K, V]) {
 	t.updateBalanceFactor(l)
 }
 
-// height returns the height of a node. A nil node has height -1.
-func (t *Tree[K, V]) height(n *Node[K, V]) int {
-	if n == nil {
-		return -1
-	}
+// insertFixup rebalances the tree upward from the given node after insertion.
+func (t *Tree[K, V]) insertFixup(node *Node[K, V]) {
+	for node != nil {
+		t.updateBalanceFactor(node)
 
-	return 1 + max(t.height(n.left), t.height(n.right))
-}
+		bf := node.b
+		if bf < -1 || bf > 1 {
+			t.rebalance(node)
 
-// updateBalanceFactor recalculates and updates the balance factor of a node.
-func (t *Tree[K, V]) updateBalanceFactor(n *Node[K, V]) {
-	if n == nil {
-		return
-	}
-
-	n.balanceFactor = int8(t.height(n.right) - t.height(n.left))
-}
-
-// --- Utility Functions ---
-
-// inOrderTraversal traverses the tree in-order, applying function f to each node.
-func (t *Tree[K, V]) inOrderTraversal(f func(*Node[K, V])) {
-	var visit func(*Node[K, V])
-	visit = func(n *Node[K, V]) {
-		if n == nil {
-			return
+			break
 		}
 
-		visit(n.left)
-		f(n)
-		visit(n.right)
+		if bf == 0 {
+			break
+		}
+
+		node = node.parent
 	}
-	visit(t.root)
+}
+
+// deleteFixup rebalances the tree upward from the given node after deletion.
+func (t *Tree[K, V]) deleteFixup(node *Node[K, V]) {
+	for node != nil {
+		t.updateBalanceFactor(node)
+
+		bf := node.b
+		if bf < -1 || bf > 1 {
+			t.rebalance(node)
+		}
+
+		if node.b != 0 {
+			break
+		}
+
+		node = node.parent
+	}
+}
+
+// rebalance balances the subtree rooted at the unbalanced node z.
+// Assumes z has a balance factor > 1 or < -1.
+// The balance factor (bf) is calculated as height(left_child) - height(right_child).
+func (t *Tree[K, V]) rebalance(node *Node[K, V]) { // node is z, the unbalanced node
+	if node.b < -1 { // bf(z) == -2, z is left-heavy.
+		// Let y = z.left. The balance factor of y is node.left.b.
+		if node.left.b > 0 {
+			// Left-Right (LR) case: bf(y) > 0.
+			// This means y (z's left child) is right-heavy.
+			// The imbalanced path is z -> y -> x (where x is y.right).
+			// This forms a "triangle" shape.
+			//
+			//      z (node)             z (node)
+			//     /                    /
+			//    y (node.left)   ==>  x (new node.left)
+			//     \                  /
+			//      x                y
+			//
+			// Rotate left around y (node.left) to transform the LR case into an LL case.
+			t.rotateLeft(node.left)
+		}
+		// Left-Left (LL) case (or an LR case transformed into LL).
+		// Let current_y = node.left (z's current left child),
+		// and current_x = current_y.left.
+		// (If originally LR, current_y was the grandchild 'x' that formed the kink,
+		// and current_x was the original left child 'y'.)
+		// This forms a "line" shape: z -> current_y -> current_x.
+		//
+		//      z (node)                       current_y (new root of this subtree)
+		//     /                              /         \
+		//    current_y (node.left)       ==> current_x   z
+		//   /
+		//  current_x (current_y.left)
+		//
+		// Rotate right around z (node).
+		t.rotateRight(node)
+	} else { // bf(z) == +2, z is right-heavy.
+		// Let y = z.right. The balance factor of y is node.right.b.
+		if node.right.b < 0 {
+			// Right-Left (RL) case: bf(y) < 0.
+			// This means y (z's right child) is left-heavy.
+			// The imbalanced path is z -> y -> x (where x is y.left).
+			// This forms a "triangle" shape.
+			//
+			//    z (node)                  z (node)
+			//     \                         \
+			//      y (node.right)      ==>   x (new node.right)
+			//     /                           \
+			//    x                             y
+			//
+			// Rotate right around y (node.right) to transform the RL case into an RR case.
+			t.rotateRight(node.right)
+		}
+		// Right-Right (RR) case (or an RL case transformed into RR).
+		// Let current_y = node.right (z's current right child),
+		// and current_x = current_y.right.
+		// (If originally RL, current_y was the grandchild 'x' that formed the kink,
+		// and current_x was the original right child 'y'.)
+		// This forms a "line" shape: z -> current_y -> current_x.
+		//
+		//    z (node)                          current_y (new root of this subtree)
+		//     \                               /         \
+		//      current_y (node.right)    ==> z        current_x
+		//       \
+		//        current_x (current_y.right)
+		//
+		// Rotate left around z (node).
+		t.rotateLeft(node)
+	}
 }
 
 // output recursively builds a string representation of the tree for printing.
@@ -759,10 +791,10 @@ func cloneNode[K comparable, V any](node *Node[K, V], parent *Node[K, V]) *Node[
 	}
 
 	n := &Node[K, V]{
-		key:           node.key,
-		value:         node.value,
-		balanceFactor: node.balanceFactor,
-		parent:        parent,
+		key:    node.key,
+		value:  node.value,
+		b:      node.b,
+		parent: parent,
 	}
 
 	n.left = cloneNode(node.left, n)

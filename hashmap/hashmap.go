@@ -10,75 +10,169 @@ package hashmap
 import (
 	"encoding/json"
 	"fmt"
+	"iter"
+	"maps"
+	"slices"
+
+	"github.com/qntx/gods/cmp"
+	"github.com/qntx/gods/container"
 )
 
-// Map holds the elements in go's native map.
+// Map is a map backed by Go's native map, implementing the container.Map interface.
 type Map[K comparable, V any] struct {
-	m map[K]V
+	m   map[K]V
+	cmp cmp.Comparator[K] // Comparator for key sorting
 }
 
-// New instantiates a hash map.
-func New[K comparable, V any]() *Map[K, V] {
-	return &Map[K, V]{m: make(map[K]V)}
+var _ container.Map[int, int] = (*Map[int, int])(nil)
+var _ json.Marshaler = (*Map[int, int])(nil)
+var _ json.Unmarshaler = (*Map[int, int])(nil)
+
+// New instantiates a hash map with no key comparator.
+func New[K cmp.Ordered, V any]() *Map[K, V] {
+	return &Map[K, V]{
+		m:   make(map[K]V),
+		cmp: cmp.GenericComparator[K],
+	}
 }
 
-// Put inserts element into the map.
+// NewWith instantiates a hash map with the specified size and key comparator.
+// If cmp is nil, SortedKeys will panic or produce undefined behavior.
+func NewWith[K comparable, V any](cmp cmp.Comparator[K], size int) *Map[K, V] {
+	return &Map[K, V]{
+		m:   make(map[K]V, size),
+		cmp: cmp,
+	}
+}
+
+// Put associates the specified value with the given key in the map.
+// If the key already exists, its value is updated with the new value.
 func (m *Map[K, V]) Put(key K, value V) {
 	m.m[key] = value
 }
 
-// Get searches the element in the map by key and returns its value or nil if key is not found in map.
-// Second return parameter is true if key was found, otherwise false.
-func (m *Map[K, V]) Get(key K) (value V, found bool) {
-	value, found = m.m[key]
+// Get retrieves the value associated with the specified key.
+// Returns the value and true if the key was found, or the zero value of V and false if not.
+func (m *Map[K, V]) Get(key K) (V, bool) {
+	value, found := m.m[key]
 
-	return
+	return value, found
 }
 
-// Remove removes the element from the map by key.
-func (m *Map[K, V]) Remove(key K) {
-	delete(m.m, key)
+// Has returns true if the specified key is present in the map, false otherwise.
+func (m *Map[K, V]) Has(key K) bool {
+	_, found := m.m[key]
+
+	return found
 }
 
-// Empty returns true if map does not contain any elements.
-func (m *Map[K, V]) Empty() bool {
-	return m.Size() == 0
+// Delete removes the key-value pair associated with the specified key.
+// Returns true if the key was found and removed, false if the key was not present.
+func (m *Map[K, V]) Delete(key K) bool {
+	if _, found := m.m[key]; found {
+		delete(m.m, key)
+
+		return true
+	}
+
+	return false
 }
 
-// Size returns number of elements in the map.
-func (m *Map[K, V]) Size() int {
+// Len returns the number of key-value pairs in the map.
+func (m *Map[K, V]) Len() int {
 	return len(m.m)
 }
 
-// Keys returns all keys (random order).
-func (m *Map[K, V]) Keys() []K {
-	keys := make([]K, m.Size())
-	count := 0
-
-	for key := range m.m {
-		keys[count] = key
-		count++
-	}
-
-	return keys
+// IsEmpty returns true if the map contains no key-value pairs.
+func (m *Map[K, V]) IsEmpty() bool {
+	return len(m.m) == 0
 }
 
-// Values returns all values (random order).
-func (m *Map[K, V]) Values() []V {
-	values := make([]V, m.Size())
-	count := 0
-
-	for _, value := range m.m {
-		values[count] = value
-		count++
-	}
-
-	return values
-}
-
-// Clear removes all elements from the map.
+// Clear removes all key-value pairs from the map.
 func (m *Map[K, V]) Clear() {
 	clear(m.m)
+}
+
+// Keys returns a slice containing all keys in the map (in random order).
+func (m *Map[K, V]) Keys() []K {
+	k := make([]K, 0, len(m.m))
+	for key := range m.m {
+		k = append(k, key)
+	}
+
+	return k
+}
+
+// SortedKeys returns a slice containing all keys in the map, sorted using the comparator.
+func (m *Map[K, V]) SortedKeys() []K {
+	return slices.SortedFunc(maps.Keys(m.m), m.cmp)
+}
+
+// Values returns a slice containing all values in the map (in random order).
+func (m *Map[K, V]) Values() []V {
+	v := make([]V, 0, len(m.m))
+	for _, value := range m.m {
+		v = append(v, value)
+	}
+
+	return v
+}
+
+// SortedValues returns a slice containing all values in the map, sorted by their corresponding keys using m.cmp.
+func (m *Map[K, V]) SortedValues() []V {
+	k := m.SortedKeys()
+	v := make([]V, len(k))
+
+	for i, key := range k {
+		v[i] = m.m[key]
+	}
+
+	return v
+}
+
+// ToSlice returns a slice containing all values in the map (in random order).
+func (m *Map[K, V]) ToSlice() []V {
+	return m.Values()
+}
+
+// Entries returns two slices containing all keys and values in the map (in random order).
+func (m *Map[K, V]) Entries() (keys []K, values []V) {
+	k := make([]K, 0, len(m.m))
+	v := make([]V, 0, len(m.m))
+
+	for key, value := range m.m {
+		k = append(k, key)
+		v = append(v, value)
+	}
+
+	return k, v
+}
+
+// SortedEntries returns two slices containing all keys and values in the map,
+// sorted by keys using m.cmp.
+func (m *Map[K, V]) SortedEntries() (keys []K, values []V) {
+	return m.SortedKeys(), m.SortedValues()
+}
+
+// Iter returns an iterator over key-value pairs from m.
+// The iteration order is not specified and is not guaranteed to be the same from one call to the next.
+func (m *Map[K, V]) Iter() iter.Seq2[K, V] {
+	return func(yield func(K, V) bool) {
+		for k, v := range m.m {
+			if !yield(k, v) {
+				return
+			}
+		}
+	}
+}
+
+// Clone returns a new Map containing all key-value pairs from the current map,
+// with the same comparator.
+func (m *Map[K, V]) Clone() container.Map[K, V] {
+	clone := NewWith[K, V](m.cmp, len(m.m))
+	maps.Copy(clone.m, m.m)
+
+	return clone
 }
 
 // MarshalJSON outputs the JSON representation of the map.
@@ -87,14 +181,20 @@ func (m *Map[K, V]) MarshalJSON() ([]byte, error) {
 }
 
 // UnmarshalJSON populates the map from the input JSON representation.
+// The comparator is preserved.
 func (m *Map[K, V]) UnmarshalJSON(data []byte) error {
-	return json.Unmarshal(data, &m.m)
+	temp := make(map[K]V)
+	if err := json.Unmarshal(data, &temp); err != nil {
+		return err
+	}
+
+	clear(m.m)
+	maps.Copy(m.m, temp)
+
+	return nil
 }
 
-// String returns a string representation of container.
+// String returns a string representation of the map.
 func (m *Map[K, V]) String() string {
-	str := "HashMap\n"
-	str += fmt.Sprintf("%v", m.m)
-
-	return str
+	return fmt.Sprintf("HashMap\n%v", m.m)
 }

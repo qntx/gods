@@ -140,7 +140,7 @@ func (n *Node[K, V]) grandparent() *Node[K, V] {
 	return nil
 }
 
-var _ container.Map[int, int] = (*Tree[int, int])(nil)
+var _ container.OrderedMap[int, int] = (*Tree[int, int])(nil)
 
 // Tree manages a red-black tree with key-value pairs.
 //
@@ -603,6 +603,31 @@ func (t *Tree[K, V]) Iter() iter.Seq2[K, V] {
 				node = t.getLeftNode(node.Right())
 			} else {
 				for node.Parent() != nil && node == node.Parent().Right() {
+					node = node.Parent()
+				}
+
+				node = node.Parent()
+			}
+		}
+	}
+}
+
+// RIter returns an iterator over all key-value pairs in reverse sorted order.
+// Yields pairs in reverse in-order traversal.
+//
+// Time complexity: O(log n) per element.
+func (t *Tree[K, V]) RIter() iter.Seq2[K, V] {
+	return func(yield func(K, V) bool) {
+		node := t.GetEndNode()
+		for node != nil {
+			if !yield(node.Key(), node.Value()) {
+				return
+			}
+
+			if node.Left() != nil {
+				node = t.getRightNode(node.Left())
+			} else {
+				for node.Parent() != nil && node == node.Parent().Left() {
 					node = node.Parent()
 				}
 

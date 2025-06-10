@@ -12,6 +12,7 @@ func (s *Set[T]) Each(f func(index int, value T)) {
 	index := 0
 	for value := range s.tree.Iter() {
 		f(index, value)
+
 		index++
 	}
 }
@@ -24,6 +25,7 @@ func (s *Set[T]) Map(f func(index int, value T) T) *Set[T] {
 
 	for value := range s.tree.Iter() {
 		newSet.Add(f(index, value))
+
 		index++
 	}
 
@@ -39,6 +41,7 @@ func (s *Set[T]) Select(f func(index int, value T) bool) *Set[T] {
 		if f(index, value) {
 			newSet.Add(value)
 		}
+
 		index++
 	}
 
@@ -54,6 +57,7 @@ func (s *Set[T]) Any(f func(index int, value T) bool) bool {
 		if f(index, value) {
 			return true
 		}
+
 		index++
 	}
 
@@ -69,6 +73,7 @@ func (s *Set[T]) All(f func(index int, value T) bool) bool {
 		if !f(index, value) {
 			return false
 		}
+
 		index++
 	}
 
@@ -85,6 +90,7 @@ func (s *Set[T]) Find(f func(index int, value T) bool) (int, T) {
 		if f(index, value) {
 			return index, value
 		}
+
 		index++
 	}
 

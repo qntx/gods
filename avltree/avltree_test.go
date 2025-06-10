@@ -1,14 +1,16 @@
-package avltree
+package avltree_test
 
 import (
 	"encoding/json"
 	"slices"
 	"strings"
 	"testing"
+
+	"github.com/qntx/gods/avltree"
 )
 
 func TestAVLTreeGet(t *testing.T) {
-	tree := New[int, string]()
+	tree := avltree.New[int, string]()
 
 	if actualValue := tree.Len(); actualValue != 0 {
 		t.Errorf("Got %v expected %v", actualValue, 0)
@@ -52,7 +54,7 @@ func TestAVLTreeGet(t *testing.T) {
 }
 
 func TestAVLTreePut(t *testing.T) {
-	tree := New[int, string]()
+	tree := avltree.New[int, string]()
 	tree.Put(5, "e")
 	tree.Put(6, "f")
 	tree.Put(7, "g")
@@ -95,7 +97,7 @@ func TestAVLTreePut(t *testing.T) {
 }
 
 func TestAVLTreeRemove(t *testing.T) {
-	tree := New[int, string]()
+	tree := avltree.New[int, string]()
 	tree.Put(5, "e")
 	tree.Put(6, "f")
 	tree.Put(7, "g")
@@ -162,7 +164,7 @@ func TestAVLTreeRemove(t *testing.T) {
 }
 
 func TestAVLTreeBeginAndEnd(t *testing.T) {
-	tree := New[int, string]()
+	tree := avltree.New[int, string]()
 
 	if actualValue := tree.GetBeginNode(); actualValue != nil {
 		t.Errorf("Got %v expected %v", actualValue, nil)
@@ -199,7 +201,7 @@ func TestAVLTreeBeginAndEnd(t *testing.T) {
 }
 
 func TestAVLTreeCeilingAndFloor(t *testing.T) {
-	tree := New[int, string]()
+	tree := avltree.New[int, string]()
 
 	if node, found := tree.Floor(0); node != nil || found {
 		t.Errorf("Got %v expected %v", node, "<nil>")
@@ -235,7 +237,7 @@ func TestAVLTreeCeilingAndFloor(t *testing.T) {
 }
 
 func TestAVLTreeIterEmpty(t *testing.T) {
-	tree := New[int, string]()
+	tree := avltree.New[int, string]()
 	count := 0
 
 	for range tree.Iter() {
@@ -248,7 +250,7 @@ func TestAVLTreeIterEmpty(t *testing.T) {
 }
 
 func TestAVLTreeIter(t *testing.T) {
-	tree := New[int, string]()
+	tree := avltree.New[int, string]()
 	tree.Put(5, "e")
 	tree.Put(6, "f")
 	tree.Put(7, "g")
@@ -278,7 +280,7 @@ func TestAVLTreeIter(t *testing.T) {
 }
 
 func TestAVLTreeReverseIterOnEmpty(t *testing.T) {
-	tree := New[int, string]()
+	tree := avltree.New[int, string]()
 
 	var count int
 	for range tree.RIter() {
@@ -291,7 +293,7 @@ func TestAVLTreeReverseIterOnEmpty(t *testing.T) {
 }
 
 func TestAVLTreeReverseIter(t *testing.T) {
-	tree := New[int, string]()
+	tree := avltree.New[int, string]()
 	tree.Put(3, "c")
 	tree.Put(1, "a")
 	tree.Put(2, "b")
@@ -317,7 +319,7 @@ func TestAVLTreeReverseIter(t *testing.T) {
 }
 
 func TestAVLTreeIterSkipsDeleted(t *testing.T) {
-	tree := New[int, string]()
+	tree := avltree.New[int, string]()
 	tree.Put(10, "a")
 	tree.Put(20, "b")
 	tree.Put(30, "c")
@@ -339,7 +341,7 @@ func TestAVLTreeIterSkipsDeleted(t *testing.T) {
 }
 
 func TestAVLTreeSerialization(t *testing.T) {
-	tree := New[string, string]()
+	tree := avltree.New[string, string]()
 	tree.Put("c", "3")
 	tree.Put("b", "2")
 	tree.Put("a", "1")
@@ -379,7 +381,7 @@ func TestAVLTreeSerialization(t *testing.T) {
 		t.Errorf("Got error %v", err)
 	}
 
-	intTree := New[string, int]()
+	intTree := avltree.New[string, int]()
 
 	err = json.Unmarshal([]byte(`{"a":1,"b":2}`), intTree)
 	if err != nil {
@@ -400,7 +402,7 @@ func TestAVLTreeSerialization(t *testing.T) {
 }
 
 func TestAVLTreeString(t *testing.T) {
-	c := New[int, int]()
+	c := avltree.New[int, int]()
 	c.Put(1, 1)
 	c.Put(2, 1)
 	c.Put(3, 1)

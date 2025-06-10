@@ -15,28 +15,32 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"github.com/qntx/gods/cmp"
 	"github.com/qntx/gods/hashmap"
 )
 
 // Map holds the elements in two hashmaps.
-type Map[K, V comparable] struct {
+type Map[K cmp.Ordered, V cmp.Ordered] struct {
 	forwardMap hashmap.Map[K, V]
 	inverseMap hashmap.Map[V, K]
 }
 
 // New instantiates a bidirectional map.
-func New[K, V comparable]() *Map[K, V] {
-	return &Map[K, V]{*hashmap.New[K, V](), *hashmap.New[V, K]()}
+func New[K cmp.Ordered, V cmp.Ordered]() *Map[K, V] {
+	return &Map[K, V]{
+		forwardMap: *hashmap.New[K, V](),
+		inverseMap: *hashmap.New[V, K](),
+	}
 }
 
 // Put inserts element into the map.
 func (m *Map[K, V]) Put(key K, value V) {
 	if valueByKey, ok := m.forwardMap.Get(key); ok {
-		m.inverseMap.Remove(valueByKey)
+		m.inverseMap.Delete(valueByKey)
 	}
 
 	if keyByValue, ok := m.inverseMap.Get(value); ok {
-		m.forwardMap.Remove(keyByValue)
+		m.forwardMap.Delete(keyByValue)
 	}
 
 	m.forwardMap.Put(key, value)
@@ -58,8 +62,8 @@ func (m *Map[K, V]) GetKey(value V) (key K, found bool) {
 // Remove removes the element from the map by key.
 func (m *Map[K, V]) Remove(key K) {
 	if value, found := m.forwardMap.Get(key); found {
-		m.forwardMap.Remove(key)
-		m.inverseMap.Remove(value)
+		m.forwardMap.Delete(key)
+		m.inverseMap.Delete(value)
 	}
 }
 
@@ -70,7 +74,7 @@ func (m *Map[K, V]) Empty() bool {
 
 // Size returns number of elements in the map.
 func (m *Map[K, V]) Size() int {
-	return m.forwardMap.Size()
+	return m.forwardMap.Len()
 }
 
 // Keys returns all keys (random order).
