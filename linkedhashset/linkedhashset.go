@@ -15,13 +15,13 @@ import (
 	"strings"
 )
 
-// Set holds elements in go's native map
+// Set holds elements in go's native map.
 type Set[T comparable] struct {
 	table    map[T]*list.Element
 	ordering *list.List
 }
 
-// New instantiates a new empty set and adds the passed values, if any, to the set
+// New instantiates a new empty set and adds the passed values, if any, to the set.
 func New[T comparable](values ...T) *Set[T] {
 	set := &Set[T]{
 		table:    make(map[T]*list.Element),
@@ -30,6 +30,7 @@ func New[T comparable](values ...T) *Set[T] {
 	if len(values) > 0 {
 		set.Add(values...)
 	}
+
 	return set
 }
 
@@ -64,6 +65,7 @@ func (set *Set[T]) Contains(items ...T) bool {
 			return false
 		}
 	}
+
 	return true
 }
 
@@ -89,17 +91,21 @@ func (set *Set[T]) Values() []T {
 	for element := set.ordering.Front(); element != nil; element = element.Next() {
 		values = append(values, element.Value.(T))
 	}
+
 	return values
 }
 
-// String returns a string representation of container
+// String returns a string representation of container.
 func (set *Set[T]) String() string {
 	str := "LinkedHashSet\n"
+
 	items := []string{}
 	for element := set.ordering.Front(); element != nil; element = element.Next() {
 		items = append(items, fmt.Sprintf("%v", element.Value.(T)))
 	}
+
 	str += strings.Join(items, ", ")
+
 	return str
 }
 
@@ -135,6 +141,7 @@ func (set *Set[T]) Union(another *Set[T]) *Set[T] {
 	for item := range set.table {
 		result.Add(item)
 	}
+
 	for item := range another.table {
 		result.Add(item)
 	}

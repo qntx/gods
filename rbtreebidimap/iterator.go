@@ -5,10 +5,10 @@ import (
 	"github.com/qntx/gods/rbtree"
 )
 
-// Assert Iterator implementation
+// Assert Iterator implementation.
 var _ container.ReverseIteratorWithKey[string, int] = (*Iterator[string, int])(nil)
 
-// Iterator holding the iterator's state
+// Iterator holding the iterator's state.
 type Iterator[K comparable, V any] struct {
 	iterator *rbtree.Iterator[K, V]
 }
@@ -57,9 +57,7 @@ func (iterator *Iterator[K, V]) End() {
 	iterator.iterator.End()
 }
 
-// First moves the iterator to the first element and returns true if there was a first element in the container.
-// If First() returns true, then first element's key and value can be retrieved by Key() and Value().
-// Modifies the state of the iterator
+// Modifies the state of the iterator.
 func (iterator *Iterator[K, V]) First() bool {
 	return iterator.iterator.First()
 }
@@ -82,6 +80,7 @@ func (iterator *Iterator[K, V]) NextTo(f func(key K, value V) bool) bool {
 			return true
 		}
 	}
+
 	return false
 }
 
@@ -96,5 +95,6 @@ func (iterator *Iterator[K, V]) PrevTo(f func(key K, value V) bool) bool {
 			return true
 		}
 	}
+
 	return false
 }

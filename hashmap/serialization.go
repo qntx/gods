@@ -6,7 +6,7 @@ import (
 	"github.com/qntx/gods/container"
 )
 
-// Assert Serialization implementation
+// Assert Serialization implementation.
 var _ container.JSONCodec = (*Map[string, int])(nil)
 
 // MarshalJSON outputs the JSON representation of the map.

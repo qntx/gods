@@ -56,7 +56,9 @@ func (m *Map[K, V]) Get(key K) (value V, found bool) {
 	if elem, ok := m.table[key]; ok {
 		return elem.value, true
 	}
+
 	var zeroV V // Required to return the zero value for V if not found
+
 	return zeroV, false
 }
 
@@ -69,7 +71,7 @@ func (m *Map[K, V]) Remove(key K) {
 	}
 }
 
-// Empty returns true if map does not contain any elements
+// Empty returns true if map does not contain any elements.
 func (m *Map[K, V]) Empty() bool {
 	return m.Size() == 0
 }
@@ -79,12 +81,13 @@ func (m *Map[K, V]) Size() int {
 	return m.ordering.Len() // Use Len() for container/list
 }
 
-// Keys returns all keys in-order
+// Keys returns all keys in-order.
 func (m *Map[K, V]) Keys() []K {
 	keys := make([]K, 0, m.ordering.Len())
 	for e := m.ordering.Front(); e != nil; e = e.Next() {
 		keys = append(keys, e.Value.(K)) // Type assertion needed
 	}
+
 	return keys
 }
 
@@ -92,11 +95,13 @@ func (m *Map[K, V]) Keys() []K {
 func (m *Map[K, V]) Values() []V {
 	values := make([]V, m.Size())
 	count := 0
+
 	it := m.Iterator() // Iterator will use the updated Keys() and Get()
 	for it.Next() {
 		values[count] = it.Value()
 		count++
 	}
+
 	return values
 }
 
@@ -110,13 +115,14 @@ func (m *Map[K, V]) Clear() {
 	m.ordering.Init() // Reinitializes the list, making it empty
 }
 
-// String returns a string representation of container
+// String returns a string representation of container.
 func (m *Map[K, V]) String() string {
 	str := "LinkedHashMap\nmap["
 	it := m.Iterator() // Iterator will use the updated Keys() and Get()
+
 	for it.Next() {
 		str += fmt.Sprintf("%v:%v ", it.Key(), it.Value())
 	}
-	return strings.TrimRight(str, " ") + "]"
 
+	return strings.TrimRight(str, " ") + "]"
 }

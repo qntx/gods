@@ -33,9 +33,11 @@ func (m *Map[K, V]) Put(key K, value V) {
 	if valueByKey, ok := m.forwardMap.Get(key); ok {
 		m.inverseMap.Remove(valueByKey)
 	}
+
 	if keyByValue, ok := m.inverseMap.Get(value); ok {
 		m.forwardMap.Remove(keyByValue)
 	}
+
 	m.forwardMap.Put(key, value)
 	m.inverseMap.Put(value, key)
 }
@@ -60,7 +62,7 @@ func (m *Map[K, V]) Remove(key K) {
 	}
 }
 
-// Empty returns true if map does not contain any elements
+// Empty returns true if map does not contain any elements.
 func (m *Map[K, V]) Empty() bool {
 	return m.Size() == 0
 }
@@ -86,9 +88,10 @@ func (m *Map[K, V]) Clear() {
 	m.inverseMap.Clear()
 }
 
-// String returns a string representation of container
+// String returns a string representation of container.
 func (m *Map[K, V]) String() string {
 	str := "HashBidiMap\n"
 	str += fmt.Sprintf("%v", m.forwardMap)
+
 	return str
 }

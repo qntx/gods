@@ -16,6 +16,7 @@ func (set *Set[T]) MarshalJSON() ([]byte, error) {
 // UnmarshalJSON populates the set from the input JSON representation.
 func (set *Set[T]) UnmarshalJSON(data []byte) error {
 	var elements []T
+
 	err := json.Unmarshal(data, &elements)
 	if err == nil {
 		set.Clear()

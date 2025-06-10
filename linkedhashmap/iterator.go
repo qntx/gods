@@ -6,10 +6,10 @@ import (
 	"github.com/qntx/gods/container"
 )
 
-// Assert Iterator implementation
+// Assert Iterator implementation.
 var _ container.ReverseIteratorWithKey[string, int] = (*Iterator[string, int])(nil)
 
-// Iterator holding the iterator's state
+// Iterator holding the iterator's state.
 type Iterator[K comparable, V any] struct {
 	m       *Map[K, V]    // Reference to the map instance
 	current *list.Element // Current element in the ordering list (stores keys K)
@@ -31,11 +31,13 @@ func (it *Iterator[K, V]) Next() bool {
 	if it.m.Empty() {
 		return false
 	}
+
 	if it.current == nil { // If at beginning (or after End() and then Prev() went out of bounds)
 		it.current = it.m.ordering.Front()
 	} else {
 		it.current = it.current.Next()
 	}
+
 	return it.current != nil
 }
 
@@ -47,11 +49,13 @@ func (it *Iterator[K, V]) Prev() bool {
 	if it.m.Empty() {
 		return false
 	}
+
 	if it.current == nil { // If at end (or after Begin() and then Next() went out of bounds)
 		it.current = it.m.ordering.Back()
 	} else {
 		it.current = it.current.Prev()
 	}
+
 	return it.current != nil
 }
 
@@ -65,12 +69,15 @@ func (it *Iterator[K, V]) Value() V {
 		// Returning zero value if current is nil.
 		return zeroV
 	}
+
 	key := it.current.Value.(K) // Key is stored in the list element
 	// The map's table stores element[V] which contains the actual value V
 	if elemData, found := it.m.table[key]; found {
 		return elemData.value
 	}
+
 	var zeroV V // Should not happen in a consistent map
+
 	return zeroV
 }
 
@@ -83,6 +90,7 @@ func (it *Iterator[K, V]) Key() K {
 		// Depending on library's error handling, could panic here.
 		return zeroK
 	}
+
 	return it.current.Value.(K) // Key is stored directly in the list.Element's Value
 }
 
@@ -104,9 +112,12 @@ func (it *Iterator[K, V]) End() {
 func (it *Iterator[K, V]) First() bool {
 	if it.m.Empty() {
 		it.current = nil
+
 		return false
 	}
+
 	it.current = it.m.ordering.Front()
+
 	return it.current != nil
 }
 
@@ -116,9 +127,12 @@ func (it *Iterator[K, V]) First() bool {
 func (it *Iterator[K, V]) Last() bool {
 	if it.m.Empty() {
 		it.current = nil
+
 		return false
 	}
+
 	it.current = it.m.ordering.Back()
+
 	return it.current != nil
 }
 
@@ -133,6 +147,7 @@ func (it *Iterator[K, V]) NextTo(f func(key K, value V) bool) bool {
 			return true
 		}
 	}
+
 	return false
 }
 
@@ -147,5 +162,6 @@ func (it *Iterator[K, V]) PrevTo(f func(key K, value V) bool) bool {
 			return true
 		}
 	}
+
 	return false
 }

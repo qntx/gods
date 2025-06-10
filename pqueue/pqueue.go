@@ -96,6 +96,7 @@ func NewWith[T comparable, V cmp.Ordered](kind HeapKind, cmp cmp.Comparator[V]) 
 	if cmp == nil {
 		panic(ErrNilComparator)
 	}
+
 	pq := &PriorityQueue[T, V]{
 		kind:   kind,
 		heap:   make([]*Item[T, V], 0, 16), // Pre-allocate for efficiency.
@@ -103,6 +104,7 @@ func NewWith[T comparable, V cmp.Ordered](kind HeapKind, cmp cmp.Comparator[V]) 
 		cmp:    cmp,
 	}
 	heap.Init(pq)
+
 	return pq
 }
 
@@ -116,6 +118,7 @@ func (pq *PriorityQueue[T, V]) Len() int {
 // Time complexity: O(1).
 func (pq *PriorityQueue[T, V]) Less(i, j int) bool {
 	c := pq.cmp(pq.heap[i].Priority, pq.heap[j].Priority)
+
 	return (pq.kind == MinHeap && c < 0) || (pq.kind == MaxHeap && c > 0)
 }
 
@@ -134,6 +137,7 @@ func (pq *PriorityQueue[T, V]) Push(x any) {
 	if !ok {
 		panic(ErrInvalidItemType)
 	}
+
 	item.index = len(pq.heap)
 	pq.heap = append(pq.heap, item)
 	pq.idxMap[item.Value] = item
@@ -146,9 +150,11 @@ func (pq *PriorityQueue[T, V]) Pop() any {
 	if n == 0 {
 		return nil
 	}
+
 	item := pq.heap[n-1]
 	pq.heap = pq.heap[:n-1]
 	delete(pq.idxMap, item.Value)
+
 	return item
 }
 
@@ -168,8 +174,10 @@ func (pq *PriorityQueue[T, V]) Pop() any {
 func (pq *PriorityQueue[T, V]) Put(value T, priority V) {
 	if _, exists := pq.idxMap[value]; exists {
 		pq.Set(value, priority)
+
 		return
 	}
+
 	item := &Item[T, V]{
 		Value:    value,
 		Priority: priority,
@@ -194,8 +202,10 @@ func (pq *PriorityQueue[T, V]) Set(value T, priority V) bool {
 	if !exists {
 		return false
 	}
+
 	item.Priority = priority
 	heap.Fix(pq, item.index)
+
 	return true
 }
 
@@ -206,10 +216,12 @@ func (pq *PriorityQueue[T, V]) Get() (*Item[T, V], bool) {
 	if pq.Empty() {
 		return nil, false
 	}
+
 	item := heap.Pop(pq)
 	if item == nil {
 		return nil, false
 	}
+
 	return item.(*Item[T, V]), true
 }
 
@@ -220,6 +232,7 @@ func (pq *PriorityQueue[T, V]) Peek() (*Item[T, V], bool) {
 	if pq.Empty() {
 		return nil, false
 	}
+
 	return pq.heap[0], true
 }
 
@@ -231,7 +244,9 @@ func (pq *PriorityQueue[T, V]) Remove(value T) bool {
 	if !exists {
 		return false
 	}
+
 	heap.Remove(pq, item.index)
+
 	return true
 }
 
@@ -255,6 +270,7 @@ func (pq *PriorityQueue[T, V]) Empty() bool {
 func (pq *PriorityQueue[T, V]) Items() []*Item[T, V] {
 	result := make([]*Item[T, V], len(pq.heap))
 	copy(result, pq.heap)
+
 	return result
 }
 

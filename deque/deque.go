@@ -111,6 +111,7 @@ func (d *Deque[T]) PushFront(val T) {
 
 	d.start = d.prev(d.start)
 	d.buf[d.start] = val
+
 	if !d.Full() || d.growable {
 		d.len++
 	}
@@ -133,6 +134,7 @@ func (d *Deque[T]) PushBack(val T) {
 
 	d.buf[d.end] = val
 	d.end = d.next(d.end)
+
 	if !d.Full() || d.growable {
 		d.len++
 	}
@@ -184,10 +186,13 @@ func (d *Deque[T]) Insert(idx int, val T) {
 
 	if idx == 0 {
 		d.PushFront(val)
+
 		return
 	}
+
 	if idx == d.len {
 		d.PushBack(val)
+
 		return
 	}
 
@@ -203,22 +208,27 @@ func (d *Deque[T]) Insert(idx int, val T) {
 	if idx <= d.len/2 {
 		// Shift [0..idx-1] left
 		newStart := d.prev(d.start)
+
 		d.buf[newStart] = d.buf[d.start]
 		for i := range idx - 1 {
 			d.buf[d.wrap(d.start+i)] = d.buf[d.wrap(d.start+i+1)]
 		}
+
 		d.buf[d.wrap(d.start+idx-1)] = val
 		d.start = newStart
 	} else {
 		// Shift [idx..len-1] right
 		newEnd := d.next(d.end)
+
 		d.buf[d.end] = d.buf[d.prev(d.end)]
 		for i := d.len - 1; i > idx; i-- {
 			d.buf[d.wrap(d.start+i)] = d.buf[d.wrap(d.start+i-1)]
 		}
+
 		d.buf[d.wrap(d.start+idx)] = val
 		d.end = newEnd
 	}
+
 	d.len++
 }
 
@@ -247,14 +257,17 @@ func (d *Deque[T]) Remove(idx int) (val T, ok bool) {
 		for i := idx; i < d.len-1; i++ {
 			d.buf[d.wrap(d.start+i)] = d.buf[d.wrap(d.start+i+1)]
 		}
+
 		d.end = d.prev(d.end)
 	} else {
 		// Shift [0..idx-1] right
 		for i := idx; i > 0; i-- {
 			d.buf[d.wrap(d.start+i)] = d.buf[d.wrap(d.start+i-1)]
 		}
+
 		d.start = d.next(d.start)
 	}
+
 	d.len--
 
 	return val, true
@@ -268,6 +281,7 @@ func (d *Deque[T]) Swap(i, j int) {
 	if i < 0 || i >= d.len {
 		panic(fmt.Errorf("%w: i [0,%d): %d", ErrIndexOutOfRange, d.len, i))
 	}
+
 	if j < 0 || j >= d.len {
 		panic(fmt.Errorf("%w: j [0,%d): %d", ErrIndexOutOfRange, d.len, j))
 	}
@@ -275,6 +289,7 @@ func (d *Deque[T]) Swap(i, j int) {
 	if i == j {
 		return
 	}
+
 	iPos := d.wrap(d.start + i)
 	jPos := d.wrap(d.start + j)
 

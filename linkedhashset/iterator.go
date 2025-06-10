@@ -6,10 +6,10 @@ import (
 	"github.com/qntx/gods/container"
 )
 
-// Assert Iterator implementation
+// Assert Iterator implementation.
 var _ container.ReverseIteratorWithIndex[int] = (*Iterator[int])(nil)
 
-// Iterator holds the iterator's state
+// Iterator holds the iterator's state.
 type Iterator[T comparable] struct {
 	set     *Set[T]
 	element *list.Element // current element
@@ -29,6 +29,7 @@ func (iterator *Iterator[T]) Next() bool {
 	if iterator.index >= iterator.set.Size()-1 { // Already at or past the last element
 		iterator.element = nil
 		iterator.index = iterator.set.Size() // Ensure index is set.Size() if past the end
+
 		return false
 	}
 
@@ -40,12 +41,14 @@ func (iterator *Iterator[T]) Next() bool {
 
 	if iterator.element != nil {
 		iterator.index++
+
 		return true
 	}
 
 	// Should not happen if logic above is correct and index < set.Size()-1
 	// but as a safeguard, if element becomes nil unexpectedly:
 	iterator.index = iterator.set.Size()
+
 	return false
 }
 
@@ -56,6 +59,7 @@ func (iterator *Iterator[T]) Prev() bool {
 	if iterator.index <= 0 { // Already at or before the first element
 		iterator.element = nil
 		iterator.index = -1 // Ensure index is -1 if before the start
+
 		return false
 	}
 
@@ -67,12 +71,14 @@ func (iterator *Iterator[T]) Prev() bool {
 
 	if iterator.element != nil {
 		iterator.index--
+
 		return true
 	}
 
 	// Should not happen if logic above is correct and index > 0
 	// but as a safeguard, if element becomes nil unexpectedly:
 	iterator.index = -1
+
 	return false
 }
 
@@ -83,6 +89,7 @@ func (iterator *Iterator[T]) Value() T {
 	if iterator.element == nil {
 		panic("Iterator: Value() called on an invalid element")
 	}
+
 	return iterator.element.Value.(T)
 }
 
@@ -114,10 +121,13 @@ func (iterator *Iterator[T]) First() bool {
 	if first != nil {
 		iterator.element = first
 		iterator.index = 0
+
 		return true
 	}
+
 	iterator.element = nil
 	iterator.index = -1 // No first element, so index is -1 (like Begin)
+
 	return false
 }
 
@@ -129,8 +139,10 @@ func (iterator *Iterator[T]) Last() bool {
 	if last != nil {
 		iterator.element = last
 		iterator.index = iterator.set.Size() - 1
+
 		return true
 	}
+
 	iterator.element = nil
 	iterator.index = -1 // No last element, so index is -1 (like Begin, or Size if End for empty)
 	// To be consistent with First on empty, -1 is better.
@@ -150,6 +162,7 @@ func (iterator *Iterator[T]) NextTo(f func(index int, value T) bool) bool {
 			return true
 		}
 	}
+
 	return false
 }
 
@@ -164,5 +177,6 @@ func (iterator *Iterator[T]) PrevTo(f func(index int, value T) bool) bool {
 			return true
 		}
 	}
+
 	return false
 }

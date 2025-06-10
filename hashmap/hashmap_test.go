@@ -35,6 +35,7 @@ func TestMapPut(t *testing.T) {
 	if actualValue := m.Size(); actualValue != 7 {
 		t.Errorf("Got %v expected %v", actualValue, 7)
 	}
+
 	SameElements(t, m.Keys(), []int{1, 2, 3, 4, 5, 6, 7})
 	SameElements(t, m.Values(), []string{"a", "b", "c", "d", "e", "f", "g"})
 
@@ -110,9 +111,11 @@ func TestMapRemove(t *testing.T) {
 
 	SameElements(t, m.Keys(), nil)
 	SameElements(t, m.Values(), nil)
+
 	if actualValue := m.Size(); actualValue != 0 {
 		t.Errorf("Got %v expected %v", actualValue, 0)
 	}
+
 	if actualValue := m.Empty(); actualValue != true {
 		t.Errorf("Got %v expected %v", actualValue, true)
 	}
@@ -125,12 +128,15 @@ func TestMapSerialization(t *testing.T) {
 	m.Put("c", 3.0)
 
 	var err error
+
 	assert := func() {
 		SameElements(t, m.Keys(), []string{"a", "b", "c"})
 		SameElements(t, m.Values(), []float64{1.0, 2.0, 3.0})
+
 		if actualValue, expectedValue := m.Size(), 3; actualValue != expectedValue {
 			t.Errorf("Got %v expected %v", actualValue, expectedValue)
 		}
+
 		if err != nil {
 			t.Errorf("Got error %v", err)
 		}
@@ -139,9 +145,11 @@ func TestMapSerialization(t *testing.T) {
 	assert()
 
 	bytes, err := m.MarshalJSON()
+
 	assert()
 
 	err = m.UnmarshalJSON(bytes)
+
 	assert()
 
 	_, err = json.Marshal([]any{"a", "b", "c", m})
@@ -158,30 +166,31 @@ func TestMapSerialization(t *testing.T) {
 func TestMapString(t *testing.T) {
 	c := New[string, int]()
 	c.Put("a", 1)
+
 	if !strings.HasPrefix(c.String(), "HashMap") {
 		t.Errorf("String should start with container name")
 	}
 }
 
 func benchmarkGet(b *testing.B, m *Map[int, int], size int) {
-	for i := 0; i < b.N; i++ {
-		for n := 0; n < size; n++ {
+	for range b.N {
+		for n := range size {
 			m.Get(n)
 		}
 	}
 }
 
 func benchmarkPut(b *testing.B, m *Map[int, int], size int) {
-	for i := 0; i < b.N; i++ {
-		for n := 0; n < size; n++ {
+	for range b.N {
+		for n := range size {
 			m.Put(n, n)
 		}
 	}
 }
 
 func benchmarkRemove(b *testing.B, m *Map[int, int], size int) {
-	for i := 0; i < b.N; i++ {
-		for n := 0; n < size; n++ {
+	for range b.N {
+		for n := range size {
 			m.Remove(n)
 		}
 	}
@@ -189,129 +198,164 @@ func benchmarkRemove(b *testing.B, m *Map[int, int], size int) {
 
 func BenchmarkHashMapGet100(b *testing.B) {
 	b.StopTimer()
+
 	size := 100
 	m := New[int, int]()
-	for n := 0; n < size; n++ {
+
+	for n := range size {
 		m.Put(n, n)
 	}
+
 	b.StartTimer()
 	benchmarkGet(b, m, size)
 }
 
 func BenchmarkHashMapGet1000(b *testing.B) {
 	b.StopTimer()
+
 	size := 1000
 	m := New[int, int]()
-	for n := 0; n < size; n++ {
+
+	for n := range size {
 		m.Put(n, n)
 	}
+
 	b.StartTimer()
 	benchmarkGet(b, m, size)
 }
 
 func BenchmarkHashMapGet10000(b *testing.B) {
 	b.StopTimer()
+
 	size := 10000
 	m := New[int, int]()
-	for n := 0; n < size; n++ {
+
+	for n := range size {
 		m.Put(n, n)
 	}
+
 	b.StartTimer()
 	benchmarkGet(b, m, size)
 }
 
 func BenchmarkHashMapGet100000(b *testing.B) {
 	b.StopTimer()
+
 	size := 100000
 	m := New[int, int]()
-	for n := 0; n < size; n++ {
+
+	for n := range size {
 		m.Put(n, n)
 	}
+
 	b.StartTimer()
 	benchmarkGet(b, m, size)
 }
 
 func BenchmarkHashMapPut100(b *testing.B) {
 	b.StopTimer()
+
 	size := 100
 	m := New[int, int]()
+
 	b.StartTimer()
 	benchmarkPut(b, m, size)
 }
 
 func BenchmarkHashMapPut1000(b *testing.B) {
 	b.StopTimer()
+
 	size := 1000
 	m := New[int, int]()
-	for n := 0; n < size; n++ {
+
+	for n := range size {
 		m.Put(n, n)
 	}
+
 	b.StartTimer()
 	benchmarkPut(b, m, size)
 }
 
 func BenchmarkHashMapPut10000(b *testing.B) {
 	b.StopTimer()
+
 	size := 10000
 	m := New[int, int]()
-	for n := 0; n < size; n++ {
+
+	for n := range size {
 		m.Put(n, n)
 	}
+
 	b.StartTimer()
 	benchmarkPut(b, m, size)
 }
 
 func BenchmarkHashMapPut100000(b *testing.B) {
 	b.StopTimer()
+
 	size := 100000
 	m := New[int, int]()
-	for n := 0; n < size; n++ {
+
+	for n := range size {
 		m.Put(n, n)
 	}
+
 	b.StartTimer()
 	benchmarkPut(b, m, size)
 }
 
 func BenchmarkHashMapRemove100(b *testing.B) {
 	b.StopTimer()
+
 	size := 100
 	m := New[int, int]()
-	for n := 0; n < size; n++ {
+
+	for n := range size {
 		m.Put(n, n)
 	}
+
 	b.StartTimer()
 	benchmarkRemove(b, m, size)
 }
 
 func BenchmarkHashMapRemove1000(b *testing.B) {
 	b.StopTimer()
+
 	size := 1000
 	m := New[int, int]()
-	for n := 0; n < size; n++ {
+
+	for n := range size {
 		m.Put(n, n)
 	}
+
 	b.StartTimer()
 	benchmarkRemove(b, m, size)
 }
 
 func BenchmarkHashMapRemove10000(b *testing.B) {
 	b.StopTimer()
+
 	size := 10000
 	m := New[int, int]()
-	for n := 0; n < size; n++ {
+
+	for n := range size {
 		m.Put(n, n)
 	}
+
 	b.StartTimer()
 	benchmarkRemove(b, m, size)
 }
 
 func BenchmarkHashMapRemove100000(b *testing.B) {
 	b.StopTimer()
+
 	size := 100000
 	m := New[int, int]()
-	for n := 0; n < size; n++ {
+
+	for n := range size {
 		m.Put(n, n)
 	}
+
 	b.StartTimer()
 	benchmarkRemove(b, m, size)
 }

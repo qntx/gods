@@ -10,7 +10,7 @@ import (
 
 var _ container.JSONCodec = (*Set[int])(nil)
 
-// MarshalJSON creates a JSON array from the set, it marshals all elements
+// MarshalJSON creates a JSON array from the set, it marshals all elements.
 func (s Set[T]) MarshalJSON() ([]byte, error) {
 	items := make([]string, 0, s.Len())
 
@@ -30,10 +30,12 @@ func (s Set[T]) MarshalJSON() ([]byte, error) {
 // primitive types. Numbers are decoded as json.Number.
 func (s *Set[T]) UnmarshalJSON(b []byte) error {
 	var i []T
+
 	err := json.Unmarshal(b, &i)
 	if err != nil {
 		return err
 	}
+
 	s.Append(i...)
 
 	return nil

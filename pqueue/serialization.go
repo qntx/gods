@@ -90,5 +90,6 @@ func (pq *PriorityQueue[T, V]) UnmarshalJSON(data []byte) error {
 	for _, item := range jsonQueue.Items {
 		pq.Put(item.Value, item.Priority)
 	}
+
 	return nil
 }

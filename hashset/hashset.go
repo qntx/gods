@@ -17,6 +17,7 @@ func New[T comparable](vals ...T) *Set[T] {
 	for _, v := range vals {
 		t.Add(v)
 	}
+
 	return &t
 }
 
@@ -25,24 +26,28 @@ func NewWith[T comparable](cardinality int, vals ...T) *Set[T] {
 	for _, v := range vals {
 		t.Add(v)
 	}
+
 	return &t
 }
 
 func (s Set[T]) Add(v T) bool {
 	prevLen := len(s)
 	s[v] = struct{}{}
+
 	return prevLen != len(s)
 }
 
 func (s *Set[T]) Append(v ...T) int {
 	prevLen := len(*s)
+
 	for _, val := range v {
 		(*s)[val] = struct{}{}
 	}
+
 	return len(*s) - prevLen
 }
 
-// private version of Add which doesn't return a value
+// private version of Add which doesn't return a value.
 func (s *Set[T]) add(v T) {
 	(*s)[v] = struct{}{}
 }
@@ -65,6 +70,7 @@ func (s *Set[T]) Clone() container.Set[T] {
 	for elem := range *s {
 		clonedSet.add(elem)
 	}
+
 	return clonedSet
 }
 
@@ -74,11 +80,13 @@ func (s *Set[T]) Contains(v ...T) bool {
 			return false
 		}
 	}
+
 	return true
 }
 
 func (s *Set[T]) ContainsOne(v T) bool {
 	_, ok := (*s)[v]
+
 	return ok
 }
 
@@ -88,6 +96,7 @@ func (s *Set[T]) ContainsAny(v ...T) bool {
 			return true
 		}
 	}
+
 	return false
 }
 
@@ -108,12 +117,14 @@ func (s *Set[T]) ContainsAnyElement(other container.Set[T]) bool {
 			}
 		}
 	}
+
 	return false
 }
 
-// private version of Contains for a single element v
+// private version of Contains for a single element v.
 func (s *Set[T]) contains(v T) (ok bool) {
 	_, ok = (*s)[v]
+
 	return ok
 }
 
@@ -121,11 +132,13 @@ func (s *Set[T]) Difference(other container.Set[T]) container.Set[T] {
 	o := other.(*Set[T])
 
 	diff := New[T]()
+
 	for elem := range *s {
 		if !o.contains(elem) {
 			diff.add(elem)
 		}
 	}
+
 	return diff
 }
 
@@ -143,11 +156,13 @@ func (s *Set[T]) Equal(other container.Set[T]) bool {
 	if s.Len() != other.Len() {
 		return false
 	}
+
 	for elem := range *s {
 		if !o.contains(elem) {
 			return false
 		}
 	}
+
 	return true
 }
 
@@ -169,6 +184,7 @@ func (s *Set[T]) Intersect(other container.Set[T]) container.Set[T] {
 			}
 		}
 	}
+
 	return intersection
 }
 
@@ -186,14 +202,17 @@ func (s *Set[T]) IsProperSuperset(other container.Set[T]) bool {
 
 func (s *Set[T]) IsSubset(other container.Set[T]) bool {
 	o := other.(*Set[T])
+
 	if s.Len() > other.Len() {
 		return false
 	}
+
 	for elem := range *s {
 		if !o.contains(elem) {
 			return false
 		}
 	}
+
 	return true
 }
 
@@ -210,13 +229,14 @@ func (s *Set[T]) Iter() iter.Seq[T] {
 	}
 }
 
-// Pop returns a popped item in case set is not empty, or nil-value of T
-// if set is already empty
+// if set is already empty.
 func (s *Set[T]) Pop() (v T, ok bool) {
 	for item := range *s {
 		delete(*s, item)
+
 		return item, true
 	}
+
 	return v, false
 }
 
@@ -236,6 +256,7 @@ func (s Set[T]) String() string {
 	for elem := range s {
 		items = append(items, fmt.Sprintf("%v", elem))
 	}
+
 	return fmt.Sprintf("Set{%s}", strings.Join(items, ", "))
 }
 
@@ -243,16 +264,19 @@ func (s *Set[T]) SymmetricDifference(other container.Set[T]) container.Set[T] {
 	o := other.(*Set[T])
 
 	sd := New[T]()
+
 	for elem := range *s {
 		if !o.contains(elem) {
 			sd.add(elem)
 		}
 	}
+
 	for elem := range *o {
 		if !s.contains(elem) {
 			sd.add(elem)
 		}
 	}
+
 	return sd
 }
 
@@ -272,13 +296,16 @@ func (s Set[T]) Union(other container.Set[T]) container.Set[T] {
 	if o.Len() > n {
 		n = o.Len()
 	}
+
 	unionedSet := make(Set[T], n)
 
 	for elem := range s {
 		unionedSet.add(elem)
 	}
+
 	for elem := range *o {
 		unionedSet.add(elem)
 	}
+
 	return &unionedSet
 }

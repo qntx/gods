@@ -11,7 +11,7 @@ import (
 	"fmt"
 )
 
-// Map holds the elements in go's native map
+// Map holds the elements in go's native map.
 type Map[K comparable, V any] struct {
 	m map[K]V
 }
@@ -30,6 +30,7 @@ func (m *Map[K, V]) Put(key K, value V) {
 // Second return parameter is true if key was found, otherwise false.
 func (m *Map[K, V]) Get(key K) (value V, found bool) {
 	value, found = m.m[key]
+
 	return
 }
 
@@ -38,7 +39,7 @@ func (m *Map[K, V]) Remove(key K) {
 	delete(m.m, key)
 }
 
-// Empty returns true if map does not contain any elements
+// Empty returns true if map does not contain any elements.
 func (m *Map[K, V]) Empty() bool {
 	return m.Size() == 0
 }
@@ -52,10 +53,12 @@ func (m *Map[K, V]) Size() int {
 func (m *Map[K, V]) Keys() []K {
 	keys := make([]K, m.Size())
 	count := 0
+
 	for key := range m.m {
 		keys[count] = key
 		count++
 	}
+
 	return keys
 }
 
@@ -63,10 +66,12 @@ func (m *Map[K, V]) Keys() []K {
 func (m *Map[K, V]) Values() []V {
 	values := make([]V, m.Size())
 	count := 0
+
 	for _, value := range m.m {
 		values[count] = value
 		count++
 	}
+
 	return values
 }
 
@@ -75,9 +80,10 @@ func (m *Map[K, V]) Clear() {
 	clear(m.m)
 }
 
-// String returns a string representation of container
+// String returns a string representation of container.
 func (m *Map[K, V]) String() string {
 	str := "HashMap\n"
 	str += fmt.Sprintf("%v", m.m)
+
 	return str
 }

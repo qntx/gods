@@ -22,9 +22,11 @@ func (set *Set[T]) Each(f func(index int, value T)) {
 func (set *Set[T]) Map(f func(index int, value T) T) *Set[T] {
 	newSet := New[T]()
 	it := set.Iterator()
+
 	for it.Next() {
 		newSet.Add(f(it.Index(), it.Value()))
 	}
+
 	return newSet
 }
 
@@ -32,12 +34,14 @@ func (set *Set[T]) Map(f func(index int, value T) T) *Set[T] {
 // The new Set will preserve the original insertion order of the selected elements.
 func (set *Set[T]) Select(f func(index int, value T) bool) *Set[T] {
 	newSet := New[T]()
+
 	it := set.Iterator()
 	for it.Next() {
 		if f(it.Index(), it.Value()) {
 			newSet.Add(it.Value())
 		}
 	}
+
 	return newSet
 }
 
@@ -50,6 +54,7 @@ func (set *Set[T]) Any(f func(index int, value T) bool) bool {
 			return true
 		}
 	}
+
 	return false
 }
 
@@ -62,6 +67,7 @@ func (set *Set[T]) All(f func(index int, value T) bool) bool {
 			return false
 		}
 	}
+
 	return true
 }
 
@@ -74,6 +80,8 @@ func (set *Set[T]) Find(f func(index int, value T) bool) (int, T) {
 			return it.Index(), it.Value()
 		}
 	}
+
 	var zero T // zero value for type T
+
 	return -1, zero
 }

@@ -2,7 +2,7 @@ package linkedhashmap
 
 import "github.com/qntx/gods/container"
 
-// Assert Enumerable implementation
+// Assert Enumerable implementation.
 var _ container.EnumerableWithKey[string, int] = (*Map[string, int])(nil)
 
 // Each calls the given function once for each element, passing that element's key and value.
@@ -17,23 +17,27 @@ func (m *Map[K, V]) Each(f func(key K, value V)) {
 // containing the values returned by the given function as key/value pairs.
 func (m *Map[K, V]) Map(f func(key1 K, value1 V) (K, V)) *Map[K, V] {
 	newMap := New[K, V]()
+
 	iterator := m.Iterator()
 	for iterator.Next() {
 		key2, value2 := f(iterator.Key(), iterator.Value())
 		newMap.Put(key2, value2)
 	}
+
 	return newMap
 }
 
 // Select returns a new container containing all elements for which the given function returns a true value.
 func (m *Map[K, V]) Select(f func(key K, value V) bool) *Map[K, V] {
 	newMap := New[K, V]()
+
 	iterator := m.Iterator()
 	for iterator.Next() {
 		if f(iterator.Key(), iterator.Value()) {
 			newMap.Put(iterator.Key(), iterator.Value())
 		}
 	}
+
 	return newMap
 }
 
@@ -46,6 +50,7 @@ func (m *Map[K, V]) Any(f func(key K, value V) bool) bool {
 			return true
 		}
 	}
+
 	return false
 }
 
@@ -58,6 +63,7 @@ func (m *Map[K, V]) All(f func(key K, value V) bool) bool {
 			return false
 		}
 	}
+
 	return true
 }
 
@@ -71,5 +77,6 @@ func (m *Map[K, V]) Find(f func(key K, value V) bool) (k K, v V) {
 			return iterator.Key(), iterator.Value()
 		}
 	}
+
 	return k, v
 }

@@ -5,7 +5,7 @@ import (
 	"github.com/qntx/gods/rbtree"
 )
 
-// Iterator holding the iterator's state
+// Iterator holding the iterator's state.
 func (s *Set[T]) Iterator() Iterator[T] {
 	return Iterator[T]{index: -1, iterator: s.tree.Iterator(), tree: s.tree}
 }
@@ -27,6 +27,7 @@ func (iterator *Iterator[T]) Next() bool {
 	if iterator.index < iterator.tree.Len() {
 		iterator.index++
 	}
+
 	return iterator.iterator.Next()
 }
 
@@ -37,6 +38,7 @@ func (iterator *Iterator[T]) Prev() bool {
 	if iterator.index >= 0 {
 		iterator.index--
 	}
+
 	return iterator.iterator.Prev()
 }
 
@@ -71,6 +73,7 @@ func (iterator *Iterator[T]) End() {
 // Modifies the state of the iterator.
 func (iterator *Iterator[T]) First() bool {
 	iterator.Begin()
+
 	return iterator.Next()
 }
 
@@ -79,6 +82,7 @@ func (iterator *Iterator[T]) First() bool {
 // Modifies the state of the iterator.
 func (iterator *Iterator[T]) Last() bool {
 	iterator.End()
+
 	return iterator.Prev()
 }
 
@@ -93,6 +97,7 @@ func (iterator *Iterator[T]) NextTo(f func(index int, value T) bool) bool {
 			return true
 		}
 	}
+
 	return false
 }
 
@@ -107,5 +112,6 @@ func (iterator *Iterator[T]) PrevTo(f func(index int, value T) bool) bool {
 			return true
 		}
 	}
+
 	return false
 }

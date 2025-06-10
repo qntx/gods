@@ -11,11 +11,11 @@ package btree
 // // Type parameters:
 // //   - K: the key type, must be comparable
 // //   - V: the value type
-// type Iterator[K comparable, V any] struct {
+// Iterator[K comparable, V any] struct
 // 	tree     *Tree[K, V]
 // 	node     *Node[K, V]
 // 	entry    *Entry[K, V]
-// 	position position
+// 	position
 // }
 
 // // position defines the iterator's current state.

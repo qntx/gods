@@ -7,21 +7,27 @@ import (
 
 func BenchmarkDeleteAndRestoreG(b *testing.B) {
 	items := rand.Perm(16392)
+
 	b.ResetTimer()
 	b.Run(`CopyBigFreeList`, func(b *testing.B) {
 		fl := NewFreeListG[int](16392)
+
 		tr := NewWithFreeListG(*btreeDegree, Less[int](), fl)
 		for _, v := range items {
 			tr.ReplaceOrInsert(v)
 		}
+
 		b.ReportAllocs()
 		b.ResetTimer()
-		for i := 0; i < b.N; i++ {
+
+		for range b.N {
 			dels := make([]int, 0, tr.Len())
 			tr.Ascend(func(b int) bool {
 				dels = append(dels, b)
+
 				return true
 			})
+
 			for _, del := range dels {
 				tr.Delete(del)
 			}
@@ -37,14 +43,18 @@ func BenchmarkDeleteAndRestoreG(b *testing.B) {
 		for _, v := range items {
 			tr.ReplaceOrInsert(v)
 		}
+
 		b.ReportAllocs()
 		b.ResetTimer()
-		for i := 0; i < b.N; i++ {
+
+		for range b.N {
 			dels := make([]int, 0, tr.Len())
 			tr.Ascend(func(b int) bool {
 				dels = append(dels, b)
+
 				return true
 			})
+
 			for _, del := range dels {
 				tr.Delete(del)
 			}
@@ -57,14 +67,18 @@ func BenchmarkDeleteAndRestoreG(b *testing.B) {
 	})
 	b.Run(`ClearBigFreelist`, func(b *testing.B) {
 		fl := NewFreeListG[int](16392)
+
 		tr := NewWithFreeListG(*btreeDegree, Less[int](), fl)
 		for _, v := range items {
 			tr.ReplaceOrInsert(v)
 		}
+
 		b.ReportAllocs()
 		b.ResetTimer()
-		for i := 0; i < b.N; i++ {
+
+		for range b.N {
 			tr.Clear(true)
+
 			for _, v := range items {
 				tr.ReplaceOrInsert(v)
 			}
@@ -75,10 +89,13 @@ func BenchmarkDeleteAndRestoreG(b *testing.B) {
 		for _, v := range items {
 			tr.ReplaceOrInsert(v)
 		}
+
 		b.ReportAllocs()
 		b.ResetTimer()
-		for i := 0; i < b.N; i++ {
+
+		for range b.N {
 			tr.Clear(true)
+
 			for _, v := range items {
 				tr.ReplaceOrInsert(v)
 			}

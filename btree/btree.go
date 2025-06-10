@@ -36,15 +36,19 @@ func NewFreeListG[T any](size int) *FreeListG[T] {
 
 func (f *FreeListG[T]) newNode() (n *node[T]) {
 	f.mu.Lock()
+
 	index := len(f.freelist) - 1
 	if index < 0 {
 		f.mu.Unlock()
+
 		return new(node[T])
 	}
+
 	n = f.freelist[index]
 	f.freelist[index] = nil
 	f.freelist = f.freelist[:index]
 	f.mu.Unlock()
+
 	return
 }
 
@@ -55,6 +59,7 @@ func (f *FreeListG[T]) freeNode(n *node[T]) (out bool) {
 		out = true
 	}
 	f.mu.Unlock()
+
 	return
 }
 
@@ -93,6 +98,7 @@ func NewWithFreeListG[T any](degree int, less LessFunc[T], f *FreeListG[T]) *BTr
 	if degree <= 1 {
 		panic("bad degree")
 	}
+
 	return &BTreeG[T]{
 		degree: degree,
 		cow:    &copyOnWriteContext[T]{freelist: f, less: less},
@@ -106,10 +112,12 @@ type items[T any] []T
 // forward.
 func (s *items[T]) insertAt(index int, item T) {
 	var zero T
+
 	*s = append(*s, zero)
 	if index < len(*s) {
 		copy((*s)[index+1:], (*s)[index:])
 	}
+
 	(*s)[index] = item
 }
 
@@ -118,9 +126,11 @@ func (s *items[T]) insertAt(index int, item T) {
 func (s *items[T]) removeAt(index int) T {
 	item := (*s)[index]
 	copy((*s)[index:], (*s)[index+1:])
+
 	var zero T
 	(*s)[len(*s)-1] = zero
 	*s = (*s)[:len(*s)-1]
+
 	return item
 }
 
@@ -128,9 +138,11 @@ func (s *items[T]) removeAt(index int) T {
 func (s *items[T]) pop() (out T) {
 	index := len(*s) - 1
 	out = (*s)[index]
+
 	var zero T
 	(*s)[index] = zero
 	*s = (*s)[:index]
+
 	return
 }
 
@@ -139,7 +151,9 @@ func (s *items[T]) pop() (out T) {
 func (s *items[T]) truncate(index int) {
 	var toClear items[T]
 	*s, toClear = (*s)[:index], (*s)[index:]
+
 	var zero T
+
 	for i := 0; i < len(toClear); i++ {
 		toClear[i] = zero
 	}
@@ -155,6 +169,7 @@ func (s items[T]) find(item T, less func(T, T) bool) (index int, found bool) {
 	if i > 0 && !less(s[i-1], item) {
 		return i - 1, true
 	}
+
 	return i, false
 }
 
@@ -173,12 +188,14 @@ func (n *node[T]) mutableFor(cow *copyOnWriteContext[T]) *node[T] {
 	if n.cow == cow {
 		return n
 	}
+
 	out := cow.newNode()
 	if cap(out.items) >= len(n.items) {
 		out.items = out.items[:len(n.items)]
 	} else {
 		out.items = make(items[T], len(n.items), cap(n.items))
 	}
+
 	copy(out.items, n.items)
 	// Copy children
 	if cap(out.children) >= len(n.children) {
@@ -186,13 +203,16 @@ func (n *node[T]) mutableFor(cow *copyOnWriteContext[T]) *node[T] {
 	} else {
 		out.children = make(items[*node[T]], len(n.children), cap(n.children))
 	}
+
 	copy(out.children, n.children)
+
 	return out
 }
 
 func (n *node[T]) mutableChild(i int) *node[T] {
 	c := n.children[i].mutableFor(n.cow)
 	n.children[i] = c
+
 	return c
 }
 
@@ -204,10 +224,12 @@ func (n *node[T]) split(i int) (T, *node[T]) {
 	next := n.cow.newNode()
 	next.items = append(next.items, n.items[i+1:]...)
 	n.items.truncate(i)
+
 	if len(n.children) > 0 {
 		next.children = append(next.children, n.children[i+1:]...)
 		n.children.truncate(i + 1)
 	}
+
 	return item, next
 }
 
@@ -217,29 +239,36 @@ func (n *node[T]) maybeSplitChild(i, maxItems int) bool {
 	if len(n.children[i].items) < maxItems {
 		return false
 	}
+
 	first := n.mutableChild(i)
 	item, second := first.split(maxItems / 2)
 	n.items.insertAt(i, item)
 	n.children.insertAt(i+1, second)
+
 	return true
 }
 
 // insert inserts an item into the subtree rooted at this node, making sure
 // no nodes in the subtree exceed maxItems items.  Should an equivalent item be
-// be found/replaced by insert, it will be returned.
+// found/replaced by insert, it will be returned.
 func (n *node[T]) insert(item T, maxItems int) (_ T, _ bool) {
 	i, found := n.items.find(item, n.cow.less)
 	if found {
 		out := n.items[i]
 		n.items[i] = item
+
 		return out, true
 	}
+
 	if len(n.children) == 0 {
 		n.items.insertAt(i, item)
+
 		return
 	}
+
 	if n.maybeSplitChild(i, maxItems) {
 		inTree := n.items[i]
+
 		switch {
 		case n.cow.less(item, inTree):
 			// no change, we want first split node
@@ -248,9 +277,11 @@ func (n *node[T]) insert(item T, maxItems int) (_ T, _ bool) {
 		default:
 			out := n.items[i]
 			n.items[i] = item
+
 			return out, true
 		}
 	}
+
 	return n.mutableChild(i).insert(item, maxItems)
 }
 
@@ -262,6 +293,7 @@ func (n *node[T]) get(key T) (_ T, _ bool) {
 	} else if len(n.children) > 0 {
 		return n.children[i].get(key)
 	}
+
 	return
 }
 
@@ -270,12 +302,15 @@ func min[T any](n *node[T]) (_ T, found bool) {
 	if n == nil {
 		return
 	}
+
 	for len(n.children) > 0 {
 		n = n.children[0]
 	}
+
 	if len(n.items) == 0 {
 		return
 	}
+
 	return n.items[0], true
 }
 
@@ -284,12 +319,15 @@ func max[T any](n *node[T]) (_ T, found bool) {
 	if n == nil {
 		return
 	}
+
 	for len(n.children) > 0 {
 		n = n.children[len(n.children)-1]
 	}
+
 	if len(n.items) == 0 {
 		return
 	}
+
 	return n.items[len(n.items)-1], true
 }
 
@@ -305,17 +343,21 @@ const (
 // remove removes an item from the subtree rooted at this node.
 func (n *node[T]) remove(item T, minItems int, typ toRemove) (_ T, _ bool) {
 	var i int
+
 	var found bool
+
 	switch typ {
 	case removeMax:
 		if len(n.children) == 0 {
 			return n.items.pop(), true
 		}
+
 		i = len(n.items)
 	case removeMin:
 		if len(n.children) == 0 {
 			return n.items.removeAt(0), true
 		}
+
 		i = 0
 	case removeItem:
 		i, found = n.items.find(item, n.cow.less)
@@ -323,6 +365,7 @@ func (n *node[T]) remove(item T, minItems int, typ toRemove) (_ T, _ bool) {
 			if found {
 				return n.items.removeAt(i), true
 			}
+
 			return
 		}
 	default:
@@ -332,6 +375,7 @@ func (n *node[T]) remove(item T, minItems int, typ toRemove) (_ T, _ bool) {
 	if len(n.children[i].items) <= minItems {
 		return n.growChildAndRemove(i, item, minItems, typ)
 	}
+
 	child := n.mutableChild(i)
 	// Either we had enough items to begin with, or we've done some
 	// merging/stealing, because we've got enough now and we're ready to return
@@ -345,6 +389,7 @@ func (n *node[T]) remove(item T, minItems int, typ toRemove) (_ T, _ bool) {
 		// and set it into where we pulled the item from.
 		var zero T
 		n.items[i], _ = child.remove(zero, minItems, removeMax)
+
 		return out, true
 	}
 	// Final recursive call.  Once we're here, we know that the item isn't in this
@@ -384,6 +429,7 @@ func (n *node[T]) growChildAndRemove(i int, item T, minItems int, typ toRemove) 
 		stolenItem := stealFrom.items.pop()
 		child.items.insertAt(0, n.items[i-1])
 		n.items[i-1] = stolenItem
+
 		if len(stealFrom.children) > 0 {
 			child.children.insertAt(0, stealFrom.children.pop())
 		}
@@ -394,6 +440,7 @@ func (n *node[T]) growChildAndRemove(i int, item T, minItems int, typ toRemove) 
 		stolenItem := stealFrom.items.removeAt(0)
 		child.items = append(child.items, n.items[i])
 		n.items[i] = stolenItem
+
 		if len(stealFrom.children) > 0 {
 			child.children = append(child.children, stealFrom.children.removeAt(0))
 		}
@@ -401,15 +448,18 @@ func (n *node[T]) growChildAndRemove(i int, item T, minItems int, typ toRemove) 
 		if i >= len(n.items) {
 			i--
 		}
+
 		child := n.mutableChild(i)
 		// merge with right child
 		mergeItem := n.items.removeAt(i)
 		mergeChild := n.children.removeAt(i + 1)
+
 		child.items = append(child.items, mergeItem)
 		child.items = append(child.items, mergeChild.items...)
 		child.children = append(child.children, mergeChild.children...)
 		n.cow.freeNode(mergeChild)
 	}
+
 	return n.remove(item, minItems, typ)
 }
 
@@ -441,30 +491,38 @@ func empty[T any]() optionalItem[T] {
 // "greaterThan" or "lessThan" queries.
 func (n *node[T]) iterate(dir direction, start, stop optionalItem[T], includeStart bool, hit bool, iter ItemIteratorG[T]) (bool, bool) {
 	var ok, found bool
+
 	var index int
+
 	switch dir {
 	case ascend:
 		if start.valid {
 			index, _ = n.items.find(start.item, n.cow.less)
 		}
+
 		for i := index; i < len(n.items); i++ {
 			if len(n.children) > 0 {
 				if hit, ok = n.children[i].iterate(dir, start, stop, includeStart, hit, iter); !ok {
 					return hit, false
 				}
 			}
+
 			if !includeStart && !hit && start.valid && !n.cow.less(start.item, n.items[i]) {
 				hit = true
+
 				continue
 			}
+
 			hit = true
 			if stop.valid && !n.cow.less(n.items[i], stop.item) {
 				return hit, false
 			}
+
 			if !iter(n.items[i]) {
 				return hit, false
 			}
 		}
+
 		if len(n.children) > 0 {
 			if hit, ok = n.children[len(n.children)-1].iterate(dir, start, stop, includeStart, hit, iter); !ok {
 				return hit, false
@@ -479,31 +537,37 @@ func (n *node[T]) iterate(dir direction, start, stop optionalItem[T], includeSta
 		} else {
 			index = len(n.items) - 1
 		}
+
 		for i := index; i >= 0; i-- {
 			if start.valid && !n.cow.less(n.items[i], start.item) {
 				if !includeStart || hit || n.cow.less(start.item, n.items[i]) {
 					continue
 				}
 			}
+
 			if len(n.children) > 0 {
 				if hit, ok = n.children[i+1].iterate(dir, start, stop, includeStart, hit, iter); !ok {
 					return hit, false
 				}
 			}
+
 			if stop.valid && !n.cow.less(stop.item, n.items[i]) {
 				return hit, false //	continue
 			}
+
 			hit = true
 			if !iter(n.items[i]) {
 				return hit, false
 			}
 		}
+
 		if len(n.children) > 0 {
 			if hit, ok = n.children[0].iterate(dir, start, stop, includeStart, hit, iter); !ok {
 				return hit, false
 			}
 		}
 	}
+
 	return hit, true
 }
 
@@ -565,6 +629,7 @@ func (t *BTreeG[T]) Clone() (t2 *BTreeG[T]) {
 	out := *t
 	t.cow = &cow1
 	out.cow = &cow2
+
 	return &out
 }
 
@@ -582,6 +647,7 @@ func (t *BTreeG[T]) minItems() int {
 func (c *copyOnWriteContext[T]) newNode() (n *node[T]) {
 	n = c.freelist.newNode()
 	n.cow = c
+
 	return
 }
 
@@ -601,6 +667,7 @@ func (c *copyOnWriteContext[T]) freeNode(n *node[T]) freeType {
 		// clear to allow GC
 		n.items.truncate(0)
 		n.children.truncate(0)
+
 		n.cow = nil
 		if c.freelist.freeNode(n) {
 			return ftStored
@@ -622,6 +689,7 @@ func (t *BTreeG[T]) ReplaceOrInsert(item T) (_ T, _ bool) {
 		t.root = t.cow.newNode()
 		t.root.items = append(t.root.items, item)
 		t.length++
+
 		return
 	} else {
 		t.root = t.root.mutableFor(t.cow)
@@ -633,10 +701,12 @@ func (t *BTreeG[T]) ReplaceOrInsert(item T) (_ T, _ bool) {
 			t.root.children = append(t.root.children, oldroot, second)
 		}
 	}
+
 	out, outb := t.root.insert(item, t.maxItems())
 	if !outb {
 		t.length++
 	}
+
 	return out, outb
 }
 
@@ -650,6 +720,7 @@ func (t *BTreeG[T]) Delete(item T) (T, bool) {
 // If no such item exists, returns (zeroValue, false).
 func (t *BTreeG[T]) DeleteMin() (T, bool) {
 	var zero T
+
 	return t.deleteItem(zero, removeMin)
 }
 
@@ -657,6 +728,7 @@ func (t *BTreeG[T]) DeleteMin() (T, bool) {
 // If no such item exists, returns (zeroValue, false).
 func (t *BTreeG[T]) DeleteMax() (T, bool) {
 	var zero T
+
 	return t.deleteItem(zero, removeMax)
 }
 
@@ -664,16 +736,20 @@ func (t *BTreeG[T]) deleteItem(item T, typ toRemove) (_ T, _ bool) {
 	if t.root == nil || len(t.root.items) == 0 {
 		return
 	}
+
 	t.root = t.root.mutableFor(t.cow)
 	out, outb := t.root.remove(item, t.minItems(), typ)
+
 	if len(t.root.items) == 0 && len(t.root.children) > 0 {
 		oldroot := t.root
 		t.root = t.root.children[0]
 		t.cow.freeNode(oldroot)
 	}
+
 	if outb {
 		t.length--
 	}
+
 	return out, outb
 }
 
@@ -683,6 +759,7 @@ func (t *BTreeG[T]) AscendRange(greaterOrEqual, lessThan T, iterator ItemIterato
 	if t.root == nil {
 		return
 	}
+
 	t.root.iterate(ascend, optional(greaterOrEqual), optional(lessThan), true, false, iterator)
 }
 
@@ -692,6 +769,7 @@ func (t *BTreeG[T]) AscendLessThan(pivot T, iterator ItemIteratorG[T]) {
 	if t.root == nil {
 		return
 	}
+
 	t.root.iterate(ascend, empty[T](), optional(pivot), false, false, iterator)
 }
 
@@ -701,6 +779,7 @@ func (t *BTreeG[T]) AscendGreaterOrEqual(pivot T, iterator ItemIteratorG[T]) {
 	if t.root == nil {
 		return
 	}
+
 	t.root.iterate(ascend, optional(pivot), empty[T](), true, false, iterator)
 }
 
@@ -710,6 +789,7 @@ func (t *BTreeG[T]) Ascend(iterator ItemIteratorG[T]) {
 	if t.root == nil {
 		return
 	}
+
 	t.root.iterate(ascend, empty[T](), empty[T](), false, false, iterator)
 }
 
@@ -719,6 +799,7 @@ func (t *BTreeG[T]) DescendRange(lessOrEqual, greaterThan T, iterator ItemIterat
 	if t.root == nil {
 		return
 	}
+
 	t.root.iterate(descend, optional(lessOrEqual), optional(greaterThan), true, false, iterator)
 }
 
@@ -728,6 +809,7 @@ func (t *BTreeG[T]) DescendLessOrEqual(pivot T, iterator ItemIteratorG[T]) {
 	if t.root == nil {
 		return
 	}
+
 	t.root.iterate(descend, optional(pivot), empty[T](), true, false, iterator)
 }
 
@@ -737,6 +819,7 @@ func (t *BTreeG[T]) DescendGreaterThan(pivot T, iterator ItemIteratorG[T]) {
 	if t.root == nil {
 		return
 	}
+
 	t.root.iterate(descend, empty[T](), optional(pivot), false, false, iterator)
 }
 
@@ -746,6 +829,7 @@ func (t *BTreeG[T]) Descend(iterator ItemIteratorG[T]) {
 	if t.root == nil {
 		return
 	}
+
 	t.root.iterate(descend, empty[T](), empty[T](), false, false, iterator)
 }
 
@@ -755,6 +839,7 @@ func (t *BTreeG[T]) Get(key T) (_ T, _ bool) {
 	if t.root == nil {
 		return
 	}
+
 	return t.root.get(key)
 }
 
@@ -771,6 +856,7 @@ func (t *BTreeG[T]) Max() (_ T, _ bool) {
 // Has returns true if the given key is in the tree.
 func (t *BTreeG[T]) Has(key T) bool {
 	_, ok := t.Get(key)
+
 	return ok
 }
 
@@ -804,6 +890,7 @@ func (t *BTreeG[T]) Clear(addNodesToFreelist bool) {
 	if t.root != nil && addNodesToFreelist {
 		t.root.reset(t.cow)
 	}
+
 	t.root, t.length = nil, 0
 }
 
@@ -816,6 +903,7 @@ func (n *node[T]) reset(c *copyOnWriteContext[T]) bool {
 			return false
 		}
 	}
+
 	return c.freeNode(n) != ftFreelistFull
 }
 
@@ -889,6 +977,7 @@ func (t *BTree) Clone() (t2 *BTree) {
 // it.  If no such item exists, returns nil.
 func (t *BTree) Delete(item Item) Item {
 	i, _ := (*BTreeG[Item])(t).Delete(item)
+
 	return i
 }
 
@@ -896,6 +985,7 @@ func (t *BTree) Delete(item Item) Item {
 // If no such item exists, returns nil.
 func (t *BTree) DeleteMax() Item {
 	i, _ := (*BTreeG[Item])(t).DeleteMax()
+
 	return i
 }
 
@@ -903,6 +993,7 @@ func (t *BTree) DeleteMax() Item {
 // If no such item exists, returns nil.
 func (t *BTree) DeleteMin() Item {
 	i, _ := (*BTreeG[Item])(t).DeleteMin()
+
 	return i
 }
 
@@ -910,18 +1001,21 @@ func (t *BTree) DeleteMin() Item {
 // unable to find that item.
 func (t *BTree) Get(key Item) Item {
 	i, _ := (*BTreeG[Item])(t).Get(key)
+
 	return i
 }
 
 // Max returns the largest item in the tree, or nil if the tree is empty.
 func (t *BTree) Max() Item {
 	i, _ := (*BTreeG[Item])(t).Max()
+
 	return i
 }
 
 // Min returns the smallest item in the tree, or nil if the tree is empty.
 func (t *BTree) Min() Item {
 	i, _ := (*BTreeG[Item])(t).Min()
+
 	return i
 }
 
@@ -937,6 +1031,7 @@ func (t *BTree) Has(key Item) bool {
 // nil cannot be added to the tree (will panic).
 func (t *BTree) ReplaceOrInsert(item Item) Item {
 	i, _ := (*BTreeG[Item])(t).ReplaceOrInsert(item)
+
 	return i
 }
 

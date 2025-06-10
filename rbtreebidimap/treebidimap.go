@@ -49,9 +49,11 @@ func (m *Map[K, V]) Put(key K, value V) {
 	if v, ok := m.forwardMap.Get(key); ok {
 		m.inverseMap.Delete(v)
 	}
+
 	if k, ok := m.inverseMap.Get(value); ok {
 		m.forwardMap.Delete(k)
 	}
+
 	m.forwardMap.Put(key, value)
 	m.inverseMap.Put(value, key)
 }
@@ -76,7 +78,7 @@ func (m *Map[K, V]) Remove(key K) {
 	}
 }
 
-// Empty returns true if map does not contain any elements
+// Empty returns true if map does not contain any elements.
 func (m *Map[K, V]) Empty() bool {
 	return m.Len() == 0
 }
@@ -102,12 +104,14 @@ func (m *Map[K, V]) Clear() {
 	m.inverseMap.Clear()
 }
 
-// String returns a string representation of container
+// String returns a string representation of container.
 func (m *Map[K, V]) String() string {
 	str := "TreeBidiMap\nmap["
 	it := m.forwardMap.Iterator()
+
 	for it.Next() {
 		str += fmt.Sprintf("%v:%v ", it.Key(), it.Value())
 	}
+
 	return strings.TrimRight(str, " ") + "]"
 }

@@ -9,10 +9,10 @@ import (
 	"github.com/qntx/gods/container"
 )
 
-// Assert Serialization implementation
+// Assert Serialization implementation.
 var _ container.JSONCodec = (*Map[string, int])(nil)
 
-// MarshalJSON @implements json.Marshaler
+// MarshalJSON @implements json.Marshaler.
 func (m *Map[K, V]) MarshalJSON() ([]byte, error) {
 	var b []byte
 	buf := bytes.NewBuffer(b)
@@ -28,6 +28,7 @@ func (m *Map[K, V]) MarshalJSON() ([]byte, error) {
 		if err != nil {
 			return nil, err
 		}
+
 		buf.Write(km)
 
 		buf.WriteRune(':')
@@ -36,6 +37,7 @@ func (m *Map[K, V]) MarshalJSON() ([]byte, error) {
 		if err != nil {
 			return nil, err
 		}
+
 		buf.Write(vm)
 
 		if index != lastIndex {
@@ -50,15 +52,17 @@ func (m *Map[K, V]) MarshalJSON() ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
-// UnmarshalJSON @implements json.Unmarshaler
+// UnmarshalJSON @implements json.Unmarshaler.
 func (m *Map[K, V]) UnmarshalJSON(data []byte) error {
 	elements := make(map[K]V)
+
 	err := json.Unmarshal(data, &elements)
 	if err != nil {
 		return err
 	}
 
 	index := make(map[K]int)
+
 	var keys []K
 	for key := range elements {
 		keys = append(keys, key)

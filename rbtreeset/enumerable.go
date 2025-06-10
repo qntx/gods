@@ -20,21 +20,25 @@ func (s *Set[T]) Each(f func(index int, value T)) {
 func (s *Set[T]) Map(f func(index int, value T) T) *Set[T] {
 	newSet := &Set[T]{tree: rbtree.NewWith[T, struct{}](s.tree.Comparator())}
 	iterator := s.Iterator()
+
 	for iterator.Next() {
 		newSet.Add(f(iterator.Index(), iterator.Value()))
 	}
+
 	return newSet
 }
 
 // Select returns a new container containing all elements for which the given function returns a true value.
 func (s *Set[T]) Select(f func(index int, value T) bool) *Set[T] {
 	newSet := &Set[T]{tree: rbtree.NewWith[T, struct{}](s.tree.Comparator())}
+
 	iterator := s.Iterator()
 	for iterator.Next() {
 		if f(iterator.Index(), iterator.Value()) {
 			newSet.Add(iterator.Value())
 		}
 	}
+
 	return newSet
 }
 
@@ -47,6 +51,7 @@ func (s *Set[T]) Any(f func(index int, value T) bool) bool {
 			return true
 		}
 	}
+
 	return false
 }
 
@@ -59,6 +64,7 @@ func (s *Set[T]) All(f func(index int, value T) bool) bool {
 			return false
 		}
 	}
+
 	return true
 }
 
@@ -72,6 +78,8 @@ func (s *Set[T]) Find(f func(index int, value T) bool) (int, T) {
 			return iterator.Index(), iterator.Value()
 		}
 	}
+
 	var t T
+
 	return -1, t
 }

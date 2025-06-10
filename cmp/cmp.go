@@ -51,21 +51,27 @@ func Less[T Ordered](x, y T) bool {
 func GenericComparator[T Ordered](x, y T) int {
 	xNaN := IsNaN(x)
 	yNaN := IsNaN(y)
+
 	if xNaN {
 		if yNaN {
 			return 0
 		}
+
 		return -1
 	}
+
 	if yNaN {
 		return +1
 	}
+
 	if x < y {
 		return -1
 	}
+
 	if x > y {
 		return +1
 	}
+
 	return 0
 }
 
@@ -84,6 +90,7 @@ func Or[T comparable](vals ...T) T {
 			return val
 		}
 	}
+
 	return zero
 }
 

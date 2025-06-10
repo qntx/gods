@@ -7,8 +7,10 @@
 package rbtree
 
 import (
+	"encoding/json"
 	"fmt"
 	"iter"
+	"maps"
 	"strings"
 
 	"github.com/qntx/gods/cmp"
@@ -232,6 +234,7 @@ func (t *Tree[K, V]) Delete(key K) bool {
 	// unlink: node to be unlinked.
 	// child: node that replaces unlink.
 	var child *Node[K, V]
+
 	unlink := n
 
 	// Step 2: If unlink has two children, copy predecessor's data to unlink,
@@ -321,8 +324,11 @@ func (t *Tree[K, V]) Begin() (key K, value V, found bool) {
 	if node != nil {
 		return node.key, node.value, true
 	}
+
 	var zeroKey K
+
 	var zeroValue V
+
 	return zeroKey, zeroValue, false
 }
 
@@ -334,8 +340,11 @@ func (t *Tree[K, V]) End() (key K, value V, found bool) {
 	if node != nil {
 		return node.key, node.value, true
 	}
+
 	var zeroKey K
+
 	var zeroValue V
+
 	return zeroKey, zeroValue, false
 }
 
@@ -347,10 +356,14 @@ func (t *Tree[K, V]) DeleteBegin() (key K, value V, removed bool) {
 	if node != nil {
 		k, v := node.key, node.value
 		t.Delete(k)
+
 		return k, v, true
 	}
+
 	var zeroKey K
+
 	var zeroValue V
+
 	return zeroKey, zeroValue, false
 }
 
@@ -362,10 +375,14 @@ func (t *Tree[K, V]) DeleteEnd() (key K, value V, removed bool) {
 	if node != nil {
 		k, v := node.key, node.value
 		t.Delete(k)
+
 		return k, v, true
 	}
+
 	var zeroKey K
+
 	var zeroValue V
+
 	return zeroKey, zeroValue, false
 }
 
@@ -478,6 +495,7 @@ func (t *Tree[K, V]) Clone() container.Map[K, V] {
 	}
 
 	newTree.root = cloneNode(t.root, nil)
+
 	return newTree
 }
 
@@ -501,6 +519,49 @@ func (t *Tree[K, V]) IsEmpty() bool {
 func (t *Tree[K, V]) Clear() {
 	t.root = nil
 	t.len = 0
+}
+
+var _ json.Marshaler = (*Tree[string, int])(nil)
+var _ json.Unmarshaler = (*Tree[string, int])(nil)
+
+// MarshalJSON serializes the tree into a JSON object.
+//
+// Converts the tree's key-value pairs into a JSON object where keys are the tree's
+// keys and values are their corresponding values. Returns the JSON-encoded byte
+// slice or an error if marshaling fails.
+//
+// Time complexity: O(n), where n is the number of nodes in the tree.
+func (t *Tree[K, V]) MarshalJSON() ([]byte, error) {
+	elems := maps.Collect(t.Iter())
+
+	data, err := json.Marshal(elems)
+	if err != nil {
+		return nil, err
+	}
+
+	return data, nil
+}
+
+// UnmarshalJSON populates the tree from a JSON object.
+//
+// Expects a JSON object (e.g., `{"a":1, "b":2}`). Clears the tree before loading
+// and inserts each key-value pair. Returns an error if the JSON is invalid or
+// unmarshaling fails.
+//
+// Time complexity: O(n log n), where n is the number of key-value pairs in the JSON.
+func (t *Tree[K, V]) UnmarshalJSON(data []byte) error {
+	var elems map[K]V
+	if err := json.Unmarshal(data, &elems); err != nil {
+		return err
+	}
+
+	t.Clear()
+
+	for k, v := range elems {
+		t.Put(k, v)
+	}
+
+	return nil
 }
 
 // String returns a string representation of the tree.
@@ -537,12 +598,14 @@ func (t *Tree[K, V]) Iter() iter.Seq2[K, V] {
 			if !yield(node.Key(), node.Value()) {
 				return
 			}
+
 			if node.Right() != nil {
 				node = t.getLeftNode(node.Right())
 			} else {
 				for node.Parent() != nil && node == node.Parent().Right() {
 					node = node.Parent()
 				}
+
 				node = node.Parent()
 			}
 		}
@@ -658,7 +721,7 @@ func (t *Tree[K, V]) rotateLeft(n *Node[K, V]) {
 //	   / \           / \
 //	  l   R   ==>   LL  n      (n becomes the right child of l)
 //	 / \               / \
-//	LL  LR            LR  R      (l's original right child (LR) becomes n's new left child)
+//	LL  LR            R      (l's original right child (LR) becomes n's new left child)
 //
 // - n: The node to rotate around. n.left (l) must not be nil.
 // - l: The left child of n, which will become the new root of this subtree.
@@ -721,7 +784,7 @@ func (t *Tree[K, V]) insertFixup(n *Node[K, V]) {
 	//      /    \             /    \
 	//   P(red)  U(red) ==> P(black) U(black)
 	//   /                  /
-	// N(red)             N(red) (N is the new node for next iteration)
+	// N(red)             (N is the new node for next iteration)
 	//
 	// Recolor P and U to black, G to red.
 	// Then, recursively fixup G as it might now violate properties (e.g., G is root or G's parent is red).
@@ -744,7 +807,7 @@ func (t *Tree[K, V]) insertFixup(n *Node[K, V]) {
 		// Case 3a: N is P's right child (forms a "triangle" G-P-N: G <-- P(L) --> N(R)).
 		// This requires a left rotation on P to make it a "line".
 		//
-		//       G(B)                G(B)
+		//       G(B)
 		//      /    \              /    \
 		//   P(R)   U(B)  ==>    N(R)   U(B)  (N becomes new P for next step)
 		//     \                  /
@@ -777,7 +840,7 @@ func (t *Tree[K, V]) insertFixup(n *Node[K, V]) {
 		// Case 3c: N is P's left child (forms a "triangle" G-P-N: G --> P(R) <-- N(L)).
 		// Requires a right rotation on P.
 		//
-		//       G(B)                G(B)
+		//       G(B)
 		//      /    \              /    \
 		//   U(B)   P(R)   ==>   U(B)  N(R)  (N becomes new P)
 		//          /                        \
@@ -845,6 +908,7 @@ func (t *Tree[K, V]) deleteFixup(x *Node[K, V]) {
 				if s != nil { // s should not be nil if it's red
 					s.color = black
 				}
+
 				x.parent.color = red
 				t.rotateLeft(x.parent)
 				s = x.parent.right // Update `s` to the new sibling. Crucial after rotation.
@@ -854,7 +918,7 @@ func (t *Tree[K, V]) deleteFixup(x *Node[K, V]) {
 
 			// Case 2: `x`'s sibling `s` is black, and both of `s`'s children (SL, SR) are black.
 			//
-			//      P(c)                P(c) <-- Becomes X' if it was black
+			//      P(c)                <-- Becomes X' if it was black
 			//     /    \              /    \
 			//  X(B*)  S(B)  ----->  X(B*)  S(R) <-- s recolored red
 			//         /   \                /   \
@@ -867,15 +931,17 @@ func (t *Tree[K, V]) deleteFixup(x *Node[K, V]) {
 				if s != nil {
 					s.color = red
 				} // s could be nil if tree is malformed, but typically not.
+
 				x = x.parent // Move `x` up.
-				continue     // Restart loop with new x; its sibling will be re-evaluated.
+
+				continue // Restart loop with new x; its sibling will be re-evaluated.
 			}
 
 			// If we reach here, s is black and at least one of s's children is red.
 
 			// Case 3: `x`'s sibling `s` is black, `s.left` (SL) is red, `s.right` (SR) is black. (Triangle)
 			//
-			//      P(c)                   P(c)
+			//      P(c)
 			//     /    \                 /    \
 			//  X(B*)  S(B)  --R(S) --> X(B*)  SL(B) <-- New S for X (orig SL, recolored black)
 			//         /   \                    \
@@ -890,9 +956,11 @@ func (t *Tree[K, V]) deleteFixup(x *Node[K, V]) {
 				if s.left != nil {
 					s.left.color = black
 				}
+
 				if s != nil {
 					s.color = red
 				}
+
 				t.rotateRight(s)
 				s = x.parent.right // Update `s` to the new sibling. Crucial after rotation.
 			}
@@ -913,13 +981,15 @@ func (t *Tree[K, V]) deleteFixup(x *Node[K, V]) {
 			if s != nil {
 				s.color = color(x.parent)
 			}
+
 			x.parent.color = black
+
 			if s.right != nil {
 				s.right.color = black
 			}
+
 			t.rotateLeft(x.parent)
 			x = t.root // Terminate loop.
-
 		} else { // Symmetric cases: `x` is a right child.
 			// s := x.parent.left // Original way to get sibling
 			s := x.sibling() // `s` is `x`'s sibling.
@@ -931,7 +1001,7 @@ func (t *Tree[K, V]) deleteFixup(x *Node[K, V]) {
 			//       /    \                 /    \
 			//    S(R)    X(B*) --R(P)--> SL(B)  P(R) <-- P recolored red
 			//   /   \                           /   \
-			// SL(B) SR(B)                    SR(B)  X(B*)
+			// SL(B) SR(B)                    X(B*)
 			//                                (New S for X is original SR, which is black)
 			//
 			// Action: Recolor `s` to black, `x.parent` to red. Rotate right at `x.parent`.
@@ -941,6 +1011,7 @@ func (t *Tree[K, V]) deleteFixup(x *Node[K, V]) {
 				if s != nil { // s should not be nil if it's red
 					s.color = black
 				}
+
 				x.parent.color = red
 				t.rotateRight(x.parent)
 				s = x.parent.left // Update `s`. Crucial after rotation.
@@ -948,7 +1019,7 @@ func (t *Tree[K, V]) deleteFixup(x *Node[K, V]) {
 
 			// Case 2 (symmetric): `s` is black, and both of `s`'s children (SL, SR) are black.
 			//
-			//      P(c)                   P(c) <-- Becomes X' if it was black
+			//      P(c)                   <-- Becomes X' if it was black
 			//     /    \                 /    \
 			//  S(B)    X(B*) -------->  S(R)   X(B*) <-- s recolored red
 			//  /   \                    /   \
@@ -960,7 +1031,9 @@ func (t *Tree[K, V]) deleteFixup(x *Node[K, V]) {
 				if s != nil {
 					s.color = red
 				}
+
 				x = x.parent
+
 				continue // Restart loop with new x; its sibling will be re-evaluated.
 			}
 
@@ -968,7 +1041,7 @@ func (t *Tree[K, V]) deleteFixup(x *Node[K, V]) {
 
 			// Case 3 (symmetric): `s` is black, `s.right` (SR) is red, `s.left` (SL) is black. (Triangle)
 			//
-			//      P(c)                      P(c)
+			//      P(c)
 			//     /    \                    /    \
 			//  S(B)    X(B*)  --L(S)-->  SR(B)  X(B*) <-- New S for X (orig SR, recolored black)
 			//  /   \                    /
@@ -983,9 +1056,11 @@ func (t *Tree[K, V]) deleteFixup(x *Node[K, V]) {
 				if s.right != nil {
 					s.right.color = black
 				}
+
 				if s != nil {
 					s.color = red
 				}
+
 				t.rotateLeft(s)
 				s = x.parent.left // Update `s`. Crucial after rotation.
 			}
@@ -996,7 +1071,7 @@ func (t *Tree[K, V]) deleteFixup(x *Node[K, V]) {
 			//     /    \                    /     \
 			//   S(B)    X(B*)  --R(P)-->  SL(B)   P(B) <-- P becomes black, SL becomes black
 			//  /   \                             /   \
-			// SL(R) SR(c2)                     SR(c2) X(B*)
+			// SL(R) SR(c2)                     X(B*)
 			//
 			// Action: Recolor `s` with `x.parent`'s color. Recolor `x.parent` to black.
 			//         Recolor `s.left` to black. Rotate right at `x.parent`.
@@ -1006,10 +1081,13 @@ func (t *Tree[K, V]) deleteFixup(x *Node[K, V]) {
 			if s != nil {
 				s.color = color(x.parent)
 			}
+
 			x.parent.color = black
+
 			if s.left != nil {
 				s.left.color = black
 			}
+
 			t.rotateRight(x.parent)
 			x = t.root // Terminate loop.
 		}

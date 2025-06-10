@@ -30,6 +30,7 @@ func NewWith[T comparable](comparator cmp.Comparator[T], values ...T) *Set[T] {
 	for _, v := range values {
 		s.tree.Put(v, present)
 	}
+
 	return s
 }
 
@@ -55,6 +56,7 @@ func (s *Set[T]) Contains(values ...T) bool {
 			return false
 		}
 	}
+
 	return true
 }
 
@@ -92,10 +94,13 @@ func (s *Set[T]) Iter() iter.Seq[T] {
 // String returns a string representation of the set.
 func (s *Set[T]) String() string {
 	var b strings.Builder
+
 	b.WriteString("TreeSet\n")
+
 	for v := range s.Iter() {
 		fmt.Fprintf(&b, "%v", v)
 	}
+
 	return b.String()
 }
 
@@ -107,6 +112,7 @@ func (s *Set[T]) Intersection(other *Set[T]) *Set[T] {
 
 	sCmp := reflect.ValueOf(s.tree.Comparator())
 	oCmp := reflect.ValueOf(other.tree.Comparator())
+
 	if sCmp.Pointer() != oCmp.Pointer() {
 		return res
 	}
@@ -116,6 +122,7 @@ func (s *Set[T]) Intersection(other *Set[T]) *Set[T] {
 	if s.Len() > other.Len() {
 		src, dst = other, s
 	}
+
 	for v := range src.Iter() {
 		if dst.Contains(v) {
 			res.Add(v)
@@ -133,6 +140,7 @@ func (s *Set[T]) Union(other *Set[T]) *Set[T] {
 
 	sCmp := reflect.ValueOf(s.tree.Comparator())
 	oCmp := reflect.ValueOf(other.tree.Comparator())
+
 	if sCmp.Pointer() != oCmp.Pointer() {
 		return res
 	}
@@ -140,6 +148,7 @@ func (s *Set[T]) Union(other *Set[T]) *Set[T] {
 	for v := range s.Iter() {
 		res.Add(v)
 	}
+
 	for v := range other.Iter() {
 		res.Add(v)
 	}
@@ -155,6 +164,7 @@ func (s *Set[T]) Difference(other *Set[T]) *Set[T] {
 
 	sCmp := reflect.ValueOf(s.tree.Comparator())
 	oCmp := reflect.ValueOf(other.tree.Comparator())
+
 	if sCmp.Pointer() != oCmp.Pointer() {
 		return res
 	}
