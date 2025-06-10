@@ -238,7 +238,7 @@ func TestAVLTreeIterEmpty(t *testing.T) {
 	tree := New[int, string]()
 	count := 0
 
-	for _ = range tree.Iter() {
+	for range tree.Iter() {
 		count++
 	}
 
