@@ -1,13 +1,15 @@
-package hashset
+package hashset_test
 
 import (
 	"encoding/json"
 	"strings"
 	"testing"
+
+	"github.com/qntx/gods/hashset"
 )
 
 func TestSetNew(t *testing.T) {
-	set := New(2, 1)
+	set := hashset.New(2, 1)
 
 	if actualValue := set.Len(); actualValue != 2 {
 		t.Errorf("Got %v expected %v", actualValue, 2)
@@ -27,7 +29,7 @@ func TestSetNew(t *testing.T) {
 }
 
 func TestSetAdd(t *testing.T) {
-	set := New[int]()
+	set := hashset.New[int]()
 	set.Append()
 	set.Append(1)
 	set.Append(2)
@@ -44,7 +46,7 @@ func TestSetAdd(t *testing.T) {
 }
 
 func TestSetContains(t *testing.T) {
-	set := New[int]()
+	set := hashset.New[int]()
 	set.Append(3, 1, 2)
 	set.Append(2, 3)
 	set.Append()
@@ -67,7 +69,7 @@ func TestSetContains(t *testing.T) {
 }
 
 func TestSetRemove(t *testing.T) {
-	set := New[int]()
+	set := hashset.New[int]()
 	set.Append(3, 1, 2)
 	set.RemoveAll()
 
@@ -92,7 +94,7 @@ func TestSetRemove(t *testing.T) {
 }
 
 func TestSetSerialization(t *testing.T) {
-	set := New[string]()
+	set := hashset.New[string]()
 	set.Append("a", "b", "c")
 
 	var err error
@@ -135,7 +137,7 @@ func TestSetSerialization(t *testing.T) {
 }
 
 func TestSetString(t *testing.T) {
-	c := New[int]()
+	c := hashset.New[int]()
 	c.Append(1)
 
 	if !strings.HasPrefix(c.String(), "Set") {
@@ -144,8 +146,8 @@ func TestSetString(t *testing.T) {
 }
 
 func TestSetIntersection(t *testing.T) {
-	set := New[string]()
-	another := New[string]()
+	set := hashset.New[string]()
+	another := hashset.New[string]()
 
 	intersection := set.Intersect(another)
 	if actualValue, expectedValue := intersection.Len(), 0; actualValue != expectedValue {
@@ -167,8 +169,8 @@ func TestSetIntersection(t *testing.T) {
 }
 
 func TestSetUnion(t *testing.T) {
-	set := New[string]()
-	another := New[string]()
+	set := hashset.New[string]()
+	another := hashset.New[string]()
 
 	union := set.Union(another)
 	if actualValue, expectedValue := union.Len(), 0; actualValue != expectedValue {
@@ -190,8 +192,8 @@ func TestSetUnion(t *testing.T) {
 }
 
 func TestSetDifference(t *testing.T) {
-	set := New[string]()
-	another := New[string]()
+	set := hashset.New[string]()
+	another := hashset.New[string]()
 
 	difference := set.Difference(another)
 	if actualValue, expectedValue := difference.Len(), 0; actualValue != expectedValue {

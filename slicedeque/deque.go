@@ -13,6 +13,7 @@
 package slicedeque
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"strings"
@@ -426,6 +427,62 @@ func (d *Deque[T]) Values() []T {
 	}
 
 	return vals
+}
+
+// MarshalJSON serializes the queue's elements into a JSON array in FIFO order.
+//
+// Elements are marshaled as a JSON array (e.g., "[1,2]"). The method returns an
+// error if the elements are not JSON-serializable.
+//
+// Example:
+//
+//	q := New[int](3)
+//	q.PushBack(1)
+//	q.PushBack(2)
+//	data, err := q.MarshalJSON() // Returns []byte("[1,2]"), nil
+//
+// Returns:
+//   - The JSON-encoded byte slice.
+//   - An error if marshaling fails.
+//
+// Time complexity: O(n), where n is the number of elements.
+func (q *Deque[T]) MarshalJSON() ([]byte, error) {
+	data, err := json.Marshal(q.Values())
+	if err != nil {
+		return nil, err
+	}
+
+	return data, nil
+}
+
+// UnmarshalJSON populates the queue from a JSON array, appending elements to the back.
+//
+// The input must be a valid JSON array (e.g., "[1,2,3]"). The queue is cleared
+// before loading. If the capacity is exceeded, older elements are overwritten.
+//
+// Example:
+//
+//	q := New[int](2)
+//	err := q.UnmarshalJSON([]byte("[1,2,3]")) // Queue contains [2,3] after overflow
+//
+// Returns:
+//
+//	An error if the JSON is invalid or elements cannot be unmarshaled into type T.
+//
+// Time complexity: O(n), where n is the number of elements in the JSON array.
+func (q *Deque[T]) UnmarshalJSON(data []byte) error {
+	var vals []T
+	if err := json.Unmarshal(data, &vals); err != nil {
+		return err
+	}
+
+	q.Clear()
+
+	for _, v := range vals {
+		q.PushBack(v)
+	}
+
+	return nil
 }
 
 // String returns a string representation of the deque in FIFO order.

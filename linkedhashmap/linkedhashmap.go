@@ -13,6 +13,7 @@ import (
 	"container/list"
 	"encoding/json"
 	"fmt"
+	"iter"
 	"slices"
 	"strings"
 )
@@ -100,13 +101,28 @@ func (m *Map[K, V]) Values() []V {
 	values := make([]V, m.Size())
 	count := 0
 
-	it := m.Iterator() // Iterator will use the updated Keys() and Get()
-	for it.Next() {
-		values[count] = it.Value()
+	for _, v := range m.Iter() {
+		values[count] = v
 		count++
 	}
 
 	return values
+}
+
+// Iter returns an iterator over key-value pairs from m, in insertion order.
+// The iteration order is preserved.
+func (m *Map[K, V]) Iter() iter.Seq2[K, V] {
+	return func(yield func(K, V) bool) {
+		for e := m.ordering.Front(); e != nil; e = e.Next() {
+			key := e.Value.(K)       // Key from the ordered list
+			elemData := m.table[key] // Get the element data (value + listElem pointer)
+
+			value := elemData.value // Extract the actual value
+			if !yield(key, value) {
+				return
+			}
+		}
+	}
 }
 
 // Clear removes all elements from the map.
@@ -126,12 +142,11 @@ func (m *Map[K, V]) MarshalJSON() ([]byte, error) {
 
 	buf.WriteRune('{')
 
-	it := m.Iterator()
+	count := 0
 	lastIndex := m.Size() - 1
-	index := 0
 
-	for it.Next() {
-		km, err := json.Marshal(it.Key())
+	for k, v := range m.Iter() {
+		km, err := json.Marshal(k)
 		if err != nil {
 			return nil, err
 		}
@@ -140,18 +155,18 @@ func (m *Map[K, V]) MarshalJSON() ([]byte, error) {
 
 		buf.WriteRune(':')
 
-		vm, err := json.Marshal(it.Value())
+		vm, err := json.Marshal(v)
 		if err != nil {
 			return nil, err
 		}
 
 		buf.Write(vm)
 
-		if index != lastIndex {
+		if count != lastIndex {
 			buf.WriteRune(',')
 		}
 
-		index++
+		count++
 	}
 
 	buf.WriteRune('}')
@@ -195,10 +210,9 @@ func (m *Map[K, V]) UnmarshalJSON(data []byte) error {
 // String returns a string representation of container.
 func (m *Map[K, V]) String() string {
 	str := "LinkedHashMap\nmap["
-	it := m.Iterator() // Iterator will use the updated Keys() and Get()
 
-	for it.Next() {
-		str += fmt.Sprintf("%v:%v ", it.Key(), it.Value())
+	for k, v := range m.Iter() {
+		str += fmt.Sprintf("%v:%v ", k, v)
 	}
 
 	return strings.TrimRight(str, " ") + "]"

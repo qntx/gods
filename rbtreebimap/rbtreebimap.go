@@ -29,6 +29,9 @@ type Map[K, V comparable] struct {
 	inverseMap rbtree.Tree[V, K]
 }
 
+var _ json.Marshaler = (*Map[string, int])(nil)
+var _ json.Unmarshaler = (*Map[string, int])(nil)
+
 // New instantiates a bidirectional map.
 func New[K, V cmp.Ordered]() *Map[K, V] {
 	return &Map[K, V]{
@@ -104,9 +107,6 @@ func (m *Map[K, V]) Clear() {
 	m.forwardMap.Clear()
 	m.inverseMap.Clear()
 }
-
-var _ json.Marshaler = (*Map[string, int])(nil)
-var _ json.Unmarshaler = (*Map[string, int])(nil)
 
 // MarshalJSON @implements json.Marshaler.
 func (m *Map[K, V]) MarshalJSON() ([]byte, error) {

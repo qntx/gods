@@ -9,9 +9,11 @@ var _ container.EnumerableWithIndex[int] = (*Set[int])(nil)
 
 // Each calls the given function once for each element, passing that element's index and value.
 func (set *Set[T]) Each(f func(index int, value T)) {
-	it := set.Iterator()
-	for it.Next() {
-		f(it.Index(), it.Value())
+	i := 0
+	for v := range set.Iter() {
+		f(i, v)
+
+		i++
 	}
 }
 
@@ -21,10 +23,12 @@ func (set *Set[T]) Each(f func(index int, value T)) {
 // If mapped values are not unique, only the first occurrence (based on iteration order) will be kept.
 func (set *Set[T]) Map(f func(index int, value T) T) *Set[T] {
 	newSet := New[T]()
-	it := set.Iterator()
+	i := 0
 
-	for it.Next() {
-		newSet.Add(f(it.Index(), it.Value()))
+	for v := range set.Iter() {
+		newSet.Add(f(i, v))
+
+		i++
 	}
 
 	return newSet
@@ -35,11 +39,13 @@ func (set *Set[T]) Map(f func(index int, value T) T) *Set[T] {
 func (set *Set[T]) Select(f func(index int, value T) bool) *Set[T] {
 	newSet := New[T]()
 
-	it := set.Iterator()
-	for it.Next() {
-		if f(it.Index(), it.Value()) {
-			newSet.Add(it.Value())
+	i := 0
+	for v := range set.Iter() {
+		if f(i, v) {
+			newSet.Add(v)
 		}
+
+		i++
 	}
 
 	return newSet
@@ -48,11 +54,13 @@ func (set *Set[T]) Select(f func(index int, value T) bool) *Set[T] {
 // Any returns true if the given function returns true for one or more elements.
 // This function is short-circuiting, i.e., it returns as soon as the first true is found.
 func (set *Set[T]) Any(f func(index int, value T) bool) bool {
-	it := set.Iterator()
-	for it.Next() {
-		if f(it.Index(), it.Value()) {
+	i := 0
+	for v := range set.Iter() {
+		if f(i, v) {
 			return true
 		}
+
+		i++
 	}
 
 	return false
@@ -61,11 +69,13 @@ func (set *Set[T]) Any(f func(index int, value T) bool) bool {
 // All returns true if the given function returns true for all elements.
 // This function is short-circuiting, i.e., it returns false as soon as the first false is found.
 func (set *Set[T]) All(f func(index int, value T) bool) bool {
-	it := set.Iterator()
-	for it.Next() {
-		if !f(it.Index(), it.Value()) {
+	i := 0
+	for v := range set.Iter() {
+		if !f(i, v) {
 			return false
 		}
+
+		i++
 	}
 
 	return true
@@ -74,11 +84,13 @@ func (set *Set[T]) All(f func(index int, value T) bool) bool {
 // Find returns the first index and value for which the provided function returns true.
 // If no element satisfies the condition, it returns -1 and the zero value of T.
 func (set *Set[T]) Find(f func(index int, value T) bool) (int, T) {
-	it := set.Iterator()
-	for it.Next() {
-		if f(it.Index(), it.Value()) {
-			return it.Index(), it.Value()
+	i := 0
+	for v := range set.Iter() {
+		if f(i, v) {
+			return i, v
 		}
+
+		i++
 	}
 
 	var zero T // zero value for type T

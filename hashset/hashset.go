@@ -12,6 +12,8 @@ import (
 type Set[T comparable] map[T]struct{}
 
 var _ container.Set[string] = (*Set[string])(nil)
+var _ json.Marshaler = (*Set[string])(nil)
+var _ json.Unmarshaler = (*Set[string])(nil)
 
 func New[T comparable](vals ...T) *Set[T] {
 	t := make(Set[T])
@@ -251,7 +253,6 @@ func (s Set[T]) RemoveAll(i ...T) {
 	}
 }
 
-// MarshalJSON creates a JSON array from the set, it marshals all elements.
 func (s Set[T]) MarshalJSON() ([]byte, error) {
 	items := make([]string, 0, s.Len())
 
@@ -267,8 +268,6 @@ func (s Set[T]) MarshalJSON() ([]byte, error) {
 	return []byte(fmt.Sprintf("[%s]", strings.Join(items, ","))), nil
 }
 
-// UnmarshalJSON recreates a set from a JSON array, it only decodes
-// primitive types. Numbers are decoded as json.Number.
 func (s *Set[T]) UnmarshalJSON(b []byte) error {
 	var i []T
 

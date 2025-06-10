@@ -13,6 +13,7 @@ import (
 	"container/list"
 	"encoding/json"
 	"fmt"
+	"iter"
 	"strings"
 )
 
@@ -21,6 +22,10 @@ type Set[T comparable] struct {
 	table    map[T]*list.Element
 	ordering *list.List
 }
+
+// var _ container.Set = (*Set[string])(nil).
+var _ json.Marshaler = (*Set[string])(nil)
+var _ json.Unmarshaler = (*Set[string])(nil)
 
 // New instantiates a new empty set and adds the passed values, if any, to the set.
 func New[T comparable](values ...T) *Set[T] {
@@ -94,6 +99,17 @@ func (set *Set[T]) Values() []T {
 	}
 
 	return values
+}
+
+// Iter returns an iterator over the values of the set, in insertion order.
+func (set *Set[T]) Iter() iter.Seq[T] {
+	return func(yield func(T) bool) {
+		for e := set.ordering.Front(); e != nil; e = e.Next() {
+			if !yield(e.Value.(T)) {
+				return
+			}
+		}
+	}
 }
 
 // MarshalJSON outputs the JSON representation of the set.

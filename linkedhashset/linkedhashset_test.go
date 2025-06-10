@@ -1,18 +1,16 @@
-// Copyright (c) 2015, Emir Pasic. All rights reserved.
-// Use of this source code is governed by a BSD-style
-// license that can be found in the LICENSE file.
-
-package linkedhashset
+package linkedhashset_test
 
 import (
 	"encoding/json"
 	"fmt"
 	"strings"
 	"testing"
+
+	"github.com/qntx/gods/linkedhashset"
 )
 
 func TestSetNew(t *testing.T) {
-	set := New(2, 1)
+	set := linkedhashset.New(2, 1)
 
 	if actualValue := set.Size(); actualValue != 2 {
 		t.Errorf("Got %v expected %v", actualValue, 2)
@@ -32,7 +30,7 @@ func TestSetNew(t *testing.T) {
 }
 
 func TestSetAdd(t *testing.T) {
-	set := New[int]()
+	set := linkedhashset.New[int]()
 	set.Add()
 	set.Add(1)
 	set.Add(2)
@@ -49,7 +47,7 @@ func TestSetAdd(t *testing.T) {
 }
 
 func TestSetContains(t *testing.T) {
-	set := New[int]()
+	set := linkedhashset.New[int]()
 	set.Add(3, 1, 2)
 	set.Add(2, 3)
 	set.Add()
@@ -72,7 +70,7 @@ func TestSetContains(t *testing.T) {
 }
 
 func TestSetRemove(t *testing.T) {
-	set := New[int]()
+	set := linkedhashset.New[int]()
 	set.Add(3, 1, 2)
 	set.Remove()
 
@@ -97,7 +95,7 @@ func TestSetRemove(t *testing.T) {
 }
 
 func TestSetEach(t *testing.T) {
-	set := New[string]()
+	set := linkedhashset.New[string]()
 	set.Add("c", "a", "b")
 	set.Each(func(index int, value string) {
 		switch index {
@@ -120,7 +118,7 @@ func TestSetEach(t *testing.T) {
 }
 
 func TestSetMap(t *testing.T) {
-	set := New[string]()
+	set := linkedhashset.New[string]()
 	set.Add("c", "a", "b")
 
 	mappedSet := set.Map(func(index int, value string) string {
@@ -140,7 +138,7 @@ func TestSetMap(t *testing.T) {
 }
 
 func TestSetSelect(t *testing.T) {
-	set := New[string]()
+	set := linkedhashset.New[string]()
 	set.Add("c", "a", "b")
 
 	selectedSet := set.Select(func(index int, value string) bool {
@@ -161,7 +159,7 @@ func TestSetSelect(t *testing.T) {
 }
 
 func TestSetAny(t *testing.T) {
-	set := New[string]()
+	set := linkedhashset.New[string]()
 	set.Add("c", "a", "b")
 
 	any := set.Any(func(index int, value string) bool {
@@ -180,7 +178,7 @@ func TestSetAny(t *testing.T) {
 }
 
 func TestSetAll(t *testing.T) {
-	set := New[string]()
+	set := linkedhashset.New[string]()
 	set.Add("c", "a", "b")
 
 	all := set.All(func(index int, value string) bool {
@@ -199,7 +197,7 @@ func TestSetAll(t *testing.T) {
 }
 
 func TestSetFind(t *testing.T) {
-	set := New[string]()
+	set := linkedhashset.New[string]()
 	set.Add("c", "a", "b")
 
 	foundIndex, foundValue := set.Find(func(index int, value string) bool {
@@ -218,287 +216,12 @@ func TestSetFind(t *testing.T) {
 }
 
 func TestSetChaining(t *testing.T) {
-	set := New[string]()
+	set := linkedhashset.New[string]()
 	set.Add("c", "a", "b")
-}
-
-func TestSetIteratorPrevOnEmpty(t *testing.T) {
-	set := New[string]()
-
-	it := set.Iterator()
-	for it.Prev() {
-		t.Errorf("Shouldn't iterate on empty set")
-	}
-}
-
-func TestSetIteratorNext(t *testing.T) {
-	set := New[string]()
-	set.Add("c", "a", "b")
-	it := set.Iterator()
-	count := 0
-
-	for it.Next() {
-		count++
-		index := it.Index()
-		value := it.Value()
-
-		switch index {
-		case 0:
-			if actualValue, expectedValue := value, "c"; actualValue != expectedValue {
-				t.Errorf("Got %v expected %v", actualValue, expectedValue)
-			}
-		case 1:
-			if actualValue, expectedValue := value, "a"; actualValue != expectedValue {
-				t.Errorf("Got %v expected %v", actualValue, expectedValue)
-			}
-		case 2:
-			if actualValue, expectedValue := value, "b"; actualValue != expectedValue {
-				t.Errorf("Got %v expected %v", actualValue, expectedValue)
-			}
-		default:
-			t.Errorf("Too many")
-		}
-
-		if actualValue, expectedValue := index, count-1; actualValue != expectedValue {
-			t.Errorf("Got %v expected %v", actualValue, expectedValue)
-		}
-	}
-
-	if actualValue, expectedValue := count, 3; actualValue != expectedValue {
-		t.Errorf("Got %v expected %v", actualValue, expectedValue)
-	}
-}
-
-func TestSetIteratorPrev(t *testing.T) {
-	set := New[string]()
-	set.Add("c", "a", "b")
-
-	it := set.Iterator()
-	for it.Prev() {
-	}
-
-	count := 0
-	for it.Next() {
-		count++
-		index := it.Index()
-		value := it.Value()
-
-		switch index {
-		case 0:
-			if actualValue, expectedValue := value, "c"; actualValue != expectedValue {
-				t.Errorf("Got %v expected %v", actualValue, expectedValue)
-			}
-		case 1:
-			if actualValue, expectedValue := value, "a"; actualValue != expectedValue {
-				t.Errorf("Got %v expected %v", actualValue, expectedValue)
-			}
-		case 2:
-			if actualValue, expectedValue := value, "b"; actualValue != expectedValue {
-				t.Errorf("Got %v expected %v", actualValue, expectedValue)
-			}
-		default:
-			t.Errorf("Too many")
-		}
-
-		if actualValue, expectedValue := index, count-1; actualValue != expectedValue {
-			t.Errorf("Got %v expected %v", actualValue, expectedValue)
-		}
-	}
-
-	if actualValue, expectedValue := count, 3; actualValue != expectedValue {
-		t.Errorf("Got %v expected %v", actualValue, expectedValue)
-	}
-}
-
-func TestSetIteratorBegin(t *testing.T) {
-	set := New[string]()
-	it := set.Iterator()
-	it.Begin()
-	set.Add("a", "b", "c")
-
-	for it.Next() {
-	}
-
-	it.Begin()
-	it.Next()
-
-	if index, value := it.Index(), it.Value(); index != 0 || value != "a" {
-		t.Errorf("Got %v,%v expected %v,%v", index, value, 0, "a")
-	}
-}
-
-func TestSetIteratorEnd(t *testing.T) {
-	set := New[string]()
-	it := set.Iterator()
-
-	if index := it.Index(); index != -1 {
-		t.Errorf("Got %v expected %v", index, -1)
-	}
-
-	it.End()
-
-	if index := it.Index(); index != 0 {
-		t.Errorf("Got %v expected %v", index, 0)
-	}
-
-	set.Add("a", "b", "c")
-	it.End()
-
-	if index := it.Index(); index != set.Size() {
-		t.Errorf("Got %v expected %v", index, set.Size())
-	}
-
-	it.Prev()
-
-	if index, value := it.Index(), it.Value(); index != set.Size()-1 || value != "c" {
-		t.Errorf("Got %v,%v expected %v,%v", index, value, set.Size()-1, "c")
-	}
-}
-
-func TestSetIteratorFirst(t *testing.T) {
-	set := New[string]()
-	set.Add("a", "b", "c")
-
-	it := set.Iterator()
-	if actualValue, expectedValue := it.First(), true; actualValue != expectedValue {
-		t.Errorf("Got %v expected %v", actualValue, expectedValue)
-	}
-
-	if index, value := it.Index(), it.Value(); index != 0 || value != "a" {
-		t.Errorf("Got %v,%v expected %v,%v", index, value, 0, "a")
-	}
-}
-
-func TestSetIteratorLast(t *testing.T) {
-	set := New[string]()
-	set.Add("a", "b", "c")
-
-	it := set.Iterator()
-	if actualValue, expectedValue := it.Last(), true; actualValue != expectedValue {
-		t.Errorf("Got %v expected %v", actualValue, expectedValue)
-	}
-
-	if index, value := it.Index(), it.Value(); index != 2 || value != "c" {
-		t.Errorf("Got %v,%v expected %v,%v", index, value, 3, "c")
-	}
-}
-
-func TestSetIteratorNextTo(t *testing.T) {
-	// Sample seek function, i.e. string starting with "b"
-	seek := func(index int, value string) bool {
-		return strings.HasSuffix(value, "b")
-	}
-
-	// NextTo (empty)
-	{
-		set := New[string]()
-
-		it := set.Iterator()
-		for it.NextTo(seek) {
-			t.Errorf("Shouldn't iterate on empty set")
-		}
-	}
-
-	// NextTo (not found)
-	{
-		set := New[string]()
-		set.Add("xx", "yy")
-
-		it := set.Iterator()
-		for it.NextTo(seek) {
-			t.Errorf("Shouldn't iterate on empty set")
-		}
-	}
-
-	// NextTo (found)
-	{
-		set := New[string]()
-		set.Add("aa", "bb", "cc")
-		it := set.Iterator()
-		it.Begin()
-
-		if !it.NextTo(seek) {
-			t.Errorf("Shouldn't iterate on empty set")
-		}
-
-		if index, value := it.Index(), it.Value(); index != 1 || value != "bb" {
-			t.Errorf("Got %v,%v expected %v,%v", index, value, 1, "bb")
-		}
-
-		if !it.Next() {
-			t.Errorf("Should go to first element")
-		}
-
-		if index, value := it.Index(), it.Value(); index != 2 || value != "cc" {
-			t.Errorf("Got %v,%v expected %v,%v", index, value, 2, "cc")
-		}
-
-		if it.Next() {
-			t.Errorf("Should not go past last element")
-		}
-	}
-}
-
-func TestSetIteratorPrevTo(t *testing.T) {
-	// Sample seek function, i.e. string starting with "b"
-	seek := func(index int, value string) bool {
-		return strings.HasSuffix(value, "b")
-	}
-
-	// PrevTo (empty)
-	{
-		set := New[string]()
-		it := set.Iterator()
-		it.End()
-
-		for it.PrevTo(seek) {
-			t.Errorf("Shouldn't iterate on empty set")
-		}
-	}
-
-	// PrevTo (not found)
-	{
-		set := New[string]()
-		set.Add("xx", "yy")
-		it := set.Iterator()
-		it.End()
-
-		for it.PrevTo(seek) {
-			t.Errorf("Shouldn't iterate on empty set")
-		}
-	}
-
-	// PrevTo (found)
-	{
-		set := New[string]()
-		set.Add("aa", "bb", "cc")
-		it := set.Iterator()
-		it.End()
-
-		if !it.PrevTo(seek) {
-			t.Errorf("Shouldn't iterate on empty set")
-		}
-
-		if index, value := it.Index(), it.Value(); index != 1 || value != "bb" {
-			t.Errorf("Got %v,%v expected %v,%v", index, value, 1, "bb")
-		}
-
-		if !it.Prev() {
-			t.Errorf("Should go to first element")
-		}
-
-		if index, value := it.Index(), it.Value(); index != 0 || value != "aa" {
-			t.Errorf("Got %v,%v expected %v,%v", index, value, 0, "aa")
-		}
-
-		if it.Prev() {
-			t.Errorf("Should not go before first element")
-		}
-	}
 }
 
 func TestSetSerialization(t *testing.T) {
-	set := New[string]()
+	set := linkedhashset.New[string]()
 	set.Add("a", "b", "c")
 
 	var err error
@@ -541,7 +264,7 @@ func TestSetSerialization(t *testing.T) {
 }
 
 func TestSetString(t *testing.T) {
-	c := New[int]()
+	c := linkedhashset.New[int]()
 	c.Add(1)
 
 	if !strings.HasPrefix(c.String(), "LinkedHashSet") {
@@ -550,8 +273,8 @@ func TestSetString(t *testing.T) {
 }
 
 func TestSetIntersection(t *testing.T) {
-	set := New[string]()
-	another := New[string]()
+	set := linkedhashset.New[string]()
+	another := linkedhashset.New[string]()
 
 	intersection := set.Intersection(another)
 	if actualValue, expectedValue := intersection.Size(), 0; actualValue != expectedValue {
@@ -573,8 +296,8 @@ func TestSetIntersection(t *testing.T) {
 }
 
 func TestSetUnion(t *testing.T) {
-	set := New[string]()
-	another := New[string]()
+	set := linkedhashset.New[string]()
+	another := linkedhashset.New[string]()
 
 	union := set.Union(another)
 	if actualValue, expectedValue := union.Size(), 0; actualValue != expectedValue {
@@ -596,8 +319,8 @@ func TestSetUnion(t *testing.T) {
 }
 
 func TestSetDifference(t *testing.T) {
-	set := New[string]()
-	another := New[string]()
+	set := linkedhashset.New[string]()
+	another := linkedhashset.New[string]()
 
 	difference := set.Difference(another)
 	if actualValue, expectedValue := difference.Size(), 0; actualValue != expectedValue {
@@ -616,192 +339,4 @@ func TestSetDifference(t *testing.T) {
 	if actualValue := difference.Contains("a", "b"); actualValue != true {
 		t.Errorf("Got %v expected %v", actualValue, true)
 	}
-}
-
-func benchmarkContains(b *testing.B, set *Set[int], size int) {
-	for range b.N {
-		for n := range size {
-			set.Contains(n)
-		}
-	}
-}
-
-func benchmarkAdd(b *testing.B, set *Set[int], size int) {
-	for range b.N {
-		for n := range size {
-			set.Add(n)
-		}
-	}
-}
-
-func benchmarkRemove(b *testing.B, set *Set[int], size int) {
-	for range b.N {
-		for n := range size {
-			set.Remove(n)
-		}
-	}
-}
-
-func BenchmarkHashSetContains100(b *testing.B) {
-	b.StopTimer()
-
-	size := 100
-	set := New[int]()
-
-	for n := range size {
-		set.Add(n)
-	}
-
-	b.StartTimer()
-	benchmarkContains(b, set, size)
-}
-
-func BenchmarkHashSetContains1000(b *testing.B) {
-	b.StopTimer()
-
-	size := 1000
-	set := New[int]()
-
-	for n := range size {
-		set.Add(n)
-	}
-
-	b.StartTimer()
-	benchmarkContains(b, set, size)
-}
-
-func BenchmarkHashSetContains10000(b *testing.B) {
-	b.StopTimer()
-
-	size := 10000
-	set := New[int]()
-
-	for n := range size {
-		set.Add(n)
-	}
-
-	b.StartTimer()
-	benchmarkContains(b, set, size)
-}
-
-func BenchmarkHashSetContains100000(b *testing.B) {
-	b.StopTimer()
-
-	size := 100000
-	set := New[int]()
-
-	for n := range size {
-		set.Add(n)
-	}
-
-	b.StartTimer()
-	benchmarkContains(b, set, size)
-}
-
-func BenchmarkHashSetAdd100(b *testing.B) {
-	b.StopTimer()
-
-	size := 100
-	set := New[int]()
-
-	b.StartTimer()
-	benchmarkAdd(b, set, size)
-}
-
-func BenchmarkHashSetAdd1000(b *testing.B) {
-	b.StopTimer()
-
-	size := 1000
-	set := New[int]()
-
-	for n := range size {
-		set.Add(n)
-	}
-
-	b.StartTimer()
-	benchmarkAdd(b, set, size)
-}
-
-func BenchmarkHashSetAdd10000(b *testing.B) {
-	b.StopTimer()
-
-	size := 10000
-	set := New[int]()
-
-	for n := range size {
-		set.Add(n)
-	}
-
-	b.StartTimer()
-	benchmarkAdd(b, set, size)
-}
-
-func BenchmarkHashSetAdd100000(b *testing.B) {
-	b.StopTimer()
-
-	size := 100000
-	set := New[int]()
-
-	for n := range size {
-		set.Add(n)
-	}
-
-	b.StartTimer()
-	benchmarkAdd(b, set, size)
-}
-
-func BenchmarkHashSetRemove100(b *testing.B) {
-	b.StopTimer()
-
-	size := 100
-	set := New[int]()
-
-	for n := range size {
-		set.Add(n)
-	}
-
-	b.StartTimer()
-	benchmarkRemove(b, set, size)
-}
-
-func BenchmarkHashSetRemove1000(b *testing.B) {
-	b.StopTimer()
-
-	size := 1000
-	set := New[int]()
-
-	for n := range size {
-		set.Add(n)
-	}
-
-	b.StartTimer()
-	benchmarkRemove(b, set, size)
-}
-
-func BenchmarkHashSetRemove10000(b *testing.B) {
-	b.StopTimer()
-
-	size := 10000
-	set := New[int]()
-
-	for n := range size {
-		set.Add(n)
-	}
-
-	b.StartTimer()
-	benchmarkRemove(b, set, size)
-}
-
-func BenchmarkHashSetRemove100000(b *testing.B) {
-	b.StopTimer()
-
-	size := 100000
-	set := New[int]()
-
-	for n := range size {
-		set.Add(n)
-	}
-
-	b.StartTimer()
-	benchmarkRemove(b, set, size)
 }

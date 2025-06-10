@@ -1,35 +1,29 @@
-package hashset_test
+package linkedhashset_test
 
 import (
 	"testing"
 
-	"github.com/qntx/gods/hashset"
+	"github.com/qntx/gods/linkedhashset"
 )
 
-func benchmarkContains(b *testing.B, set *hashset.Set[int], size int) {
-	b.Helper()
-
-	for b.N > 0 {
+func benchmarkContains(b *testing.B, set *linkedhashset.Set[int], size int) {
+	for range b.N {
 		for n := range size {
 			set.Contains(n)
 		}
 	}
 }
 
-func benchmarkAdd(b *testing.B, set *hashset.Set[int], size int) {
-	b.Helper()
-
-	for b.N > 0 {
+func benchmarkAdd(b *testing.B, set *linkedhashset.Set[int], size int) {
+	for range b.N {
 		for n := range size {
 			set.Add(n)
 		}
 	}
 }
 
-func benchmarkRemove(b *testing.B, set *hashset.Set[int], size int) {
-	b.Helper()
-
-	for b.N > 0 {
+func benchmarkRemove(b *testing.B, set *linkedhashset.Set[int], size int) {
+	for range b.N {
 		for n := range size {
 			set.Remove(n)
 		}
@@ -40,7 +34,7 @@ func BenchmarkHashSetContains100(b *testing.B) {
 	b.StopTimer()
 
 	size := 100
-	set := hashset.New[int]()
+	set := linkedhashset.New[int]()
 
 	for n := range size {
 		set.Add(n)
@@ -54,7 +48,7 @@ func BenchmarkHashSetContains1000(b *testing.B) {
 	b.StopTimer()
 
 	size := 1000
-	set := hashset.New[int]()
+	set := linkedhashset.New[int]()
 
 	for n := range size {
 		set.Add(n)
@@ -68,7 +62,7 @@ func BenchmarkHashSetContains10000(b *testing.B) {
 	b.StopTimer()
 
 	size := 10000
-	set := hashset.New[int]()
+	set := linkedhashset.New[int]()
 
 	for n := range size {
 		set.Add(n)
@@ -82,7 +76,7 @@ func BenchmarkHashSetContains100000(b *testing.B) {
 	b.StopTimer()
 
 	size := 100000
-	set := hashset.New[int]()
+	set := linkedhashset.New[int]()
 
 	for n := range size {
 		set.Add(n)
@@ -96,7 +90,7 @@ func BenchmarkHashSetAdd100(b *testing.B) {
 	b.StopTimer()
 
 	size := 100
-	set := hashset.New[int]()
+	set := linkedhashset.New[int]()
 
 	b.StartTimer()
 	benchmarkAdd(b, set, size)
@@ -106,7 +100,7 @@ func BenchmarkHashSetAdd1000(b *testing.B) {
 	b.StopTimer()
 
 	size := 1000
-	set := hashset.New[int]()
+	set := linkedhashset.New[int]()
 
 	for n := range size {
 		set.Add(n)
@@ -120,7 +114,7 @@ func BenchmarkHashSetAdd10000(b *testing.B) {
 	b.StopTimer()
 
 	size := 10000
-	set := hashset.New[int]()
+	set := linkedhashset.New[int]()
 
 	for n := range size {
 		set.Add(n)
@@ -134,7 +128,7 @@ func BenchmarkHashSetAdd100000(b *testing.B) {
 	b.StopTimer()
 
 	size := 100000
-	set := hashset.New[int]()
+	set := linkedhashset.New[int]()
 
 	for n := range size {
 		set.Add(n)
@@ -148,7 +142,7 @@ func BenchmarkHashSetRemove100(b *testing.B) {
 	b.StopTimer()
 
 	size := 100
-	set := hashset.New[int]()
+	set := linkedhashset.New[int]()
 
 	for n := range size {
 		set.Add(n)
@@ -162,7 +156,7 @@ func BenchmarkHashSetRemove1000(b *testing.B) {
 	b.StopTimer()
 
 	size := 1000
-	set := hashset.New[int]()
+	set := linkedhashset.New[int]()
 
 	for n := range size {
 		set.Add(n)
@@ -176,7 +170,7 @@ func BenchmarkHashSetRemove10000(b *testing.B) {
 	b.StopTimer()
 
 	size := 10000
-	set := hashset.New[int]()
+	set := linkedhashset.New[int]()
 
 	for n := range size {
 		set.Add(n)
@@ -190,7 +184,7 @@ func BenchmarkHashSetRemove100000(b *testing.B) {
 	b.StopTimer()
 
 	size := 100000
-	set := hashset.New[int]()
+	set := linkedhashset.New[int]()
 
 	for n := range size {
 		set.Add(n)

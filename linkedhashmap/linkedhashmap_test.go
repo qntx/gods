@@ -1,32 +1,16 @@
-// Copyright (c) 2015, Emir Pasic. All rights reserved.
-// Use of this source code is governed by a BSD-style
-// license that can be found in the LICENSE file.
-
-package linkedhashmap
+package linkedhashmap_test
 
 import (
 	"encoding/json"
+	"slices"
 	"strings"
 	"testing"
+
+	"github.com/qntx/gods/linkedhashmap"
 )
 
-func SameElements[T comparable](t *testing.T, actual, expected []T) {
-	if len(actual) != len(expected) {
-		t.Errorf("Got %d expected %d", len(actual), len(expected))
-	}
-outer:
-	for _, e := range expected {
-		for _, a := range actual {
-			if e == a {
-				continue outer
-			}
-		}
-		t.Errorf("Did not find expected element %v in %v", e, actual)
-	}
-}
-
 func TestMapPut(t *testing.T) {
-	m := New[int, string]()
+	m := linkedhashmap.New[int, string]()
 	m.Put(5, "e")
 	m.Put(6, "f")
 	m.Put(7, "g")
@@ -40,8 +24,8 @@ func TestMapPut(t *testing.T) {
 		t.Errorf("Got %v expected %v", actualValue, 7)
 	}
 
-	SameElements(t, m.Keys(), []int{1, 2, 3, 4, 5, 6, 7})
-	SameElements(t, m.Values(), []string{"a", "b", "c", "d", "e", "f", "g"})
+	slices.Equal(m.Keys(), []int{1, 2, 3, 4, 5, 6, 7})
+	slices.Equal(m.Values(), []string{"a", "b", "c", "d", "e", "f", "g"})
 
 	// key,expectedValue,expectedFound
 	tests1 := [][]interface{}{
@@ -65,7 +49,7 @@ func TestMapPut(t *testing.T) {
 }
 
 func TestMapRemove(t *testing.T) {
-	m := New[int, string]()
+	m := linkedhashmap.New[int, string]()
 	m.Put(5, "e")
 	m.Put(6, "f")
 	m.Put(7, "g")
@@ -81,8 +65,8 @@ func TestMapRemove(t *testing.T) {
 	m.Remove(8)
 	m.Remove(5)
 
-	SameElements(t, m.Keys(), []int{1, 2, 3, 4})
-	SameElements(t, m.Values(), []string{"a", "b", "c", "d"})
+	slices.Equal(m.Keys(), []int{1, 2, 3, 4})
+	slices.Equal(m.Values(), []string{"a", "b", "c", "d"})
 
 	if actualValue := m.Size(); actualValue != 4 {
 		t.Errorf("Got %v expected %v", actualValue, 4)
@@ -113,8 +97,8 @@ func TestMapRemove(t *testing.T) {
 	m.Remove(2)
 	m.Remove(2)
 
-	SameElements(t, m.Keys(), nil)
-	SameElements(t, m.Values(), nil)
+	slices.Equal(m.Keys(), nil)
+	slices.Equal(m.Values(), nil)
 
 	if actualValue := m.Size(); actualValue != 0 {
 		t.Errorf("Got %v expected %v", actualValue, 0)
@@ -126,7 +110,7 @@ func TestMapRemove(t *testing.T) {
 }
 
 func TestMapEach(t *testing.T) {
-	m := New[string, int]()
+	m := linkedhashmap.New[string, int]()
 	m.Put("c", 1)
 	m.Put("a", 2)
 	m.Put("b", 3)
@@ -159,7 +143,7 @@ func TestMapEach(t *testing.T) {
 }
 
 func TestMapMap(t *testing.T) {
-	m := New[string, int]()
+	m := linkedhashmap.New[string, int]()
 	m.Put("c", 3)
 	m.Put("a", 1)
 	m.Put("b", 2)
@@ -185,7 +169,7 @@ func TestMapMap(t *testing.T) {
 }
 
 func TestMapSelect(t *testing.T) {
-	m := New[string, int]()
+	m := linkedhashmap.New[string, int]()
 	m.Put("c", 3)
 	m.Put("b", 1)
 	m.Put("a", 2)
@@ -207,7 +191,7 @@ func TestMapSelect(t *testing.T) {
 }
 
 func TestMapAny(t *testing.T) {
-	m := New[string, int]()
+	m := linkedhashmap.New[string, int]()
 	m.Put("c", 3)
 	m.Put("a", 1)
 	m.Put("b", 2)
@@ -228,7 +212,7 @@ func TestMapAny(t *testing.T) {
 }
 
 func TestMapAll(t *testing.T) {
-	m := New[string, int]()
+	m := linkedhashmap.New[string, int]()
 	m.Put("c", 3)
 	m.Put("a", 1)
 	m.Put("b", 2)
@@ -249,7 +233,7 @@ func TestMapAll(t *testing.T) {
 }
 
 func TestMapFind(t *testing.T) {
-	m := New[string, int]()
+	m := linkedhashmap.New[string, int]()
 	m.Put("c", 3)
 	m.Put("a", 1)
 	m.Put("b", 2)
@@ -270,7 +254,7 @@ func TestMapFind(t *testing.T) {
 }
 
 func TestMapChaining(t *testing.T) {
-	m := New[string, int]()
+	m := linkedhashmap.New[string, int]()
 	m.Put("c", 3)
 	m.Put("a", 1)
 	m.Put("b", 2)
@@ -297,298 +281,9 @@ func TestMapChaining(t *testing.T) {
 	}
 }
 
-func TestMapIteratorNextOnEmpty(t *testing.T) {
-	m := New[string, int]()
-
-	it := m.Iterator()
-	for it.Next() {
-		t.Errorf("Shouldn't iterate on empty map")
-	}
-}
-
-func TestMapIteratorPrevOnEmpty(t *testing.T) {
-	m := New[string, int]()
-
-	it := m.Iterator()
-	for it.Prev() {
-		t.Errorf("Shouldn't iterate on empty map")
-	}
-}
-
-func TestMapIteratorNext(t *testing.T) {
-	m := New[string, int]()
-	m.Put("c", 1)
-	m.Put("a", 2)
-	m.Put("b", 3)
-
-	it := m.Iterator()
-	count := 0
-
-	for it.Next() {
-		count++
-		key := it.Key()
-		value := it.Value()
-
-		switch key {
-		case "c":
-			if actualValue, expectedValue := value, 1; actualValue != expectedValue {
-				t.Errorf("Got %v expected %v", actualValue, expectedValue)
-			}
-		case "a":
-			if actualValue, expectedValue := value, 2; actualValue != expectedValue {
-				t.Errorf("Got %v expected %v", actualValue, expectedValue)
-			}
-		case "b":
-			if actualValue, expectedValue := value, 3; actualValue != expectedValue {
-				t.Errorf("Got %v expected %v", actualValue, expectedValue)
-			}
-		default:
-			t.Errorf("Too many")
-		}
-
-		if actualValue, expectedValue := value, count; actualValue != expectedValue {
-			t.Errorf("Got %v expected %v", actualValue, expectedValue)
-		}
-	}
-
-	if actualValue, expectedValue := count, 3; actualValue != expectedValue {
-		t.Errorf("Got %v expected %v", actualValue, expectedValue)
-	}
-}
-
-func TestMapIteratorPrev(t *testing.T) {
-	m := New[string, int]()
-	m.Put("c", 1)
-	m.Put("a", 2)
-	m.Put("b", 3)
-
-	it := m.Iterator()
-	for it.Next() {
-	}
-
-	countDown := m.Size()
-
-	for it.Prev() {
-		key := it.Key()
-		value := it.Value()
-
-		switch key {
-		case "c":
-			if actualValue, expectedValue := value, 1; actualValue != expectedValue {
-				t.Errorf("Got %v expected %v", actualValue, expectedValue)
-			}
-		case "a":
-			if actualValue, expectedValue := value, 2; actualValue != expectedValue {
-				t.Errorf("Got %v expected %v", actualValue, expectedValue)
-			}
-		case "b":
-			if actualValue, expectedValue := value, 3; actualValue != expectedValue {
-				t.Errorf("Got %v expected %v", actualValue, expectedValue)
-			}
-		default:
-			t.Errorf("Too many")
-		}
-
-		if actualValue, expectedValue := value, countDown; actualValue != expectedValue {
-			t.Errorf("Got %v expected %v", actualValue, expectedValue)
-		}
-
-		countDown--
-	}
-
-	if actualValue, expectedValue := countDown, 0; actualValue != expectedValue {
-		t.Errorf("Got %v expected %v", actualValue, expectedValue)
-	}
-}
-
-func TestMapIteratorBegin(t *testing.T) {
-	m := New[int, string]()
-	it := m.Iterator()
-	it.Begin()
-	m.Put(3, "c")
-	m.Put(1, "a")
-	m.Put(2, "b")
-
-	for it.Next() {
-	}
-
-	it.Begin()
-	it.Next()
-
-	if key, value := it.Key(), it.Value(); key != 3 || value != "c" {
-		t.Errorf("Got %v,%v expected %v,%v", key, value, 3, "c")
-	}
-}
-
-func TestMapIteratorEnd(t *testing.T) {
-	m := New[int, string]()
-	it := m.Iterator()
-	m.Put(3, "c")
-	m.Put(1, "a")
-	m.Put(2, "b")
-	it.End()
-	it.Prev()
-
-	if key, value := it.Key(), it.Value(); key != 2 || value != "b" {
-		t.Errorf("Got %v,%v expected %v,%v", key, value, 2, "b")
-	}
-}
-
-func TestMapIteratorFirst(t *testing.T) {
-	m := New[int, string]()
-	m.Put(3, "c")
-	m.Put(1, "a")
-	m.Put(2, "b")
-
-	it := m.Iterator()
-	if actualValue, expectedValue := it.First(), true; actualValue != expectedValue {
-		t.Errorf("Got %v expected %v", actualValue, expectedValue)
-	}
-
-	if key, value := it.Key(), it.Value(); key != 3 || value != "c" {
-		t.Errorf("Got %v,%v expected %v,%v", key, value, 3, "c")
-	}
-}
-
-func TestMapIteratorLast(t *testing.T) {
-	m := New[int, string]()
-	m.Put(3, "c")
-	m.Put(1, "a")
-	m.Put(2, "b")
-
-	it := m.Iterator()
-	if actualValue, expectedValue := it.Last(), true; actualValue != expectedValue {
-		t.Errorf("Got %v expected %v", actualValue, expectedValue)
-	}
-
-	if key, value := it.Key(), it.Value(); key != 2 || value != "b" {
-		t.Errorf("Got %v,%v expected %v,%v", key, value, 2, "b")
-	}
-}
-
-func TestMapIteratorNextTo(t *testing.T) {
-	// Sample seek function, i.e. string starting with "b"
-	seek := func(index int, value string) bool {
-		return strings.HasSuffix(value, "b")
-	}
-
-	// NextTo (empty)
-	{
-		m := New[int, string]()
-
-		it := m.Iterator()
-		for it.NextTo(seek) {
-			t.Errorf("Shouldn't iterate on empty map")
-		}
-	}
-
-	// NextTo (not found)
-	{
-		m := New[int, string]()
-		m.Put(0, "xx")
-		m.Put(1, "yy")
-
-		it := m.Iterator()
-		for it.NextTo(seek) {
-			t.Errorf("Shouldn't iterate on empty map")
-		}
-	}
-
-	// NextTo (found)
-	{
-		m := New[int, string]()
-		m.Put(0, "aa")
-		m.Put(1, "bb")
-		m.Put(2, "cc")
-		it := m.Iterator()
-		it.Begin()
-
-		if !it.NextTo(seek) {
-			t.Errorf("Shouldn't iterate on empty map")
-		}
-
-		if index, value := it.Key(), it.Value(); index != 1 || value != "bb" {
-			t.Errorf("Got %v,%v expected %v,%v", index, value, 1, "bb")
-		}
-
-		if !it.Next() {
-			t.Errorf("Should go to first element")
-		}
-
-		if index, value := it.Key(), it.Value(); index != 2 || value != "cc" {
-			t.Errorf("Got %v,%v expected %v,%v", index, value, 2, "cc")
-		}
-
-		if it.Next() {
-			t.Errorf("Should not go past last element")
-		}
-	}
-}
-
-func TestMapIteratorPrevTo(t *testing.T) {
-	// Sample seek function, i.e. string starting with "b"
-	seek := func(index int, value string) bool {
-		return strings.HasSuffix(value, "b")
-	}
-
-	// PrevTo (empty)
-	{
-		m := New[int, string]()
-		it := m.Iterator()
-		it.End()
-
-		for it.PrevTo(seek) {
-			t.Errorf("Shouldn't iterate on empty map")
-		}
-	}
-
-	// PrevTo (not found)
-	{
-		m := New[int, string]()
-		m.Put(0, "xx")
-		m.Put(1, "yy")
-		it := m.Iterator()
-		it.End()
-
-		for it.PrevTo(seek) {
-			t.Errorf("Shouldn't iterate on empty map")
-		}
-	}
-
-	// PrevTo (found)
-	{
-		m := New[int, string]()
-		m.Put(0, "aa")
-		m.Put(1, "bb")
-		m.Put(2, "cc")
-		it := m.Iterator()
-		it.End()
-
-		if !it.PrevTo(seek) {
-			t.Errorf("Shouldn't iterate on empty map")
-		}
-
-		if index, value := it.Key(), it.Value(); index != 1 || value != "bb" {
-			t.Errorf("Got %v,%v expected %v,%v", index, value, 1, "bb")
-		}
-
-		if !it.Prev() {
-			t.Errorf("Should go to first element")
-		}
-
-		if index, value := it.Key(), it.Value(); index != 0 || value != "aa" {
-			t.Errorf("Got %v,%v expected %v,%v", index, value, 0, "aa")
-		}
-
-		if it.Prev() {
-			t.Errorf("Should not go before first element")
-		}
-	}
-}
-
 func TestMapSerialization(t *testing.T) {
 	for range 10 {
-		original := New[string, string]()
+		original := linkedhashmap.New[string, string]()
 		original.Put("d", "4")
 		original.Put("e", "5")
 		original.Put("c", "3")
@@ -600,7 +295,7 @@ func TestMapSerialization(t *testing.T) {
 			t.Errorf("Got error %v", err)
 		}
 
-		deserialized := New[string, string]()
+		deserialized := linkedhashmap.New[string, string]()
 
 		err = deserialized.UnmarshalJSON(serialized)
 		if err != nil {
@@ -619,7 +314,7 @@ func TestMapSerialization(t *testing.T) {
 		})
 	}
 
-	m := New[string, float64]()
+	m := linkedhashmap.New[string, float64]()
 	m.Put("a", 1.0)
 	m.Put("b", 2.0)
 	m.Put("c", 3.0)
@@ -636,198 +331,10 @@ func TestMapSerialization(t *testing.T) {
 }
 
 func TestMapString(t *testing.T) {
-	c := New[string, int]()
+	c := linkedhashmap.New[string, int]()
 	c.Put("a", 1)
 
 	if !strings.HasPrefix(c.String(), "LinkedHashMap") {
 		t.Errorf("String should start with container name")
 	}
-}
-
-func benchmarkGet(b *testing.B, m *Map[int, int], size int) {
-	for range b.N {
-		for n := range size {
-			m.Get(n)
-		}
-	}
-}
-
-func benchmarkPut(b *testing.B, m *Map[int, int], size int) {
-	for range b.N {
-		for n := range size {
-			m.Put(n, n)
-		}
-	}
-}
-
-func benchmarkRemove(b *testing.B, m *Map[int, int], size int) {
-	for range b.N {
-		for n := range size {
-			m.Remove(n)
-		}
-	}
-}
-
-func BenchmarkTreeMapGet100(b *testing.B) {
-	b.StopTimer()
-
-	size := 100
-	m := New[int, int]()
-
-	for n := range size {
-		m.Put(n, n)
-	}
-
-	b.StartTimer()
-	benchmarkGet(b, m, size)
-}
-
-func BenchmarkTreeMapGet1000(b *testing.B) {
-	b.StopTimer()
-
-	size := 1000
-	m := New[int, int]()
-
-	for n := range size {
-		m.Put(n, n)
-	}
-
-	b.StartTimer()
-	benchmarkGet(b, m, size)
-}
-
-func BenchmarkTreeMapGet10000(b *testing.B) {
-	b.StopTimer()
-
-	size := 10000
-	m := New[int, int]()
-
-	for n := range size {
-		m.Put(n, n)
-	}
-
-	b.StartTimer()
-	benchmarkGet(b, m, size)
-}
-
-func BenchmarkTreeMapGet100000(b *testing.B) {
-	b.StopTimer()
-
-	size := 100000
-	m := New[int, int]()
-
-	for n := range size {
-		m.Put(n, n)
-	}
-
-	b.StartTimer()
-	benchmarkGet(b, m, size)
-}
-
-func BenchmarkTreeMapPut100(b *testing.B) {
-	b.StopTimer()
-
-	size := 100
-	m := New[int, int]()
-
-	b.StartTimer()
-	benchmarkPut(b, m, size)
-}
-
-func BenchmarkTreeMapPut1000(b *testing.B) {
-	b.StopTimer()
-
-	size := 1000
-	m := New[int, int]()
-
-	for n := range size {
-		m.Put(n, n)
-	}
-
-	b.StartTimer()
-	benchmarkPut(b, m, size)
-}
-
-func BenchmarkTreeMapPut10000(b *testing.B) {
-	b.StopTimer()
-
-	size := 10000
-	m := New[int, int]()
-
-	for n := range size {
-		m.Put(n, n)
-	}
-
-	b.StartTimer()
-	benchmarkPut(b, m, size)
-}
-
-func BenchmarkTreeMapPut100000(b *testing.B) {
-	b.StopTimer()
-
-	size := 100000
-	m := New[int, int]()
-
-	for n := range size {
-		m.Put(n, n)
-	}
-
-	b.StartTimer()
-	benchmarkPut(b, m, size)
-}
-
-func BenchmarkTreeMapRemove100(b *testing.B) {
-	b.StopTimer()
-
-	size := 100
-	m := New[int, int]()
-
-	for n := range size {
-		m.Put(n, n)
-	}
-
-	b.StartTimer()
-	benchmarkRemove(b, m, size)
-}
-
-func BenchmarkTreeMapRemove1000(b *testing.B) {
-	b.StopTimer()
-
-	size := 1000
-	m := New[int, int]()
-
-	for n := range size {
-		m.Put(n, n)
-	}
-
-	b.StartTimer()
-	benchmarkRemove(b, m, size)
-}
-
-func BenchmarkTreeMapRemove10000(b *testing.B) {
-	b.StopTimer()
-
-	size := 10000
-	m := New[int, int]()
-
-	for n := range size {
-		m.Put(n, n)
-	}
-
-	b.StartTimer()
-	benchmarkRemove(b, m, size)
-}
-
-func BenchmarkTreeMapRemove100000(b *testing.B) {
-	b.StopTimer()
-
-	size := 100000
-	m := New[int, int]()
-
-	for n := range size {
-		m.Put(n, n)
-	}
-
-	b.StartTimer()
-	benchmarkRemove(b, m, size)
 }

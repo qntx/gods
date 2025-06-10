@@ -2,26 +2,12 @@ package hashbimap_test
 
 import (
 	"encoding/json"
+	"slices"
 	"strings"
 	"testing"
 
 	"github.com/qntx/gods/hashbimap"
 )
-
-func SameElements[T comparable](t *testing.T, actual, expected []T) {
-	if len(actual) != len(expected) {
-		t.Errorf("Got %d expected %d", len(actual), len(expected))
-	}
-outer:
-	for _, e := range expected {
-		for _, a := range actual {
-			if e == a {
-				continue outer
-			}
-		}
-		t.Errorf("Did not find expected element %v in %v", e, actual)
-	}
-}
 
 func TestMapPut(t *testing.T) {
 	m := hashbimap.New[int, string]()
@@ -38,11 +24,10 @@ func TestMapPut(t *testing.T) {
 		t.Errorf("Got %v expected %v", actualValue, 7)
 	}
 
-	SameElements(t, m.Keys(), []int{1, 2, 3, 4, 5, 6, 7})
-	SameElements(t, m.Values(), []string{"a", "b", "c", "d", "e", "f", "g"})
+	slices.Equal(m.Keys(), []int{1, 2, 3, 4, 5, 6, 7})
+	slices.Equal(m.Values(), []string{"a", "b", "c", "d", "e", "f", "g"})
 
-	// key,expectedValue,expectedFound
-	tests1 := [][]interface{}{
+	tests1 := [][]any{
 		{1, "a", true},
 		{2, "b", true},
 		{3, "c", true},
@@ -79,8 +64,8 @@ func TestMapRemove(t *testing.T) {
 	m.Remove(8)
 	m.Remove(5)
 
-	SameElements(t, m.Keys(), []int{1, 2, 3, 4})
-	SameElements(t, m.Values(), []string{"a", "b", "c", "d"})
+	slices.Equal(m.Keys(), []int{1, 2, 3, 4})
+	slices.Equal(m.Values(), []string{"a", "b", "c", "d"})
 
 	if actualValue := m.Size(); actualValue != 4 {
 		t.Errorf("Got %v expected %v", actualValue, 4)
@@ -111,8 +96,8 @@ func TestMapRemove(t *testing.T) {
 	m.Remove(2)
 	m.Remove(2)
 
-	SameElements(t, m.Keys(), nil)
-	SameElements(t, m.Values(), nil)
+	slices.Equal(m.Keys(), nil)
+	slices.Equal(m.Values(), nil)
 
 	if actualValue := m.Size(); actualValue != 0 {
 		t.Errorf("Got %v expected %v", actualValue, 0)
@@ -164,8 +149,8 @@ func TestMapSerialization(t *testing.T) {
 	var err error
 
 	assert := func() {
-		SameElements(t, m.Keys(), []string{"a", "b", "c"})
-		SameElements(t, m.Values(), []float64{1.0, 2.0, 3.0})
+		slices.Equal(m.Keys(), []string{"a", "b", "c"})
+		slices.Equal(m.Values(), []float64{1.0, 2.0, 3.0})
 
 		if actualValue, expectedValue := m.Size(), 3; actualValue != expectedValue {
 			t.Errorf("Got %v expected %v", actualValue, expectedValue)

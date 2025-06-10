@@ -1,12 +1,12 @@
-package hashmap_test
+package linkedhashmap_test
 
 import (
 	"testing"
 
-	"github.com/qntx/gods/hashmap"
+	"github.com/qntx/gods/linkedhashmap"
 )
 
-func benchmarkGet(b *testing.B, m *hashmap.Map[int, int], size int) {
+func benchmarkGet(b *testing.B, m *linkedhashmap.Map[int, int], size int) {
 	for range b.N {
 		for n := range size {
 			m.Get(n)
@@ -14,7 +14,7 @@ func benchmarkGet(b *testing.B, m *hashmap.Map[int, int], size int) {
 	}
 }
 
-func benchmarkPut(b *testing.B, m *hashmap.Map[int, int], size int) {
+func benchmarkPut(b *testing.B, m *linkedhashmap.Map[int, int], size int) {
 	for range b.N {
 		for n := range size {
 			m.Put(n, n)
@@ -22,19 +22,19 @@ func benchmarkPut(b *testing.B, m *hashmap.Map[int, int], size int) {
 	}
 }
 
-func benchmarkDelete(b *testing.B, m *hashmap.Map[int, int], size int) {
+func benchmarkRemove(b *testing.B, m *linkedhashmap.Map[int, int], size int) {
 	for range b.N {
 		for n := range size {
-			m.Delete(n)
+			m.Remove(n)
 		}
 	}
 }
 
-func BenchmarkHashMapGet100(b *testing.B) {
+func BenchmarkTreeMapGet100(b *testing.B) {
 	b.StopTimer()
 
 	size := 100
-	m := hashmap.New[int, int]()
+	m := linkedhashmap.New[int, int]()
 
 	for n := range size {
 		m.Put(n, n)
@@ -44,11 +44,11 @@ func BenchmarkHashMapGet100(b *testing.B) {
 	benchmarkGet(b, m, size)
 }
 
-func BenchmarkHashMapGet1000(b *testing.B) {
+func BenchmarkTreeMapGet1000(b *testing.B) {
 	b.StopTimer()
 
 	size := 1000
-	m := hashmap.New[int, int]()
+	m := linkedhashmap.New[int, int]()
 
 	for n := range size {
 		m.Put(n, n)
@@ -58,11 +58,11 @@ func BenchmarkHashMapGet1000(b *testing.B) {
 	benchmarkGet(b, m, size)
 }
 
-func BenchmarkHashMapGet10000(b *testing.B) {
+func BenchmarkTreeMapGet10000(b *testing.B) {
 	b.StopTimer()
 
 	size := 10000
-	m := hashmap.New[int, int]()
+	m := linkedhashmap.New[int, int]()
 
 	for n := range size {
 		m.Put(n, n)
@@ -72,11 +72,11 @@ func BenchmarkHashMapGet10000(b *testing.B) {
 	benchmarkGet(b, m, size)
 }
 
-func BenchmarkHashMapGet100000(b *testing.B) {
+func BenchmarkTreeMapGet100000(b *testing.B) {
 	b.StopTimer()
 
 	size := 100000
-	m := hashmap.New[int, int]()
+	m := linkedhashmap.New[int, int]()
 
 	for n := range size {
 		m.Put(n, n)
@@ -86,21 +86,21 @@ func BenchmarkHashMapGet100000(b *testing.B) {
 	benchmarkGet(b, m, size)
 }
 
-func BenchmarkHashMapPut100(b *testing.B) {
+func BenchmarkTreeMapPut100(b *testing.B) {
 	b.StopTimer()
 
 	size := 100
-	m := hashmap.New[int, int]()
+	m := linkedhashmap.New[int, int]()
 
 	b.StartTimer()
 	benchmarkPut(b, m, size)
 }
 
-func BenchmarkHashMapPut1000(b *testing.B) {
+func BenchmarkTreeMapPut1000(b *testing.B) {
 	b.StopTimer()
 
 	size := 1000
-	m := hashmap.New[int, int]()
+	m := linkedhashmap.New[int, int]()
 
 	for n := range size {
 		m.Put(n, n)
@@ -110,11 +110,11 @@ func BenchmarkHashMapPut1000(b *testing.B) {
 	benchmarkPut(b, m, size)
 }
 
-func BenchmarkHashMapPut10000(b *testing.B) {
+func BenchmarkTreeMapPut10000(b *testing.B) {
 	b.StopTimer()
 
 	size := 10000
-	m := hashmap.New[int, int]()
+	m := linkedhashmap.New[int, int]()
 
 	for n := range size {
 		m.Put(n, n)
@@ -124,11 +124,11 @@ func BenchmarkHashMapPut10000(b *testing.B) {
 	benchmarkPut(b, m, size)
 }
 
-func BenchmarkHashMapPut100000(b *testing.B) {
+func BenchmarkTreeMapPut100000(b *testing.B) {
 	b.StopTimer()
 
 	size := 100000
-	m := hashmap.New[int, int]()
+	m := linkedhashmap.New[int, int]()
 
 	for n := range size {
 		m.Put(n, n)
@@ -138,58 +138,58 @@ func BenchmarkHashMapPut100000(b *testing.B) {
 	benchmarkPut(b, m, size)
 }
 
-func BenchmarkHashMapRemove100(b *testing.B) {
+func BenchmarkTreeMapRemove100(b *testing.B) {
 	b.StopTimer()
 
 	size := 100
-	m := hashmap.New[int, int]()
+	m := linkedhashmap.New[int, int]()
 
 	for n := range size {
 		m.Put(n, n)
 	}
 
 	b.StartTimer()
-	benchmarkDelete(b, m, size)
+	benchmarkRemove(b, m, size)
 }
 
-func BenchmarkHashMapRemove1000(b *testing.B) {
+func BenchmarkTreeMapRemove1000(b *testing.B) {
 	b.StopTimer()
 
 	size := 1000
-	m := hashmap.New[int, int]()
+	m := linkedhashmap.New[int, int]()
 
 	for n := range size {
 		m.Put(n, n)
 	}
 
 	b.StartTimer()
-	benchmarkDelete(b, m, size)
+	benchmarkRemove(b, m, size)
 }
 
-func BenchmarkHashMapRemove10000(b *testing.B) {
+func BenchmarkTreeMapRemove10000(b *testing.B) {
 	b.StopTimer()
 
 	size := 10000
-	m := hashmap.New[int, int]()
+	m := linkedhashmap.New[int, int]()
 
 	for n := range size {
 		m.Put(n, n)
 	}
 
 	b.StartTimer()
-	benchmarkDelete(b, m, size)
+	benchmarkRemove(b, m, size)
 }
 
-func BenchmarkHashMapRemove100000(b *testing.B) {
+func BenchmarkTreeMapRemove100000(b *testing.B) {
 	b.StopTimer()
 
 	size := 100000
-	m := hashmap.New[int, int]()
+	m := linkedhashmap.New[int, int]()
 
 	for n := range size {
 		m.Put(n, n)
 	}
 
 	b.StartTimer()
-	benchmarkDelete(b, m, size)
+	benchmarkRemove(b, m, size)
 }
