@@ -1284,7 +1284,7 @@ func TestBTreeSerialization(t *testing.T) {
 
 	assert()
 
-	bytes, err = json.Marshal([]interface{}{"a", "b", "c", tree})
+	_, err = json.Marshal([]interface{}{"a", "b", "c", tree})
 	if err != nil {
 		t.Errorf("Got error %v", err)
 	}
