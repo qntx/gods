@@ -1,12 +1,12 @@
-package rbtreebimap_test
+package btreebimap_test
 
 import (
 	"testing"
 
-	"github.com/qntx/gods/rbtreebimap"
+	"github.com/qntx/gods/btreebimap"
 )
 
-func benchmarkGet(b *testing.B, m *rbtreebimap.Map[int, int], size int) {
+func benchmarkGet(b *testing.B, m *btreebimap.Map[int, int], size int) {
 	for range b.N {
 		for n := range size {
 			m.Get(n)
@@ -14,7 +14,7 @@ func benchmarkGet(b *testing.B, m *rbtreebimap.Map[int, int], size int) {
 	}
 }
 
-func benchmarkPut(b *testing.B, m *rbtreebimap.Map[int, int], size int) {
+func benchmarkPut(b *testing.B, m *btreebimap.Map[int, int], size int) {
 	for range b.N {
 		for n := range size {
 			m.Put(n, n)
@@ -22,7 +22,7 @@ func benchmarkPut(b *testing.B, m *rbtreebimap.Map[int, int], size int) {
 	}
 }
 
-func benchmarkRemove(b *testing.B, m *rbtreebimap.Map[int, int], size int) {
+func benchmarkRemove(b *testing.B, m *btreebimap.Map[int, int], size int) {
 	for range b.N {
 		for n := range size {
 			m.Remove(n)
@@ -34,7 +34,7 @@ func BenchmarkTreeBidiMapGet100(b *testing.B) {
 	b.StopTimer()
 
 	size := 100
-	m := rbtreebimap.New[int, int]()
+	m := btreebimap.New[int, int]()
 
 	for n := range size {
 		m.Put(n, n)
@@ -48,7 +48,7 @@ func BenchmarkTreeBidiMapGet1000(b *testing.B) {
 	b.StopTimer()
 
 	size := 1000
-	m := rbtreebimap.New[int, int]()
+	m := btreebimap.New[int, int]()
 
 	for n := range size {
 		m.Put(n, n)
@@ -62,7 +62,7 @@ func BenchmarkTreeBidiMapGet10000(b *testing.B) {
 	b.StopTimer()
 
 	size := 10000
-	m := rbtreebimap.New[int, int]()
+	m := btreebimap.New[int, int]()
 
 	for n := range size {
 		m.Put(n, n)
@@ -76,7 +76,7 @@ func BenchmarkTreeBidiMapGet100000(b *testing.B) {
 	b.StopTimer()
 
 	size := 100000
-	m := rbtreebimap.New[int, int]()
+	m := btreebimap.New[int, int]()
 
 	for n := range size {
 		m.Put(n, n)
@@ -90,7 +90,7 @@ func BenchmarkTreeBidiMapPut100(b *testing.B) {
 	b.StopTimer()
 
 	size := 100
-	m := rbtreebimap.New[int, int]()
+	m := btreebimap.New[int, int]()
 
 	b.StartTimer()
 	benchmarkPut(b, m, size)
@@ -100,7 +100,7 @@ func BenchmarkTreeBidiMapPut1000(b *testing.B) {
 	b.StopTimer()
 
 	size := 1000
-	m := rbtreebimap.New[int, int]()
+	m := btreebimap.New[int, int]()
 
 	for n := range size {
 		m.Put(n, n)
@@ -114,7 +114,7 @@ func BenchmarkTreeBidiMapPut10000(b *testing.B) {
 	b.StopTimer()
 
 	size := 10000
-	m := rbtreebimap.New[int, int]()
+	m := btreebimap.New[int, int]()
 
 	for n := range size {
 		m.Put(n, n)
@@ -128,7 +128,7 @@ func BenchmarkTreeBidiMapPut100000(b *testing.B) {
 	b.StopTimer()
 
 	size := 100000
-	m := rbtreebimap.New[int, int]()
+	m := btreebimap.New[int, int]()
 
 	for n := range size {
 		m.Put(n, n)
@@ -142,7 +142,7 @@ func BenchmarkTreeBidiMapRemove100(b *testing.B) {
 	b.StopTimer()
 
 	size := 100
-	m := rbtreebimap.New[int, int]()
+	m := btreebimap.New[int, int]()
 
 	for n := range size {
 		m.Put(n, n)
@@ -156,7 +156,7 @@ func BenchmarkTreeBidiMapRemove1000(b *testing.B) {
 	b.StopTimer()
 
 	size := 1000
-	m := rbtreebimap.New[int, int]()
+	m := btreebimap.New[int, int]()
 
 	for n := range size {
 		m.Put(n, n)
@@ -170,7 +170,7 @@ func BenchmarkTreeBidiMapRemove10000(b *testing.B) {
 	b.StopTimer()
 
 	size := 10000
-	m := rbtreebimap.New[int, int]()
+	m := btreebimap.New[int, int]()
 
 	for n := range size {
 		m.Put(n, n)
@@ -184,7 +184,7 @@ func BenchmarkTreeBidiMapRemove100000(b *testing.B) {
 	b.StopTimer()
 
 	size := 100000
-	m := rbtreebimap.New[int, int]()
+	m := btreebimap.New[int, int]()
 
 	for n := range size {
 		m.Put(n, n)

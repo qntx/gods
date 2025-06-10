@@ -1,0 +1,76 @@
+package btreebimap
+
+import "github.com/qntx/gods/container"
+
+// Assert Enumerable implementation.
+var _ container.EnumerableWithKey[string, int] = (*Map[string, int])(nil)
+
+// Each calls the given function once for each element, passing that element's key and value.
+func (m *Map[K, V]) Each(f func(key K, value V)) {
+	for k, v := range m.forwardMap.Iter() {
+		f(k, v)
+	}
+}
+
+// Map invokes the given function once for each element and returns a container
+// containing the values returned by the given function as key/value pairs.
+func (m *Map[K, V]) Map(f func(key1 K, value1 V) (K, V)) *Map[K, V] {
+	newMap := NewWith(m.forwardMap.MaxChildren(), m.forwardMap.Comparator, m.inverseMap.Comparator)
+
+	for k, v := range m.forwardMap.Iter() {
+		key2, value2 := f(k, v)
+		newMap.Put(key2, value2)
+	}
+
+	return newMap
+}
+
+// Select returns a new container containing all elements for which the given function returns a true value.
+func (m *Map[K, V]) Select(f func(key K, value V) bool) *Map[K, V] {
+	newMap := NewWith(m.forwardMap.MaxChildren(), m.forwardMap.Comparator, m.inverseMap.Comparator)
+
+	for k, v := range m.forwardMap.Iter() {
+		if f(k, v) {
+			newMap.Put(k, v)
+		}
+	}
+
+	return newMap
+}
+
+// Any passes each element of the container to the given function and
+// returns true if the function ever returns true for any element.
+func (m *Map[K, V]) Any(f func(key K, value V) bool) bool {
+	for k, v := range m.forwardMap.Iter() {
+		if f(k, v) {
+			return true
+		}
+	}
+
+	return false
+}
+
+// All passes each element of the container to the given function and
+// returns true if the function returns true for all elements.
+func (m *Map[K, V]) All(f func(key K, value V) bool) bool {
+	for k, v := range m.forwardMap.Iter() {
+		if !f(k, v) {
+			return false
+		}
+	}
+
+	return true
+}
+
+// Find passes each element of the container to the given function and returns
+// the first (key,value) for which the function is true or nil,nil otherwise if no element
+// matches the criteria.
+func (m *Map[K, V]) Find(f func(key K, value V) bool) (k K, v V) {
+	for k, v := range m.forwardMap.Iter() {
+		if f(k, v) {
+			return k, v
+		}
+	}
+
+	return k, v
+}

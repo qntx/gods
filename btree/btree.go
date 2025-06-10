@@ -1,901 +1,680 @@
+// Package btree implements a B tree.
+//
+// According to Knuth's definition, a B-tree of order m is a tree which satisfies the following properties:
+// - Every node has at most m children.
+// - Every non-leaf node (except root) has at least ⌈m/2⌉ children.
+// - The root has at least two children if it is not a leaf node.
+// - A non-leaf node with k children contains k−1 keys.
+// - All leaves appear in the same level
+//
+// Structure is not thread safe.
+//
+// References: https://en.wikipedia.org/wiki/B-tree
 package btree
 
 import (
-	"sort"
-	"sync"
+	"bytes"
+	"encoding/json"
+	"fmt"
+	"iter"
+	"strings"
 
 	"github.com/qntx/gods/cmp"
 )
 
-// Item represents a single object in the tree.
-type Item interface {
-	// Less tests whether the current item is less than the given argument.
-	//
-	// This must provide a strict weak ordering.
-	// If !a.Less(b) && !b.Less(a), we treat this to mean a == b (i.e. we can only
-	// hold one of either a or b in the tree).
-	Less(than Item) bool
+// Tree holds elements of the B-tree.
+type Tree[K comparable, V any] struct {
+	Root       *Node[K, V]       // Root node
+	Comparator cmp.Comparator[K] // Key comparator
+	size       int               // Total number of keys in the tree
+	m          int               // order (maximum number of children)
 }
 
-const (
-	DefaultFreeListSize = 32
-)
-
-// FreeList represents a free list of btree nodes. By default each
-// BTree has its own FreeList, but multiple BTrees can share the same
-// FreeList, in particular when they're created with Clone.
-// Two Btrees using the same freelist are safe for concurrent write access.
-type FreeList[T any] struct {
-	mu       sync.Mutex
-	freelist []*node[T]
+// Node is a single element within the tree.
+type Node[K comparable, V any] struct {
+	Parent   *Node[K, V]
+	Entries  []*Entry[K, V] // Contained keys in node
+	Children []*Node[K, V]  // Children nodes
 }
 
-// NewFreeList creates a new free list.
-// size is the maximum size of the returned free list.
-func NewFreeList[T any](size int) *FreeList[T] {
-	return &FreeList[T]{freelist: make([]*node[T], 0, size)}
+// Entry represents the key-value pair contained within nodes.
+type Entry[K comparable, V any] struct {
+	Key   K
+	Value V
 }
 
-func (f *FreeList[T]) newNode() (n *node[T]) {
-	f.mu.Lock()
+// New instantiates a B-tree with the order (maximum number of children) and the built-in comparator for K.
+func New[K cmp.Ordered, V any](order int) *Tree[K, V] {
+	return NewWith[K, V](order, cmp.GenericComparator[K])
+}
 
-	index := len(f.freelist) - 1
-	if index < 0 {
-		f.mu.Unlock()
-
-		return new(node[T])
+// NewWith instantiates a B-tree with the order (maximum number of children) and a custom key comparator.
+func NewWith[K comparable, V any](order int, comparator cmp.Comparator[K]) *Tree[K, V] {
+	if order < 3 {
+		panic("Invalid order, should be at least 3")
 	}
 
-	n = f.freelist[index]
-	f.freelist[index] = nil
-	f.freelist = f.freelist[:index]
-	f.mu.Unlock()
-
-	return
+	return &Tree[K, V]{m: order, Comparator: comparator}
 }
 
-func (f *FreeList[T]) freeNode(n *node[T]) (out bool) {
-	f.mu.Lock()
-	if len(f.freelist) < cap(f.freelist) {
-		f.freelist = append(f.freelist, n)
-		out = true
-	}
-	f.mu.Unlock()
+// Put inserts key-value pair node into the tree.
+// If key already exists, then its value is updated with the new value.
+// Key should adhere to the comparator's type assertion, otherwise method panics.
+func (tree *Tree[K, V]) Put(key K, value V) {
+	entry := &Entry[K, V]{Key: key, Value: value}
 
-	return
-}
+	if tree.Root == nil {
+		tree.Root = &Node[K, V]{Entries: []*Entry[K, V]{entry}, Children: []*Node[K, V]{}}
+		tree.size++
 
-// ItemIterator allows callers of {A/De}scend* to iterate in-order over portions of
-// the tree.  When this function returns false, iteration will stop and the
-// associated Ascend* function will immediately return.
-type ItemIterator[T any] func(item T) bool
-
-// New creates a new B-Tree for ordered types.
-func New[T cmp.Ordered](degree int) *Tree[T] {
-	return NewWith(degree, cmp.GenericComparator[T])
-}
-
-// NewWith creates a new B-Tree with the given degree.
-//
-// NewWith(2), for example, will create a 2-3-4 tree (each node contains 1-3 items
-// and 2-4 children).
-//
-// The passed-in LessFunc determines how objects of type T are ordered.
-func NewWith[T any](degree int, cmp cmp.Comparator[T]) *Tree[T] {
-	return NewWithFreeList(degree, cmp, NewFreeList[T](DefaultFreeListSize))
-}
-
-// NewWithFreeList creates a new B-Tree that uses the given node free list.
-func NewWithFreeList[T any](degree int, cmp cmp.Comparator[T], f *FreeList[T]) *Tree[T] {
-	if degree <= 1 {
-		panic("bad degree")
+		return
 	}
 
-	return &Tree[T]{
-		degree: degree,
-		cow:    &copyOnWriteContext[T]{freelist: f, cmp: cmp},
+	if tree.insert(tree.Root, entry) {
+		tree.size++
 	}
 }
 
-// items stores items in a node.
-type items[T any] []T
-
-// insertAt inserts a value into the given index, pushing all subsequent values
-// forward.
-func (s *items[T]) insertAt(index int, item T) {
-	var zero T
-
-	*s = append(*s, zero)
-	if index < len(*s) {
-		copy((*s)[index+1:], (*s)[index:])
+// Get searches the node in the tree by key and returns its value or nil if key is not found in tree.
+// Second return parameter is true if key was found, otherwise false.
+// Key should adhere to the comparator's type assertion, otherwise method panics.
+func (tree *Tree[K, V]) Get(key K) (value V, found bool) {
+	node, index, found := tree.searchRecursively(tree.Root, key)
+	if found {
+		return node.Entries[index].Value, true
 	}
 
-	(*s)[index] = item
+	return value, false
 }
 
-// removeAt removes a value at a given index, pulling all subsequent values
-// back.
-func (s *items[T]) removeAt(index int) T {
-	item := (*s)[index]
-	copy((*s)[index:], (*s)[index+1:])
+// GetNode searches the node in the tree by key and returns its node or nil if key is not found in tree.
+// Key should adhere to the comparator's type assertion, otherwise method panics.
+func (tree *Tree[K, V]) GetNode(key K) *Node[K, V] {
+	node, _, _ := tree.searchRecursively(tree.Root, key)
 
-	var zero T
-	(*s)[len(*s)-1] = zero
-	*s = (*s)[:len(*s)-1]
-
-	return item
+	return node
 }
 
-// pop removes and returns the last element in the list.
-func (s *items[T]) pop() (out T) {
-	index := len(*s) - 1
-	out = (*s)[index]
+// Delete remove the node from the tree by key.
+// Key should adhere to the comparator's type assertion, otherwise method panics.
+func (tree *Tree[K, V]) Delete(key K) {
+	node, index, found := tree.searchRecursively(tree.Root, key)
+	if found {
+		tree.delete(node, index)
 
-	var zero T
-	(*s)[index] = zero
-	*s = (*s)[:index]
-
-	return
-}
-
-// truncate truncates this instance at index so that it contains only the
-// first index items. index must be less than or equal to length.
-func (s *items[T]) truncate(index int) {
-	var toClear items[T]
-	*s, toClear = (*s)[:index], (*s)[index:]
-
-	var zero T
-
-	for i := 0; i < len(toClear); i++ {
-		toClear[i] = zero
+		tree.size--
 	}
 }
 
-// find returns the index where the given item should be inserted into this
-// list.  'found' is true if the item already exists in the list at the given
-// index.
-func (s items[T]) find(item T, cmp cmp.Comparator[T]) (index int, found bool) {
-	i := sort.Search(len(s), func(i int) bool {
-		return cmp(item, s[i]) < 0
-	})
-	if i > 0 && cmp(s[i-1], item) == 0 {
-		return i - 1, true
-	}
-
-	return i, false
+// Empty returns true if tree does not contain any nodes.
+func (tree *Tree[K, V]) Empty() bool {
+	return tree.size == 0
 }
 
-// node is an internal node in a tree.
-//
-// It must at all times maintain the invariant that either
-//   - len(children) == 0, len(items) unconstrained
-//   - len(children) == len(items) + 1
-type node[T any] struct {
-	items    items[T]
-	children items[*node[T]]
-	cow      *copyOnWriteContext[T]
+// Len returns number of nodes in the tree.
+func (tree *Tree[K, V]) Len() int {
+	return tree.size
 }
 
-func (n *node[T]) mutableFor(cow *copyOnWriteContext[T]) *node[T] {
-	if n.cow == cow {
-		return n
-	}
-
-	out := cow.newNode()
-	if cap(out.items) >= len(n.items) {
-		out.items = out.items[:len(n.items)]
-	} else {
-		out.items = make(items[T], len(n.items), cap(n.items))
-	}
-
-	copy(out.items, n.items)
-	// Copy children
-	if cap(out.children) >= len(n.children) {
-		out.children = out.children[:len(n.children)]
-	} else {
-		out.children = make(items[*node[T]], len(n.children), cap(n.children))
-	}
-
-	copy(out.children, n.children)
-
-	return out
+func (tree *Tree[K, V]) MaxChildren() int {
+	return tree.m
 }
 
-func (n *node[T]) mutableChild(i int) *node[T] {
-	c := n.children[i].mutableFor(n.cow)
-	n.children[i] = c
-
-	return c
-}
-
-// split splits the given node at the given index.  The current node shrinks,
-// and this function returns the item that existed at that index and a new node
-// containing all items/children after it.
-func (n *node[T]) split(i int) (T, *node[T]) {
-	item := n.items[i]
-	next := n.cow.newNode()
-	next.items = append(next.items, n.items[i+1:]...)
-	n.items.truncate(i)
-
-	if len(n.children) > 0 {
-		next.children = append(next.children, n.children[i+1:]...)
-		n.children.truncate(i + 1)
+// Size returns the number of elements stored in the subtree.
+// Computed dynamically on each call, i.e. the subtree is traversed to count the number of the nodes.
+func (node *Node[K, V]) Size() int {
+	if node == nil {
+		return 0
 	}
 
-	return item, next
+	size := 1
+	for _, child := range node.Children {
+		size += child.Size()
+	}
+
+	return size
 }
 
-// maybeSplitChild checks if a child should be split, and if so splits it.
-// Returns whether or not a split occurred.
-func (n *node[T]) maybeSplitChild(i, maxItems int) bool {
-	if len(n.children[i].items) < maxItems {
+// Keys returns all keys in-order.
+func (tree *Tree[K, V]) Keys() []K {
+	keys := make([]K, tree.size)
+	it := tree.Iterator()
+
+	for i := 0; it.Next(); i++ {
+		keys[i] = it.Key()
+	}
+
+	return keys
+}
+
+// Values returns all values in-order based on the key.
+func (tree *Tree[K, V]) Values() []V {
+	values := make([]V, tree.size)
+	it := tree.Iterator()
+
+	for i := 0; it.Next(); i++ {
+		values[i] = it.Value()
+	}
+
+	return values
+}
+
+// Iter returns an iterator over key-value pairs from the tree.
+// The iteration order is in-order based on the key.
+func (tree *Tree[K, V]) Iter() iter.Seq2[K, V] {
+	return func(yield func(K, V) bool) {
+		it := tree.Iterator()
+		for it.Next() {
+			if !yield(it.Key(), it.Value()) {
+				return
+			}
+		}
+	}
+}
+
+// Clear removes all nodes from the tree.
+func (tree *Tree[K, V]) Clear() {
+	tree.Root = nil
+	tree.size = 0
+}
+
+// Height returns the height of the tree.
+func (tree *Tree[K, V]) Height() int {
+	return tree.Root.height()
+}
+
+// Left returns the left-most (min) node or nil if tree is empty.
+func (tree *Tree[K, V]) Left() *Node[K, V] {
+	return tree.left(tree.Root)
+}
+
+// LeftKey returns the left-most (min) key or nil if tree is empty.
+func (tree *Tree[K, V]) LeftKey() interface{} {
+	if left := tree.Left(); left != nil {
+		return left.Entries[0].Key
+	}
+
+	return nil
+}
+
+// LeftValue returns the left-most value or nil if tree is empty.
+func (tree *Tree[K, V]) LeftValue() interface{} {
+	if left := tree.Left(); left != nil {
+		return left.Entries[0].Value
+	}
+
+	return nil
+}
+
+// Right returns the right-most (max) node or nil if tree is empty.
+func (tree *Tree[K, V]) Right() *Node[K, V] {
+	return tree.right(tree.Root)
+}
+
+// RightKey returns the right-most (max) key or nil if tree is empty.
+func (tree *Tree[K, V]) RightKey() interface{} {
+	if right := tree.Right(); right != nil {
+		return right.Entries[len(right.Entries)-1].Key
+	}
+
+	return nil
+}
+
+// RightValue returns the right-most value or nil if tree is empty.
+func (tree *Tree[K, V]) RightValue() interface{} {
+	if right := tree.Right(); right != nil {
+		return right.Entries[len(right.Entries)-1].Value
+	}
+
+	return nil
+}
+
+// String returns a string representation of container (for debugging purposes).
+func (tree *Tree[K, V]) String() string {
+	var buffer bytes.Buffer
+
+	buffer.WriteString("BTree\n")
+
+	if !tree.Empty() {
+		tree.output(&buffer, tree.Root, 0)
+	}
+
+	return buffer.String()
+}
+
+// ToJSON outputs the JSON representation of the tree.
+func (tree *Tree[K, V]) MarshalJSON() ([]byte, error) {
+	elements := make(map[K]V)
+	it := tree.Iterator()
+
+	for it.Next() {
+		elements[it.Key()] = it.Value()
+	}
+
+	return json.Marshal(&elements)
+}
+
+// FromJSON populates the tree from the input JSON representation.
+func (tree *Tree[K, V]) UnmarshalJSON(data []byte) error {
+	elements := make(map[K]V)
+
+	err := json.Unmarshal(data, &elements)
+	if err != nil {
+		return err
+	}
+
+	tree.Clear()
+
+	for key, value := range elements {
+		tree.Put(key, value)
+	}
+
+	return err
+}
+
+func (entry *Entry[K, V]) String() string {
+	return fmt.Sprintf("%v", entry.Key)
+}
+
+func (tree *Tree[K, V]) output(buffer *bytes.Buffer, node *Node[K, V], level int) {
+	for e := range len(node.Entries) + 1 {
+		if e < len(node.Children) {
+			tree.output(buffer, node.Children[e], level+1)
+		}
+
+		if e < len(node.Entries) {
+			buffer.WriteString(strings.Repeat("    ", level))
+			buffer.WriteString(fmt.Sprintf("%v", node.Entries[e].Key) + "\n")
+		}
+	}
+}
+
+func (node *Node[K, V]) height() int {
+	height := 0
+	for ; node != nil; node = node.Children[0] {
+		height++
+
+		if len(node.Children) == 0 {
+			break
+		}
+	}
+
+	return height
+}
+
+func (tree *Tree[K, V]) isLeaf(node *Node[K, V]) bool {
+	return len(node.Children) == 0
+}
+
+func (tree *Tree[K, V]) shouldSplit(node *Node[K, V]) bool {
+	return len(node.Entries) > tree.maxEntries()
+}
+
+func (tree *Tree[K, V]) maxChildren() int {
+	return tree.m
+}
+
+func (tree *Tree[K, V]) minChildren() int {
+	return (tree.m + 1) / 2 // ceil(m/2)
+}
+
+func (tree *Tree[K, V]) maxEntries() int {
+	return tree.maxChildren() - 1
+}
+
+func (tree *Tree[K, V]) minEntries() int {
+	return tree.minChildren() - 1
+}
+
+func (tree *Tree[K, V]) middle() int {
+	return (tree.m - 1) / 2 // "-1" to favor right nodes to have more keys when splitting
+}
+
+// search searches only within the single node among its entries.
+func (tree *Tree[K, V]) search(node *Node[K, V], key K) (index int, found bool) {
+	low, high := 0, len(node.Entries)-1
+
+	var mid int
+
+	for low <= high {
+		mid = (high + low) / 2
+		compare := tree.Comparator(key, node.Entries[mid].Key)
+
+		switch {
+		case compare > 0:
+			low = mid + 1
+		case compare < 0:
+			high = mid - 1
+		case compare == 0:
+			return mid, true
+		}
+	}
+
+	return low, false
+}
+
+// searchRecursively searches recursively down the tree starting at the startNode.
+func (tree *Tree[K, V]) searchRecursively(startNode *Node[K, V], key K) (node *Node[K, V], index int, found bool) {
+	if tree.Empty() {
+		return nil, -1, false
+	}
+
+	node = startNode
+
+	for {
+		index, found = tree.search(node, key)
+		if found {
+			return node, index, true
+		}
+
+		if tree.isLeaf(node) {
+			return nil, -1, false
+		}
+
+		node = node.Children[index]
+	}
+}
+
+func (tree *Tree[K, V]) insert(node *Node[K, V], entry *Entry[K, V]) (inserted bool) {
+	if tree.isLeaf(node) {
+		return tree.insertIntoLeaf(node, entry)
+	}
+
+	return tree.insertIntoInternal(node, entry)
+}
+
+func (tree *Tree[K, V]) insertIntoLeaf(node *Node[K, V], entry *Entry[K, V]) (inserted bool) {
+	insertPosition, found := tree.search(node, entry.Key)
+	if found {
+		node.Entries[insertPosition] = entry
+
 		return false
 	}
-
-	first := n.mutableChild(i)
-	item, second := first.split(maxItems / 2)
-	n.items.insertAt(i, item)
-	n.children.insertAt(i+1, second)
+	// Insert entry's key in the middle of the node
+	node.Entries = append(node.Entries, nil)
+	copy(node.Entries[insertPosition+1:], node.Entries[insertPosition:])
+	node.Entries[insertPosition] = entry
+	tree.split(node)
 
 	return true
 }
 
-// insert inserts an item into the subtree rooted at this node, making sure
-// no nodes in the subtree exceed maxItems items.  Should an equivalent item be
-// found/replaced by insert, it will be returned.
-func (n *node[T]) insert(item T, maxItems int) (_ T, _ bool) {
-	i, found := n.items.find(item, n.cow.cmp)
+func (tree *Tree[K, V]) insertIntoInternal(node *Node[K, V], entry *Entry[K, V]) (inserted bool) {
+	insertPosition, found := tree.search(node, entry.Key)
 	if found {
-		out := n.items[i]
-		n.items[i] = item
+		node.Entries[insertPosition] = entry
 
-		return out, true
+		return false
 	}
 
-	if len(n.children) == 0 {
-		n.items.insertAt(i, item)
+	return tree.insert(node.Children[insertPosition], entry)
+}
+
+func (tree *Tree[K, V]) split(node *Node[K, V]) {
+	if !tree.shouldSplit(node) {
+		return
+	}
+
+	if node == tree.Root {
+		tree.splitRoot()
 
 		return
 	}
 
-	if n.maybeSplitChild(i, maxItems) {
-		inTree := n.items[i]
+	tree.splitNonRoot(node)
+}
 
-		cmp := n.cow.cmp(item, inTree)
-		switch {
-		case cmp < 0:
-			// item < inTree, no change
-		case cmp > 0:
-			i++ // item > inTree, go to next
-		default:
-			out := n.items[i]
-			n.items[i] = item
+func (tree *Tree[K, V]) splitNonRoot(node *Node[K, V]) {
+	middle := tree.middle()
+	parent := node.Parent
 
-			return out, true // item == inTree, replace
+	left := &Node[K, V]{Entries: append([]*Entry[K, V](nil), node.Entries[:middle]...), Parent: parent}
+	right := &Node[K, V]{Entries: append([]*Entry[K, V](nil), node.Entries[middle+1:]...), Parent: parent}
+
+	// Move children from the node to be split into left and right nodes
+	if !tree.isLeaf(node) {
+		left.Children = append([]*Node[K, V](nil), node.Children[:middle+1]...)
+		right.Children = append([]*Node[K, V](nil), node.Children[middle+1:]...)
+		setParent(left.Children, left)
+		setParent(right.Children, right)
+	}
+
+	insertPosition, _ := tree.search(parent, node.Entries[middle].Key)
+
+	// Insert middle key into parent
+	parent.Entries = append(parent.Entries, nil)
+	copy(parent.Entries[insertPosition+1:], parent.Entries[insertPosition:])
+	parent.Entries[insertPosition] = node.Entries[middle]
+
+	// Set child left of inserted key in parent to the created left node
+	parent.Children[insertPosition] = left
+
+	// Set child right of inserted key in parent to the created right node
+	parent.Children = append(parent.Children, nil)
+	copy(parent.Children[insertPosition+2:], parent.Children[insertPosition+1:])
+	parent.Children[insertPosition+1] = right
+
+	tree.split(parent)
+}
+
+func (tree *Tree[K, V]) splitRoot() {
+	middle := tree.middle()
+
+	left := &Node[K, V]{Entries: append([]*Entry[K, V](nil), tree.Root.Entries[:middle]...)}
+	right := &Node[K, V]{Entries: append([]*Entry[K, V](nil), tree.Root.Entries[middle+1:]...)}
+
+	// Move children from the node to be split into left and right nodes
+	if !tree.isLeaf(tree.Root) {
+		left.Children = append([]*Node[K, V](nil), tree.Root.Children[:middle+1]...)
+		right.Children = append([]*Node[K, V](nil), tree.Root.Children[middle+1:]...)
+		setParent(left.Children, left)
+		setParent(right.Children, right)
+	}
+
+	// Root is a node with one entry and two children (left and right)
+	newRoot := &Node[K, V]{
+		Entries:  []*Entry[K, V]{tree.Root.Entries[middle]},
+		Children: []*Node[K, V]{left, right},
+	}
+
+	left.Parent = newRoot
+	right.Parent = newRoot
+	tree.Root = newRoot
+}
+
+func setParent[K comparable, V any](nodes []*Node[K, V], parent *Node[K, V]) {
+	for _, node := range nodes {
+		node.Parent = parent
+	}
+}
+
+func (tree *Tree[K, V]) left(node *Node[K, V]) *Node[K, V] {
+	if tree.Empty() {
+		return nil
+	}
+
+	current := node
+
+	for {
+		if tree.isLeaf(current) {
+			return current
+		}
+
+		current = current.Children[0]
+	}
+}
+
+func (tree *Tree[K, V]) right(node *Node[K, V]) *Node[K, V] {
+	if tree.Empty() {
+		return nil
+	}
+
+	current := node
+
+	for {
+		if tree.isLeaf(current) {
+			return current
+		}
+
+		current = current.Children[len(current.Children)-1]
+	}
+}
+
+// leftSibling returns the node's left sibling and child index (in parent) if it exists, otherwise (nil,-1)
+// key is any of keys in node (could even be deleted).
+func (tree *Tree[K, V]) leftSibling(node *Node[K, V], key K) (*Node[K, V], int) {
+	if node.Parent != nil {
+		index, _ := tree.search(node.Parent, key)
+		index--
+
+		if index >= 0 && index < len(node.Parent.Children) {
+			return node.Parent.Children[index], index
 		}
 	}
 
-	return n.mutableChild(i).insert(item, maxItems)
+	return nil, -1
 }
 
-// get finds the given key in the subtree and returns it.
-func (n *node[T]) get(key T) (_ T, _ bool) {
-	i, found := n.items.find(key, n.cow.cmp)
-	if found {
-		return n.items[i], true
-	} else if len(n.children) > 0 {
-		return n.children[i].get(key)
+// rightSibling returns the node's right sibling and child index (in parent) if it exists, otherwise (nil,-1)
+// key is any of keys in node (could even be deleted).
+func (tree *Tree[K, V]) rightSibling(node *Node[K, V], key K) (*Node[K, V], int) {
+	if node.Parent != nil {
+		index, _ := tree.search(node.Parent, key)
+		index++
+
+		if index < len(node.Parent.Children) {
+			return node.Parent.Children[index], index
+		}
 	}
 
-	return
+	return nil, -1
 }
 
-// min returns the first item in the subtree.
-func min[T any](n *node[T]) (_ T, found bool) {
-	if n == nil {
+// delete deletes an entry in node at entries' index
+// ref.: https://en.wikipedia.org/wiki/B-tree#Deletion
+func (tree *Tree[K, V]) delete(node *Node[K, V], index int) {
+	// deleting from a leaf node
+	if tree.isLeaf(node) {
+		deletedKey := node.Entries[index].Key
+		tree.deleteEntry(node, index)
+		tree.rebalance(node, deletedKey)
+
+		if len(tree.Root.Entries) == 0 {
+			tree.Root = nil
+		}
+
 		return
 	}
 
-	for len(n.children) > 0 {
-		n = n.children[0]
-	}
+	// deleting from an internal node
+	leftLargestNode := tree.right(node.Children[index]) // largest node in the left sub-tree (assumed to exist)
+	leftLargestEntryIndex := len(leftLargestNode.Entries) - 1
+	node.Entries[index] = leftLargestNode.Entries[leftLargestEntryIndex]
+	deletedKey := leftLargestNode.Entries[leftLargestEntryIndex].Key
+	tree.deleteEntry(leftLargestNode, leftLargestEntryIndex)
+	tree.rebalance(leftLargestNode, deletedKey)
+}
 
-	if len(n.items) == 0 {
+// rebalance rebalances the tree after deletion if necessary and returns true, otherwise false.
+// Note that we first delete the entry and then call rebalance, thus the passed deleted key as reference.
+func (tree *Tree[K, V]) rebalance(node *Node[K, V], deletedKey K) {
+	// check if rebalancing is needed
+	if node == nil || len(node.Entries) >= tree.minEntries() {
 		return
 	}
 
-	return n.items[0], true
-}
+	// try to borrow from left sibling
+	leftSibling, leftSiblingIndex := tree.leftSibling(node, deletedKey)
+	if leftSibling != nil && len(leftSibling.Entries) > tree.minEntries() {
+		// rotate right
+		node.Entries = append([]*Entry[K, V]{node.Parent.Entries[leftSiblingIndex]}, node.Entries...) // prepend parent's separator entry to node's entries
+		node.Parent.Entries[leftSiblingIndex] = leftSibling.Entries[len(leftSibling.Entries)-1]
+		tree.deleteEntry(leftSibling, len(leftSibling.Entries)-1)
 
-// max returns the last item in the subtree.
-func max[T any](n *node[T]) (_ T, found bool) {
-	if n == nil {
+		if !tree.isLeaf(leftSibling) {
+			leftSiblingRightMostChild := leftSibling.Children[len(leftSibling.Children)-1]
+			leftSiblingRightMostChild.Parent = node
+			node.Children = append([]*Node[K, V]{leftSiblingRightMostChild}, node.Children...)
+			tree.deleteChild(leftSibling, len(leftSibling.Children)-1)
+		}
+
 		return
 	}
 
-	for len(n.children) > 0 {
-		n = n.children[len(n.children)-1]
-	}
+	// try to borrow from right sibling
+	rightSibling, rightSiblingIndex := tree.rightSibling(node, deletedKey)
+	if rightSibling != nil && len(rightSibling.Entries) > tree.minEntries() {
+		// rotate left
+		node.Entries = append(node.Entries, node.Parent.Entries[rightSiblingIndex-1]) // append parent's separator entry to node's entries
+		node.Parent.Entries[rightSiblingIndex-1] = rightSibling.Entries[0]
+		tree.deleteEntry(rightSibling, 0)
 
-	if len(n.items) == 0 {
+		if !tree.isLeaf(rightSibling) {
+			rightSiblingLeftMostChild := rightSibling.Children[0]
+			rightSiblingLeftMostChild.Parent = node
+			node.Children = append(node.Children, rightSiblingLeftMostChild)
+
+			tree.deleteChild(rightSibling, 0)
+		}
+
 		return
 	}
 
-	return n.items[len(n.items)-1], true
-}
-
-// toRemove details what item to remove in a node.remove call.
-type toRemove int
-
-const (
-	removeItem toRemove = iota // removes the given item
-	removeMin                  // removes smallest item in the subtree
-	removeMax                  // removes largest item in the subtree
-)
-
-// remove removes an item from the subtree rooted at this node.
-func (n *node[T]) remove(item T, minItems int, typ toRemove) (_ T, _ bool) {
-	var i int
-
-	var found bool
-
-	switch typ {
-	case removeMax:
-		if len(n.children) == 0 {
-			return n.items.pop(), true
-		}
-
-		i = len(n.items)
-	case removeMin:
-		if len(n.children) == 0 {
-			return n.items.removeAt(0), true
-		}
-
-		i = 0
-	case removeItem:
-		i, found = n.items.find(item, n.cow.cmp)
-		if len(n.children) == 0 {
-			if found {
-				return n.items.removeAt(i), true
-			}
-
-			return
-		}
-	default:
-		panic("invalid type")
-	}
-	// If we get to here, we have children.
-	if len(n.children[i].items) <= minItems {
-		return n.growChildAndRemove(i, item, minItems, typ)
+	// merge with siblings
+	if rightSibling != nil {
+		// merge with right sibling
+		node.Entries = append(node.Entries, node.Parent.Entries[rightSiblingIndex-1])
+		node.Entries = append(node.Entries, rightSibling.Entries...)
+		deletedKey = node.Parent.Entries[rightSiblingIndex-1].Key
+		tree.deleteEntry(node.Parent, rightSiblingIndex-1)
+		tree.appendChildren(node.Parent.Children[rightSiblingIndex], node)
+		tree.deleteChild(node.Parent, rightSiblingIndex)
+	} else if leftSibling != nil {
+		// merge with left sibling
+		entries := append([]*Entry[K, V](nil), leftSibling.Entries...)
+		entries = append(entries, node.Parent.Entries[leftSiblingIndex])
+		node.Entries = append(entries, node.Entries...)
+		deletedKey = node.Parent.Entries[leftSiblingIndex].Key
+		tree.deleteEntry(node.Parent, leftSiblingIndex)
+		tree.prependChildren(node.Parent.Children[leftSiblingIndex], node)
+		tree.deleteChild(node.Parent, leftSiblingIndex)
 	}
 
-	child := n.mutableChild(i)
-	// Either we had enough items to begin with, or we've done some
-	// merging/stealing, because we've got enough now and we're ready to return
-	// stuff.
-	if found {
-		// The item exists at index 'i', and the child we've selected can give us a
-		// predecessor, since if we've gotten here it's got > minItems items in it.
-		out := n.items[i]
-		// We use our special-case 'remove' call with typ=maxItem to pull the
-		// predecessor of item i (the rightmost leaf of our immediate left child)
-		// and set it into where we pulled the item from.
-		var zero T
-		n.items[i], _ = child.remove(zero, minItems, removeMax)
+	// make the merged node the root if its parent was the root and the root is empty
+	if node.Parent == tree.Root && len(tree.Root.Entries) == 0 {
+		tree.Root = node
+		node.Parent = nil
 
-		return out, true
-	}
-	// Final recursive call.  Once we're here, we know that the item isn't in this
-	// node and that the child is big enough to remove from.
-	return child.remove(item, minItems, typ)
-}
-
-// growChildAndRemove grows child 'i' to make sure it's possible to remove an
-// item from it while keeping it at minItems, then calls remove to actually
-// remove it.
-//
-// Most documentation says we have to do two sets of special casing:
-//  1. item is in this node
-//  2. item is in child
-//
-// In both cases, we need to handle the two subcases:
-//
-//	A) node has enough values that it can spare one
-//	B) node doesn't have enough values
-//
-// For the latter, we have to check:
-//
-//	a) left sibling has node to spare
-//	b) right sibling has node to spare
-//	c) we must merge
-//
-// To simplify our code here, we handle cases #1 and #2 the same:
-// If a node doesn't have enough items, we make sure it does (using a,b,c).
-// We then simply redo our remove call, and the second time (regardless of
-// whether we're in case 1 or 2), we'll have enough items and can guarantee
-// that we hit case A.
-func (n *node[T]) growChildAndRemove(i int, item T, minItems int, typ toRemove) (T, bool) {
-	if i > 0 && len(n.children[i-1].items) > minItems {
-		// Steal from left child
-		child := n.mutableChild(i)
-		stealFrom := n.mutableChild(i - 1)
-		stolenItem := stealFrom.items.pop()
-		child.items.insertAt(0, n.items[i-1])
-		n.items[i-1] = stolenItem
-
-		if len(stealFrom.children) > 0 {
-			child.children.insertAt(0, stealFrom.children.pop())
-		}
-	} else if i < len(n.items) && len(n.children[i+1].items) > minItems {
-		// steal from right child
-		child := n.mutableChild(i)
-		stealFrom := n.mutableChild(i + 1)
-		stolenItem := stealFrom.items.removeAt(0)
-		child.items = append(child.items, n.items[i])
-		n.items[i] = stolenItem
-
-		if len(stealFrom.children) > 0 {
-			child.children = append(child.children, stealFrom.children.removeAt(0))
-		}
-	} else {
-		if i >= len(n.items) {
-			i--
-		}
-
-		child := n.mutableChild(i)
-		// merge with right child
-		mergeItem := n.items.removeAt(i)
-		mergeChild := n.children.removeAt(i + 1)
-
-		child.items = append(child.items, mergeItem)
-		child.items = append(child.items, mergeChild.items...)
-		child.children = append(child.children, mergeChild.children...)
-		n.cow.freeNode(mergeChild)
-	}
-
-	return n.remove(item, minItems, typ)
-}
-
-type direction int
-
-const (
-	descend = direction(-1)
-	ascend  = direction(+1)
-)
-
-type optionalItem[T any] struct {
-	item  T
-	valid bool
-}
-
-func optional[T any](item T) optionalItem[T] {
-	return optionalItem[T]{item: item, valid: true}
-}
-func empty[T any]() optionalItem[T] {
-	return optionalItem[T]{}
-}
-
-// iterate provides a simple method for iterating over elements in the tree.
-//
-// When ascending, the 'start' should be less than 'stop' and when descending,
-// the 'start' should be greater than 'stop'. Setting 'includeStart' to true
-// will force the iterator to include the first item when it equals 'start',
-// thus creating a "greaterOrEqual" or "lessThanEqual" rather than just a
-// "greaterThan" or "lessThan" queries.
-func (n *node[T]) iterate(dir direction, start, stop optionalItem[T], includeStart bool, hit bool, iter ItemIterator[T]) (bool, bool) {
-	var ok, found bool
-
-	var index int
-
-	switch dir {
-	case ascend:
-		if start.valid {
-			index, _ = n.items.find(start.item, n.cow.cmp)
-		}
-
-		for i := index; i < len(n.items); i++ {
-			if len(n.children) > 0 {
-				if hit, ok = n.children[i].iterate(dir, start, stop, includeStart, hit, iter); !ok {
-					return hit, false
-				}
-			}
-
-			if !includeStart && !hit && start.valid && n.cow.cmp(start.item, n.items[i]) >= 0 {
-				hit = true
-
-				continue
-			}
-
-			hit = true
-			if stop.valid && n.cow.cmp(n.items[i], stop.item) >= 0 {
-				return hit, false
-			}
-
-			if !iter(n.items[i]) {
-				return hit, false
-			}
-		}
-
-		if len(n.children) > 0 {
-			if hit, ok = n.children[len(n.children)-1].iterate(dir, start, stop, includeStart, hit, iter); !ok {
-				return hit, false
-			}
-		}
-	case descend:
-		if start.valid {
-			index, found = n.items.find(start.item, n.cow.cmp)
-			if !found {
-				index = index - 1
-			}
-		} else {
-			index = len(n.items) - 1
-		}
-
-		for i := index; i >= 0; i-- {
-			if start.valid && n.cow.cmp(n.items[i], start.item) >= 0 {
-				if !includeStart || hit || n.cow.cmp(start.item, n.items[i]) < 0 {
-					continue
-				}
-			}
-
-			if len(n.children) > 0 {
-				if hit, ok = n.children[i+1].iterate(dir, start, stop, includeStart, hit, iter); !ok {
-					return hit, false
-				}
-			}
-
-			if stop.valid && n.cow.cmp(stop.item, n.items[i]) >= 0 {
-				return hit, false //	continue
-			}
-
-			hit = true
-			if !iter(n.items[i]) {
-				return hit, false
-			}
-		}
-
-		if len(n.children) > 0 {
-			if hit, ok = n.children[0].iterate(dir, start, stop, includeStart, hit, iter); !ok {
-				return hit, false
-			}
-		}
-	}
-
-	return hit, true
-}
-
-// Tree is a generic implementation of a B-Tree.
-//
-// Tree stores items of type T in an ordered structure, allowing easy insertion,
-// removal, and iteration.
-//
-// Write operations are not safe for concurrent mutation by multiple
-// goroutines, but Read operations are.
-type Tree[T any] struct {
-	degree int
-	length int
-	root   *node[T]
-	cow    *copyOnWriteContext[T]
-}
-
-// LessFunc[T] determines how to order a type 'T'.  It should implement a strict
-// ordering, and should return true if within that ordering, 'a' < 'b'.
-type LessFunc[T any] func(a, b T) bool
-
-// copyOnWriteContext pointers determine node ownership... a tree with a write
-// context equivalent to a node's write context is allowed to modify that node.
-// A tree whose write context does not match a node's is not allowed to modify
-// it, and must create a new, writable copy (IE: it's a Clone).
-//
-// When doing any write operation, we maintain the invariant that the current
-// node's context is equal to the context of the tree that requested the write.
-// We do this by, before we descend into any node, creating a copy with the
-// correct context if the contexts don't match.
-//
-// Since the node we're currently visiting on any write has the requesting
-// tree's context, that node is modifiable in place.  Children of that node may
-// not share context, but before we descend into them, we'll make a mutable
-// copy.
-type copyOnWriteContext[T any] struct {
-	freelist *FreeList[T]
-	cmp      cmp.Comparator[T]
-}
-
-// Clone clones the btree, lazily.  Clone should not be called concurrently,
-// but the original tree (t) and the new tree (t2) can be used concurrently
-// once the Clone call completes.
-//
-// The internal tree structure of b is marked read-only and shared between t and
-// t2.  Writes to both t and t2 use copy-on-write logic, creating new nodes
-// whenever one of b's original nodes would have been modified.  Read operations
-// should have no performance degredation.  Write operations for both t and t2
-// will initially experience minor slow-downs caused by additional allocs and
-// copies due to the aforementioned copy-on-write logic, but should converge to
-// the original performance characteristics of the original tree.
-func (t *Tree[T]) Clone() (t2 *Tree[T]) {
-	// Create two entirely new copy-on-write contexts.
-	// This operation effectively creates three trees:
-	//   the original, shared nodes (old b.cow)
-	//   the new b.cow nodes
-	//   the new out.cow nodes
-	cow1, cow2 := *t.cow, *t.cow
-	out := *t
-	t.cow = &cow1
-	out.cow = &cow2
-
-	return &out
-}
-
-// maxItems returns the max number of items to allow per node.
-func (t *Tree[T]) maxItems() int {
-	return t.degree*2 - 1
-}
-
-// minItems returns the min number of items to allow per node (ignored for the
-// root node).
-func (t *Tree[T]) minItems() int {
-	return t.degree - 1
-}
-
-func (c *copyOnWriteContext[T]) newNode() (n *node[T]) {
-	n = c.freelist.newNode()
-	n.cow = c
-
-	return
-}
-
-type freeType int
-
-const (
-	ftFreelistFull freeType = iota // node was freed (available for GC, not stored in freelist)
-	ftStored                       // node was stored in the freelist for later use
-	ftNotOwned                     // node was ignored by COW, since it's owned by another one
-)
-
-// freeNode frees a node within a given COW context, if it's owned by that
-// context.  It returns what happened to the node (see freeType const
-// documentation).
-func (c *copyOnWriteContext[T]) freeNode(n *node[T]) freeType {
-	if n.cow == c {
-		// clear to allow GC
-		n.items.truncate(0)
-		n.children.truncate(0)
-
-		n.cow = nil
-		if c.freelist.freeNode(n) {
-			return ftStored
-		} else {
-			return ftFreelistFull
-		}
-	} else {
-		return ftNotOwned
-	}
-}
-
-// Put adds the given item to the tree.  If an item in the tree
-// already equals the given one, it is removed from the tree and returned,
-// and the second return value is true.  Otherwise, (zeroValue, false)
-//
-// nil cannot be added to the tree (will panic).
-func (t *Tree[T]) Put(item T) (_ T, _ bool) {
-	if t.root == nil {
-		t.root = t.cow.newNode()
-		t.root.items = append(t.root.items, item)
-		t.length++
-
-		return
-	} else {
-		t.root = t.root.mutableFor(t.cow)
-		if len(t.root.items) >= t.maxItems() {
-			item2, second := t.root.split(t.maxItems() / 2)
-			oldroot := t.root
-			t.root = t.cow.newNode()
-			t.root.items = append(t.root.items, item2)
-			t.root.children = append(t.root.children, oldroot, second)
-		}
-	}
-
-	out, outb := t.root.insert(item, t.maxItems())
-	if !outb {
-		t.length++
-	}
-
-	return out, outb
-}
-
-// Delete removes an item equal to the passed in item from the tree, returning
-// it.  If no such item exists, returns (zeroValue, false).
-func (t *Tree[T]) Delete(item T) (T, bool) {
-	return t.deleteItem(item, removeItem)
-}
-
-// DeleteMin removes the smallest item in the tree and returns it.
-// If no such item exists, returns (zeroValue, false).
-func (t *Tree[T]) DeleteMin() (T, bool) {
-	var zero T
-
-	return t.deleteItem(zero, removeMin)
-}
-
-// DeleteMax removes the largest item in the tree and returns it.
-// If no such item exists, returns (zeroValue, false).
-func (t *Tree[T]) DeleteMax() (T, bool) {
-	var zero T
-
-	return t.deleteItem(zero, removeMax)
-}
-
-func (t *Tree[T]) deleteItem(item T, typ toRemove) (_ T, _ bool) {
-	if t.root == nil || len(t.root.items) == 0 {
 		return
 	}
 
-	t.root = t.root.mutableFor(t.cow)
-	out, outb := t.root.remove(item, t.minItems(), typ)
-
-	if len(t.root.items) == 0 && len(t.root.children) > 0 {
-		oldroot := t.root
-		t.root = t.root.children[0]
-		t.cow.freeNode(oldroot)
-	}
-
-	if outb {
-		t.length--
-	}
-
-	return out, outb
+	// parent might underflow, so try to rebalance if necessary
+	tree.rebalance(node.Parent, deletedKey)
 }
 
-// AscendRange calls the iterator for every value in the tree within the range
-// [greaterOrEqual, lessThan), until iterator returns false.
-func (t *Tree[T]) AscendRange(greaterOrEqual, lessThan T, iterator ItemIterator[T]) {
-	if t.root == nil {
+func (tree *Tree[K, V]) prependChildren(fromNode *Node[K, V], toNode *Node[K, V]) {
+	children := append([]*Node[K, V](nil), fromNode.Children...)
+	toNode.Children = append(children, toNode.Children...)
+	setParent(fromNode.Children, toNode)
+}
+
+func (tree *Tree[K, V]) appendChildren(fromNode *Node[K, V], toNode *Node[K, V]) {
+	toNode.Children = append(toNode.Children, fromNode.Children...)
+	setParent(fromNode.Children, toNode)
+}
+
+func (tree *Tree[K, V]) deleteEntry(node *Node[K, V], index int) {
+	copy(node.Entries[index:], node.Entries[index+1:])
+	node.Entries[len(node.Entries)-1] = nil
+	node.Entries = node.Entries[:len(node.Entries)-1]
+}
+
+func (tree *Tree[K, V]) deleteChild(node *Node[K, V], index int) {
+	if index >= len(node.Children) {
 		return
 	}
 
-	t.root.iterate(ascend, optional(greaterOrEqual), optional(lessThan), true, false, iterator)
-}
-
-// AscendLessThan calls the iterator for every value in the tree within the range
-// [first, pivot), until iterator returns false.
-func (t *Tree[T]) AscendLessThan(pivot T, iterator ItemIterator[T]) {
-	if t.root == nil {
-		return
-	}
-
-	t.root.iterate(ascend, empty[T](), optional(pivot), false, false, iterator)
-}
-
-// AscendGreaterOrEqual calls the iterator for every value in the tree within
-// the range [pivot, last], until iterator returns false.
-func (t *Tree[T]) AscendGreaterOrEqual(pivot T, iterator ItemIterator[T]) {
-	if t.root == nil {
-		return
-	}
-
-	t.root.iterate(ascend, optional(pivot), empty[T](), true, false, iterator)
-}
-
-// Ascend calls the iterator for every value in the tree within the range
-// [first, last], until iterator returns false.
-func (t *Tree[T]) Ascend(iterator ItemIterator[T]) {
-	if t.root == nil {
-		return
-	}
-
-	t.root.iterate(ascend, empty[T](), empty[T](), false, false, iterator)
-}
-
-// DescendRange calls the iterator for every value in the tree within the range
-// [lessOrEqual, greaterThan), until iterator returns false.
-func (t *Tree[T]) DescendRange(lessOrEqual, greaterThan T, iterator ItemIterator[T]) {
-	if t.root == nil {
-		return
-	}
-
-	t.root.iterate(descend, optional(lessOrEqual), optional(greaterThan), true, false, iterator)
-}
-
-// DescendLessOrEqual calls the iterator for every value in the tree within the range
-// [pivot, first], until iterator returns false.
-func (t *Tree[T]) DescendLessOrEqual(pivot T, iterator ItemIterator[T]) {
-	if t.root == nil {
-		return
-	}
-
-	t.root.iterate(descend, optional(pivot), empty[T](), true, false, iterator)
-}
-
-// DescendGreaterThan calls the iterator for every value in the tree within
-// the range [last, pivot), until iterator returns false.
-func (t *Tree[T]) DescendGreaterThan(pivot T, iterator ItemIterator[T]) {
-	if t.root == nil {
-		return
-	}
-
-	t.root.iterate(descend, empty[T](), optional(pivot), false, false, iterator)
-}
-
-// Descend calls the iterator for every value in the tree within the range
-// [last, first], until iterator returns false.
-func (t *Tree[T]) Descend(iterator ItemIterator[T]) {
-	if t.root == nil {
-		return
-	}
-
-	t.root.iterate(descend, empty[T](), empty[T](), false, false, iterator)
-}
-
-// Get looks for the key item in the tree, returning it.  It returns
-// (zeroValue, false) if unable to find that item.
-func (t *Tree[T]) Get(key T) (_ T, _ bool) {
-	if t.root == nil {
-		return
-	}
-
-	return t.root.get(key)
-}
-
-// Min returns the smallest item in the tree, or (zeroValue, false) if the tree is empty.
-func (t *Tree[T]) Min() (_ T, _ bool) {
-	return min(t.root)
-}
-
-// Max returns the largest item in the tree, or (zeroValue, false) if the tree is empty.
-func (t *Tree[T]) Max() (_ T, _ bool) {
-	return max(t.root)
-}
-
-// Has returns true if the given key is in the tree.
-func (t *Tree[T]) Has(key T) bool {
-	_, ok := t.Get(key)
-
-	return ok
-}
-
-// Len returns the number of items currently in the tree.
-func (t *Tree[T]) Len() int {
-	return t.length
-}
-
-// Clear removes all items from the btree.  If addNodesToFreelist is true,
-// t's nodes are added to its freelist as part of this call, until the freelist
-// is full.  Otherwise, the root node is simply dereferenced and the subtree
-// left to Go's normal GC processes.
-//
-// This can be much faster
-// than calling Delete on all elements, because that requires finding/removing
-// each element in the tree and updating the tree accordingly.  It also is
-// somewhat faster than creating a new tree to replace the old one, because
-// nodes from the old tree are reclaimed into the freelist for use by the new
-// one, instead of being lost to the garbage collector.
-//
-// This call takes:
-//
-//	O(1): when addNodesToFreelist is false, this is a single operation.
-//	O(1): when the freelist is already full, it breaks out immediately
-//	O(freelist size):  when the freelist is empty and the nodes are all owned
-//	    by this tree, nodes are added to the freelist until full.
-//	O(tree size):  when all nodes are owned by another tree, all nodes are
-//	    iterated over looking for nodes to add to the freelist, and due to
-//	    ownership, none are.
-func (t *Tree[T]) Clear(addNodesToFreelist bool) {
-	if t.root != nil && addNodesToFreelist {
-		t.root.reset(t.cow)
-	}
-
-	t.root, t.length = nil, 0
-}
-
-// reset returns a subtree to the freelist.  It breaks out immediately if the
-// freelist is full, since the only benefit of iterating is to fill that
-// freelist up.  Returns true if parent reset call should continue.
-func (n *node[T]) reset(c *copyOnWriteContext[T]) bool {
-	for _, child := range n.children {
-		if !child.reset(c) {
-			return false
-		}
-	}
-
-	return c.freeNode(n) != ftFreelistFull
+	copy(node.Children[index:], node.Children[index+1:])
+	node.Children[len(node.Children)-1] = nil
+	node.Children = node.Children[:len(node.Children)-1]
 }

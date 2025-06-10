@@ -8,18 +8,18 @@ A collection of data structures implemented in Go.
 | -------- | --------------- | ----------- | ------------ | -------------- | ----------------- | --------------- |
 | Set      |                 |             |              |                |                   |                 |
 |          | `HashSet`       | N           | N            | N              | Index             | Y               |
-|          | `BTreeSet`      | Y           | Y            | Y              | Index             | N               |
+|          | `BTreeSet`      | Y           | Y            | Y              | Index             | Y               |
 |          | `RBTreeSet`     | Y           | Y            | Y              | Index             | Y               |
 |          | `LinkedHashSet` | Y           | Y            | Y              | Index             | Y               |
 | Map      |                 |             |              |                |                   |                 |
 |          | `HashMap`       | N           | Y            | N              | Key               | Y               |
 |          | `HashBiMap`     | N           | Y            | N              | Key               | Y               |
-|          | `BTreeBiMap`    | Y           | Y            | Y              | Key               | N               |
+|          | `BTreeBiMap`    | Y           | Y            | Y              | Key               | Y               |
 |          | `RBTreeBiMap`   | Y           | Y            | Y              | Key               | Y               |
 |          | `LinkedHashMap` | Y           | Y            | Y              | Key               | Y               |
 | Tree     |                 |             |              |                |                   |                 |
 |          | `AVLTree`       | Y           | Y            | N              | Key               | Y               |
-|          | `BTree`         | Y           | Y            | N              | Key               | N               |
+|          | `BTree`         | Y           | Y            | N              | Key               | Y               |
 |          | `RBTree`        | Y           | Y            | N              | Key               | Y               |
 | Queue    |                 |             |              |                |                   |                 |
 |          | `SliceDeque`    | Y           | Y            | N              | Index             | Y               |

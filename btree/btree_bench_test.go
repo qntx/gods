@@ -1,106 +1,195 @@
-package btree
+package btree_test
 
 import (
-	"math/rand"
 	"testing"
 
-	"github.com/qntx/gods/cmp"
+	"github.com/qntx/gods/btree"
 )
 
-func BenchmarkDeleteAndRestoreG(b *testing.B) {
-	items := rand.Perm(16392)
-
-	b.ResetTimer()
-	b.Run(`CopyBigFreeList`, func(b *testing.B) {
-		fl := NewFreeList[int](16392)
-
-		tr := NewWithFreeList(*btreeDegree, cmp.GenericComparator[int], fl)
-		for _, v := range items {
-			tr.Put(v)
+func benchmarkGet(b *testing.B, tree *btree.Tree[int, struct{}], size int) {
+	for range b.N {
+		for n := range size {
+			tree.Get(n)
 		}
+	}
+}
 
-		b.ReportAllocs()
-		b.ResetTimer()
-
-		for range b.N {
-			dels := make([]int, 0, tr.Len())
-			tr.Ascend(func(b int) bool {
-				dels = append(dels, b)
-
-				return true
-			})
-
-			for _, del := range dels {
-				tr.Delete(del)
-			}
-			// tr is now empty, we make a new empty copy of it.
-			tr = NewWithFreeList(*btreeDegree, cmp.GenericComparator[int], fl)
-			for _, v := range items {
-				tr.Put(v)
-			}
+func benchmarkPut(b *testing.B, tree *btree.Tree[int, struct{}], size int) {
+	for range b.N {
+		for n := range size {
+			tree.Put(n, struct{}{})
 		}
-	})
-	b.Run(`Copy`, func(b *testing.B) {
-		tr := New[int](*btreeDegree)
-		for _, v := range items {
-			tr.Put(v)
+	}
+}
+
+func benchmarkDelete(b *testing.B, tree *btree.Tree[int, struct{}], size int) {
+	for range b.N {
+		for n := range size {
+			tree.Delete(n)
 		}
+	}
+}
 
-		b.ReportAllocs()
-		b.ResetTimer()
+func BenchmarkBTreeGet100(b *testing.B) {
+	b.StopTimer()
 
-		for range b.N {
-			dels := make([]int, 0, tr.Len())
-			tr.Ascend(func(b int) bool {
-				dels = append(dels, b)
+	size := 100
+	tree := btree.New[int, struct{}](128)
 
-				return true
-			})
+	for n := range size {
+		tree.Put(n, struct{}{})
+	}
 
-			for _, del := range dels {
-				tr.Delete(del)
-			}
-			// tr is now empty, we make a new empty copy of it.
-			tr = New[int](*btreeDegree)
-			for _, v := range items {
-				tr.Put(v)
-			}
-		}
-	})
-	b.Run(`ClearBigFreelist`, func(b *testing.B) {
-		fl := NewFreeList[int](16392)
+	b.StartTimer()
+	benchmarkGet(b, tree, size)
+}
 
-		tr := NewWithFreeList(*btreeDegree, cmp.GenericComparator[int], fl)
-		for _, v := range items {
-			tr.Put(v)
-		}
+func BenchmarkBTreeGet1000(b *testing.B) {
+	b.StopTimer()
 
-		b.ReportAllocs()
-		b.ResetTimer()
+	size := 1000
+	tree := btree.New[int, struct{}](128)
 
-		for range b.N {
-			tr.Clear(true)
+	for n := range size {
+		tree.Put(n, struct{}{})
+	}
 
-			for _, v := range items {
-				tr.Put(v)
-			}
-		}
-	})
-	b.Run(`Clear`, func(b *testing.B) {
-		tr := New[int](*btreeDegree)
-		for _, v := range items {
-			tr.Put(v)
-		}
+	b.StartTimer()
+	benchmarkGet(b, tree, size)
+}
 
-		b.ReportAllocs()
-		b.ResetTimer()
+func BenchmarkBTreeGet10000(b *testing.B) {
+	b.StopTimer()
 
-		for range b.N {
-			tr.Clear(true)
+	size := 10000
+	tree := btree.New[int, struct{}](128)
 
-			for _, v := range items {
-				tr.Put(v)
-			}
-		}
-	})
+	for n := range size {
+		tree.Put(n, struct{}{})
+	}
+
+	b.StartTimer()
+	benchmarkGet(b, tree, size)
+}
+
+func BenchmarkBTreeGet100000(b *testing.B) {
+	b.StopTimer()
+
+	size := 100000
+	tree := btree.New[int, struct{}](128)
+
+	for n := range size {
+		tree.Put(n, struct{}{})
+	}
+
+	b.StartTimer()
+	benchmarkGet(b, tree, size)
+}
+
+func BenchmarkBTreePut100(b *testing.B) {
+	b.StopTimer()
+
+	size := 100
+	tree := btree.New[int, struct{}](128)
+
+	b.StartTimer()
+	benchmarkPut(b, tree, size)
+}
+
+func BenchmarkBTreePut1000(b *testing.B) {
+	b.StopTimer()
+
+	size := 1000
+	tree := btree.New[int, struct{}](128)
+
+	for n := range size {
+		tree.Put(n, struct{}{})
+	}
+
+	b.StartTimer()
+	benchmarkPut(b, tree, size)
+}
+
+func BenchmarkBTreePut10000(b *testing.B) {
+	b.StopTimer()
+
+	size := 10000
+	tree := btree.New[int, struct{}](128)
+
+	for n := range size {
+		tree.Put(n, struct{}{})
+	}
+
+	b.StartTimer()
+	benchmarkPut(b, tree, size)
+}
+
+func BenchmarkBTreePut100000(b *testing.B) {
+	b.StopTimer()
+
+	size := 100000
+	tree := btree.New[int, struct{}](128)
+
+	for n := range size {
+		tree.Put(n, struct{}{})
+	}
+
+	b.StartTimer()
+	benchmarkPut(b, tree, size)
+}
+
+func BenchmarkBTreeDelete100(b *testing.B) {
+	b.StopTimer()
+
+	size := 100
+	tree := btree.New[int, struct{}](128)
+
+	for n := range size {
+		tree.Put(n, struct{}{})
+	}
+
+	b.StartTimer()
+	benchmarkDelete(b, tree, size)
+}
+
+func BenchmarkBTreeDelete1000(b *testing.B) {
+	b.StopTimer()
+
+	size := 1000
+	tree := btree.New[int, struct{}](128)
+
+	for n := range size {
+		tree.Put(n, struct{}{})
+	}
+
+	b.StartTimer()
+	benchmarkDelete(b, tree, size)
+}
+
+func BenchmarkBTreeDelete10000(b *testing.B) {
+	b.StopTimer()
+
+	size := 10000
+	tree := btree.New[int, struct{}](128)
+
+	for n := range size {
+		tree.Put(n, struct{}{})
+	}
+
+	b.StartTimer()
+	benchmarkDelete(b, tree, size)
+}
+
+func BenchmarkBTreeDelete100000(b *testing.B) {
+	b.StopTimer()
+
+	size := 100000
+	tree := btree.New[int, struct{}](128)
+
+	for n := range size {
+		tree.Put(n, struct{}{})
+	}
+
+	b.StartTimer()
+	benchmarkDelete(b, tree, size)
 }
