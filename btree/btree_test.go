@@ -2,7 +2,6 @@ package btree
 
 import (
 	"flag"
-	"fmt"
 	"math/rand"
 	"reflect"
 	"sort"
@@ -27,7 +26,7 @@ func intRange(s int, reverse bool) []int {
 	return out
 }
 
-func intAll(t *BTreeG[int]) (out []int) {
+func intAll(t *Tree[int]) (out []int) {
 	t.Ascend(func(a int) bool {
 		out = append(out, a)
 
@@ -37,7 +36,7 @@ func intAll(t *BTreeG[int]) (out []int) {
 	return
 }
 
-func intAllRev(t *BTreeG[int]) (out []int) {
+func intAllRev(t *Tree[int]) (out []int) {
 	t.Descend(func(a int) bool {
 		out = append(out, a)
 
@@ -48,7 +47,7 @@ func intAllRev(t *BTreeG[int]) (out []int) {
 }
 
 func TestBTreeG(t *testing.T) {
-	tr := NewOrderedG[int](*btreeDegree)
+	tr := New[int](*btreeDegree)
 
 	const treeSize = 10000
 
@@ -62,13 +61,13 @@ func TestBTreeG(t *testing.T) {
 		}
 
 		for _, item := range rand.Perm(treeSize) {
-			if x, ok := tr.ReplaceOrInsert(item); ok || x != 0 {
+			if x, ok := tr.Put(item); ok || x != 0 {
 				t.Fatal("insert found item", item)
 			}
 		}
 
 		for _, item := range rand.Perm(treeSize) {
-			if x, ok := tr.ReplaceOrInsert(item); !ok || x != item {
+			if x, ok := tr.Put(item); !ok || x != item {
 				t.Fatal("insert didn't find item", item)
 			}
 		}
@@ -113,53 +112,10 @@ func TestBTreeG(t *testing.T) {
 	}
 }
 
-func ExampleBTreeG() {
-	tr := NewOrderedG[int](*btreeDegree)
-	for i := range 10 {
-		tr.ReplaceOrInsert(i)
-	}
-
-	fmt.Println("len:       ", tr.Len())
-	v, ok := tr.Get(3)
-	fmt.Println("get3:      ", v, ok)
-	v, ok = tr.Get(100)
-	fmt.Println("get100:    ", v, ok)
-	v, ok = tr.Delete(4)
-	fmt.Println("del4:      ", v, ok)
-	v, ok = tr.Delete(100)
-	fmt.Println("del100:    ", v, ok)
-	v, ok = tr.ReplaceOrInsert(5)
-	fmt.Println("replace5:  ", v, ok)
-	v, ok = tr.ReplaceOrInsert(100)
-	fmt.Println("replace100:", v, ok)
-	v, ok = tr.Min()
-	fmt.Println("min:       ", v, ok)
-	v, ok = tr.DeleteMin()
-	fmt.Println("delmin:    ", v, ok)
-	v, ok = tr.Max()
-	fmt.Println("max:       ", v, ok)
-	v, ok = tr.DeleteMax()
-	fmt.Println("delmax:    ", v, ok)
-	fmt.Println("len:       ", tr.Len())
-	// Output:
-	// len:        10
-	// get3:       3 true
-	// get100:     0 false
-	// del4:       4 true
-	// del100:     0 false
-	// replace5:   5 true
-	// replace100: 0 false
-	// min:        0 true
-	// delmin:     0 true
-	// max:        100 true
-	// delmax:     100 true
-	// len:        8
-}
-
 func TestDeleteMinG(t *testing.T) {
-	tr := NewOrderedG[int](3)
+	tr := New[int](3)
 	for _, v := range rand.Perm(100) {
-		tr.ReplaceOrInsert(v)
+		tr.Put(v)
 	}
 
 	var got []int
@@ -173,9 +129,9 @@ func TestDeleteMinG(t *testing.T) {
 }
 
 func TestDeleteMaxG(t *testing.T) {
-	tr := NewOrderedG[int](3)
+	tr := New[int](3)
 	for _, v := range rand.Perm(100) {
-		tr.ReplaceOrInsert(v)
+		tr.Put(v)
 	}
 
 	var got []int
@@ -189,9 +145,9 @@ func TestDeleteMaxG(t *testing.T) {
 }
 
 func TestAscendRangeG(t *testing.T) {
-	tr := NewOrderedG[int](2)
+	tr := New[int](2)
 	for _, v := range rand.Perm(100) {
-		tr.ReplaceOrInsert(v)
+		tr.Put(v)
 	}
 
 	var got []int
@@ -224,9 +180,9 @@ func TestAscendRangeG(t *testing.T) {
 }
 
 func TestDescendRangeG(t *testing.T) {
-	tr := NewOrderedG[int](2)
+	tr := New[int](2)
 	for _, v := range rand.Perm(100) {
-		tr.ReplaceOrInsert(v)
+		tr.Put(v)
 	}
 
 	var got []int
@@ -259,9 +215,9 @@ func TestDescendRangeG(t *testing.T) {
 }
 
 func TestAscendLessThanG(t *testing.T) {
-	tr := NewOrderedG[int](*btreeDegree)
+	tr := New[int](*btreeDegree)
 	for _, v := range rand.Perm(100) {
-		tr.ReplaceOrInsert(v)
+		tr.Put(v)
 	}
 
 	var got []int
@@ -294,9 +250,9 @@ func TestAscendLessThanG(t *testing.T) {
 }
 
 func TestDescendLessOrEqualG(t *testing.T) {
-	tr := NewOrderedG[int](*btreeDegree)
+	tr := New[int](*btreeDegree)
 	for _, v := range rand.Perm(100) {
-		tr.ReplaceOrInsert(v)
+		tr.Put(v)
 	}
 
 	var got []int
@@ -329,9 +285,9 @@ func TestDescendLessOrEqualG(t *testing.T) {
 }
 
 func TestAscendGreaterOrEqualG(t *testing.T) {
-	tr := NewOrderedG[int](*btreeDegree)
+	tr := New[int](*btreeDegree)
 	for _, v := range rand.Perm(100) {
-		tr.ReplaceOrInsert(v)
+		tr.Put(v)
 	}
 
 	var got []int
@@ -364,9 +320,9 @@ func TestAscendGreaterOrEqualG(t *testing.T) {
 }
 
 func TestDescendGreaterThanG(t *testing.T) {
-	tr := NewOrderedG[int](*btreeDegree)
+	tr := New[int](*btreeDegree)
 	for _, v := range rand.Perm(100) {
-		tr.ReplaceOrInsert(v)
+		tr.Put(v)
 	}
 
 	var got []int
@@ -409,9 +365,9 @@ func BenchmarkInsertG(b *testing.B) {
 
 	i := 0
 	for i < b.N {
-		tr := NewOrderedG[int](*btreeDegree)
+		tr := New[int](*btreeDegree)
 		for _, item := range insertP {
-			tr.ReplaceOrInsert(item)
+			tr.Put(item)
 
 			i++
 			if i >= b.N {
@@ -426,10 +382,10 @@ func BenchmarkSeekG(b *testing.B) {
 
 	size := 100000
 	insertP := rand.Perm(size)
-	tr := NewOrderedG[int](*btreeDegree)
+	tr := New[int](*btreeDegree)
 
 	for _, item := range insertP {
-		tr.ReplaceOrInsert(item)
+		tr.Put(item)
 	}
 
 	b.StartTimer()
@@ -443,17 +399,17 @@ func BenchmarkDeleteInsertG(b *testing.B) {
 	b.StopTimer()
 
 	insertP := rand.Perm(benchmarkTreeSize)
-	tr := NewOrderedG[int](*btreeDegree)
+	tr := New[int](*btreeDegree)
 
 	for _, item := range insertP {
-		tr.ReplaceOrInsert(item)
+		tr.Put(item)
 	}
 
 	b.StartTimer()
 
 	for i := range b.N {
 		tr.Delete(insertP[i%benchmarkTreeSize])
-		tr.ReplaceOrInsert(insertP[i%benchmarkTreeSize])
+		tr.Put(insertP[i%benchmarkTreeSize])
 	}
 }
 
@@ -461,10 +417,10 @@ func BenchmarkDeleteInsertCloneOnceG(b *testing.B) {
 	b.StopTimer()
 
 	insertP := rand.Perm(benchmarkTreeSize)
-	tr := NewOrderedG[int](*btreeDegree)
+	tr := New[int](*btreeDegree)
 
 	for _, item := range insertP {
-		tr.ReplaceOrInsert(item)
+		tr.Put(item)
 	}
 
 	tr = tr.Clone()
@@ -473,7 +429,7 @@ func BenchmarkDeleteInsertCloneOnceG(b *testing.B) {
 
 	for i := range b.N {
 		tr.Delete(insertP[i%benchmarkTreeSize])
-		tr.ReplaceOrInsert(insertP[i%benchmarkTreeSize])
+		tr.Put(insertP[i%benchmarkTreeSize])
 	}
 }
 
@@ -481,10 +437,10 @@ func BenchmarkDeleteInsertCloneEachTimeG(b *testing.B) {
 	b.StopTimer()
 
 	insertP := rand.Perm(benchmarkTreeSize)
-	tr := NewOrderedG[int](*btreeDegree)
+	tr := New[int](*btreeDegree)
 
 	for _, item := range insertP {
-		tr.ReplaceOrInsert(item)
+		tr.Put(item)
 	}
 
 	b.StartTimer()
@@ -492,7 +448,7 @@ func BenchmarkDeleteInsertCloneEachTimeG(b *testing.B) {
 	for i := range b.N {
 		tr = tr.Clone()
 		tr.Delete(insertP[i%benchmarkTreeSize])
-		tr.ReplaceOrInsert(insertP[i%benchmarkTreeSize])
+		tr.Put(insertP[i%benchmarkTreeSize])
 	}
 }
 
@@ -508,9 +464,9 @@ func BenchmarkDeleteG(b *testing.B) {
 	for i < b.N {
 		b.StopTimer()
 
-		tr := NewOrderedG[int](*btreeDegree)
+		tr := New[int](*btreeDegree)
 		for _, v := range insertP {
-			tr.ReplaceOrInsert(v)
+			tr.Put(v)
 		}
 
 		b.StartTimer()
@@ -542,9 +498,9 @@ func BenchmarkGetG(b *testing.B) {
 	for i < b.N {
 		b.StopTimer()
 
-		tr := NewOrderedG[int](*btreeDegree)
+		tr := New[int](*btreeDegree)
 		for _, v := range insertP {
-			tr.ReplaceOrInsert(v)
+			tr.Put(v)
 		}
 
 		b.StartTimer()
@@ -572,9 +528,9 @@ func BenchmarkGetCloneEachTimeG(b *testing.B) {
 	for i < b.N {
 		b.StopTimer()
 
-		tr := NewOrderedG[int](*btreeDegree)
+		tr := New[int](*btreeDegree)
 		for _, v := range insertP {
-			tr.ReplaceOrInsert(v)
+			tr.Put(v)
 		}
 
 		b.StartTimer()
@@ -593,10 +549,10 @@ func BenchmarkGetCloneEachTimeG(b *testing.B) {
 
 func BenchmarkAscendG(b *testing.B) {
 	arr := rand.Perm(benchmarkTreeSize)
-	tr := NewOrderedG[int](*btreeDegree)
+	tr := New[int](*btreeDegree)
 
 	for _, v := range arr {
-		tr.ReplaceOrInsert(v)
+		tr.Put(v)
 	}
 
 	sort.Ints(arr)
@@ -619,10 +575,10 @@ func BenchmarkAscendG(b *testing.B) {
 
 func BenchmarkDescendG(b *testing.B) {
 	arr := rand.Perm(benchmarkTreeSize)
-	tr := NewOrderedG[int](*btreeDegree)
+	tr := New[int](*btreeDegree)
 
 	for _, v := range arr {
-		tr.ReplaceOrInsert(v)
+		tr.Put(v)
 	}
 
 	sort.Ints(arr)
@@ -645,10 +601,10 @@ func BenchmarkDescendG(b *testing.B) {
 
 func BenchmarkAscendRangeG(b *testing.B) {
 	arr := rand.Perm(benchmarkTreeSize)
-	tr := NewOrderedG[int](*btreeDegree)
+	tr := New[int](*btreeDegree)
 
 	for _, v := range arr {
-		tr.ReplaceOrInsert(v)
+		tr.Put(v)
 	}
 
 	sort.Ints(arr)
@@ -675,10 +631,10 @@ func BenchmarkAscendRangeG(b *testing.B) {
 
 func BenchmarkDescendRangeG(b *testing.B) {
 	arr := rand.Perm(benchmarkTreeSize)
-	tr := NewOrderedG[int](*btreeDegree)
+	tr := New[int](*btreeDegree)
 
 	for _, v := range arr {
-		tr.ReplaceOrInsert(v)
+		tr.Put(v)
 	}
 
 	sort.Ints(arr)
@@ -704,10 +660,10 @@ func BenchmarkDescendRangeG(b *testing.B) {
 
 func BenchmarkAscendGreaterOrEqualG(b *testing.B) {
 	arr := rand.Perm(benchmarkTreeSize)
-	tr := NewOrderedG[int](*btreeDegree)
+	tr := New[int](*btreeDegree)
 
 	for _, v := range arr {
-		tr.ReplaceOrInsert(v)
+		tr.Put(v)
 	}
 
 	sort.Ints(arr)
@@ -740,10 +696,10 @@ func BenchmarkAscendGreaterOrEqualG(b *testing.B) {
 
 func BenchmarkDescendLessOrEqualG(b *testing.B) {
 	arr := rand.Perm(benchmarkTreeSize)
-	tr := NewOrderedG[int](*btreeDegree)
+	tr := New[int](*btreeDegree)
 
 	for _, v := range arr {
-		tr.ReplaceOrInsert(v)
+		tr.Put(v)
 	}
 
 	sort.Ints(arr)
@@ -775,14 +731,14 @@ func BenchmarkDescendLessOrEqualG(b *testing.B) {
 
 const cloneTestSize = 10000
 
-func cloneTestG(t *testing.T, b *BTreeG[int], start int, p []int, wg *sync.WaitGroup, trees *[]*BTreeG[int], lock *sync.Mutex) {
+func cloneTestG(t *testing.T, b *Tree[int], start int, p []int, wg *sync.WaitGroup, trees *[]*Tree[int], lock *sync.Mutex) {
 	t.Logf("Starting new clone at %v", start)
 	lock.Lock()
 	*trees = append(*trees, b)
 	lock.Unlock()
 
 	for i := start; i < cloneTestSize; i++ {
-		b.ReplaceOrInsert(p[i])
+		b.Put(p[i])
 
 		if i%(cloneTestSize/5) == 0 {
 			wg.Add(1)
@@ -795,8 +751,8 @@ func cloneTestG(t *testing.T, b *BTreeG[int], start int, p []int, wg *sync.WaitG
 }
 
 func TestCloneConcurrentOperationsG(t *testing.T) {
-	b := NewOrderedG[int](*btreeDegree)
-	trees := []*BTreeG[int]{}
+	b := New[int](*btreeDegree)
+	trees := []*Tree[int]{}
 	p := rand.Perm(cloneTestSize)
 
 	var wg sync.WaitGroup

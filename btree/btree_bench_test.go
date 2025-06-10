@@ -10,11 +10,11 @@ func BenchmarkDeleteAndRestoreG(b *testing.B) {
 
 	b.ResetTimer()
 	b.Run(`CopyBigFreeList`, func(b *testing.B) {
-		fl := NewFreeListG[int](16392)
+		fl := NewFreeList[int](16392)
 
-		tr := NewWithFreeListG(*btreeDegree, Less[int](), fl)
+		tr := NewWithFreeList(*btreeDegree, Less[int](), fl)
 		for _, v := range items {
-			tr.ReplaceOrInsert(v)
+			tr.Put(v)
 		}
 
 		b.ReportAllocs()
@@ -32,16 +32,16 @@ func BenchmarkDeleteAndRestoreG(b *testing.B) {
 				tr.Delete(del)
 			}
 			// tr is now empty, we make a new empty copy of it.
-			tr = NewWithFreeListG(*btreeDegree, Less[int](), fl)
+			tr = NewWithFreeList(*btreeDegree, Less[int](), fl)
 			for _, v := range items {
-				tr.ReplaceOrInsert(v)
+				tr.Put(v)
 			}
 		}
 	})
 	b.Run(`Copy`, func(b *testing.B) {
-		tr := NewOrderedG[int](*btreeDegree)
+		tr := New[int](*btreeDegree)
 		for _, v := range items {
-			tr.ReplaceOrInsert(v)
+			tr.Put(v)
 		}
 
 		b.ReportAllocs()
@@ -59,18 +59,18 @@ func BenchmarkDeleteAndRestoreG(b *testing.B) {
 				tr.Delete(del)
 			}
 			// tr is now empty, we make a new empty copy of it.
-			tr = NewOrderedG[int](*btreeDegree)
+			tr = New[int](*btreeDegree)
 			for _, v := range items {
-				tr.ReplaceOrInsert(v)
+				tr.Put(v)
 			}
 		}
 	})
 	b.Run(`ClearBigFreelist`, func(b *testing.B) {
-		fl := NewFreeListG[int](16392)
+		fl := NewFreeList[int](16392)
 
-		tr := NewWithFreeListG(*btreeDegree, Less[int](), fl)
+		tr := NewWithFreeList(*btreeDegree, Less[int](), fl)
 		for _, v := range items {
-			tr.ReplaceOrInsert(v)
+			tr.Put(v)
 		}
 
 		b.ReportAllocs()
@@ -80,14 +80,14 @@ func BenchmarkDeleteAndRestoreG(b *testing.B) {
 			tr.Clear(true)
 
 			for _, v := range items {
-				tr.ReplaceOrInsert(v)
+				tr.Put(v)
 			}
 		}
 	})
 	b.Run(`Clear`, func(b *testing.B) {
-		tr := NewOrderedG[int](*btreeDegree)
+		tr := New[int](*btreeDegree)
 		for _, v := range items {
-			tr.ReplaceOrInsert(v)
+			tr.Put(v)
 		}
 
 		b.ReportAllocs()
@@ -97,7 +97,7 @@ func BenchmarkDeleteAndRestoreG(b *testing.B) {
 			tr.Clear(true)
 
 			for _, v := range items {
-				tr.ReplaceOrInsert(v)
+				tr.Put(v)
 			}
 		}
 	})
