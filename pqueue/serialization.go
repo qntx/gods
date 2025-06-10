@@ -8,8 +8,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-
-	"github.com/qntx/gods/container"
 )
 
 // Predefined errors for JSON operations.
@@ -17,9 +15,6 @@ var (
 	ErrMarshalJSONFailure   = errors.New("failed to marshal priority queue to JSON")
 	ErrUnmarshalJSONFailure = errors.New("failed to unmarshal JSON into priority queue")
 )
-
-// Ensure PriorityQueue implements required interfaces at compile time.
-var _ container.JSONCodec = (*PriorityQueue[int, int])(nil)
 
 // pqJSON is a helper struct for serializing the priority queue to JSON.
 type pqJSON[T comparable, V any] struct {

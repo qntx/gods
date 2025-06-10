@@ -1,4 +1,4 @@
-package rbtreebidimap
+package rbtreebimap
 
 import "github.com/qntx/gods/container"
 
@@ -7,9 +7,8 @@ var _ container.EnumerableWithKey[string, int] = (*Map[string, int])(nil)
 
 // Each calls the given function once for each element, passing that element's key and value.
 func (m *Map[K, V]) Each(f func(key K, value V)) {
-	iterator := m.Iterator()
-	for iterator.Next() {
-		f(iterator.Key(), iterator.Value())
+	for k, v := range m.forwardMap.Iter() {
+		f(k, v)
 	}
 }
 
@@ -18,9 +17,8 @@ func (m *Map[K, V]) Each(f func(key K, value V)) {
 func (m *Map[K, V]) Map(f func(key1 K, value1 V) (K, V)) *Map[K, V] {
 	newMap := NewWith(m.forwardMap.Comparator(), m.inverseMap.Comparator())
 
-	iterator := m.Iterator()
-	for iterator.Next() {
-		key2, value2 := f(iterator.Key(), iterator.Value())
+	for k, v := range m.forwardMap.Iter() {
+		key2, value2 := f(k, v)
 		newMap.Put(key2, value2)
 	}
 
@@ -31,10 +29,9 @@ func (m *Map[K, V]) Map(f func(key1 K, value1 V) (K, V)) *Map[K, V] {
 func (m *Map[K, V]) Select(f func(key K, value V) bool) *Map[K, V] {
 	newMap := NewWith(m.forwardMap.Comparator(), m.inverseMap.Comparator())
 
-	iterator := m.Iterator()
-	for iterator.Next() {
-		if f(iterator.Key(), iterator.Value()) {
-			newMap.Put(iterator.Key(), iterator.Value())
+	for k, v := range m.forwardMap.Iter() {
+		if f(k, v) {
+			newMap.Put(k, v)
 		}
 	}
 
@@ -44,9 +41,8 @@ func (m *Map[K, V]) Select(f func(key K, value V) bool) *Map[K, V] {
 // Any passes each element of the container to the given function and
 // returns true if the function ever returns true for any element.
 func (m *Map[K, V]) Any(f func(key K, value V) bool) bool {
-	iterator := m.Iterator()
-	for iterator.Next() {
-		if f(iterator.Key(), iterator.Value()) {
+	for k, v := range m.forwardMap.Iter() {
+		if f(k, v) {
 			return true
 		}
 	}
@@ -57,9 +53,8 @@ func (m *Map[K, V]) Any(f func(key K, value V) bool) bool {
 // All passes each element of the container to the given function and
 // returns true if the function returns true for all elements.
 func (m *Map[K, V]) All(f func(key K, value V) bool) bool {
-	iterator := m.Iterator()
-	for iterator.Next() {
-		if !f(iterator.Key(), iterator.Value()) {
+	for k, v := range m.forwardMap.Iter() {
+		if !f(k, v) {
 			return false
 		}
 	}
@@ -71,10 +66,9 @@ func (m *Map[K, V]) All(f func(key K, value V) bool) bool {
 // the first (key,value) for which the function is true or nil,nil otherwise if no element
 // matches the criteria.
 func (m *Map[K, V]) Find(f func(key K, value V) bool) (k K, v V) {
-	iterator := m.Iterator()
-	for iterator.Next() {
-		if f(iterator.Key(), iterator.Value()) {
-			return iterator.Key(), iterator.Value()
+	for k, v := range m.forwardMap.Iter() {
+		if f(k, v) {
+			return k, v
 		}
 	}
 

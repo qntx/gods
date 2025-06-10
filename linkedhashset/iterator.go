@@ -2,12 +2,7 @@ package linkedhashset
 
 import (
 	"container/list"
-
-	"github.com/qntx/gods/container"
 )
-
-// Assert Iterator implementation.
-var _ container.ReverseIteratorWithIndex[int] = (*Iterator[int])(nil)
 
 // Iterator holds the iterator's state.
 type Iterator[T comparable] struct {

@@ -1,13 +1,8 @@
 package linkedhashmap
 
 import (
-	"container/list" // Standard library list
-
-	"github.com/qntx/gods/container"
+	"container/list"
 )
-
-// Assert Iterator implementation.
-var _ container.ReverseIteratorWithKey[string, int] = (*Iterator[string, int])(nil)
 
 // Iterator holding the iterator's state.
 type Iterator[K comparable, V any] struct {

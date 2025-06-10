@@ -8,17 +8,12 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-
-	"github.com/qntx/gods/container"
 )
 
 var (
 	ErrMarshalJSON = errors.New("failed to marshal queue to JSON")
 	ErrInvalidJSON = errors.New("invalid JSON data")
 )
-
-// Verify Queue satisfies required interfaces at compile time.
-var _ container.JSONCodec = (*Deque[int])(nil)
 
 // MarshalJSON serializes the queue's elements into a JSON array in FIFO order.
 //

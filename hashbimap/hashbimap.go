@@ -9,9 +9,10 @@
 // Structure is not thread safe.
 //
 // Reference: https://en.wikipedia.org/wiki/Bidirectional_map
-package hashbidimap
+package hashbimap
 
 import (
+	"encoding/json"
 	"fmt"
 
 	"github.com/qntx/gods/hashmap"
@@ -86,6 +87,32 @@ func (m *Map[K, V]) Values() []V {
 func (m *Map[K, V]) Clear() {
 	m.forwardMap.Clear()
 	m.inverseMap.Clear()
+}
+
+var _ json.Marshaler = (*Map[string, int])(nil)
+var _ json.Unmarshaler = (*Map[string, int])(nil)
+
+// MarshalJSON outputs the JSON representation of the map.
+func (m *Map[K, V]) MarshalJSON() ([]byte, error) {
+	return m.forwardMap.MarshalJSON()
+}
+
+// UnmarshalJSON populates the map from the input JSON representation.
+func (m *Map[K, V]) UnmarshalJSON(data []byte) error {
+	var elements map[K]V
+
+	err := json.Unmarshal(data, &elements)
+	if err != nil {
+		return err
+	}
+
+	m.Clear()
+
+	for k, v := range elements {
+		m.Put(k, v)
+	}
+
+	return nil
 }
 
 // String returns a string representation of container.

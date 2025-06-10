@@ -11,9 +11,10 @@
 // Structure is not thread safe.
 //
 // Reference: https://en.wikipedia.org/wiki/Bidirectional_map
-package rbtreebidimap
+package rbtreebimap
 
 import (
+	"encoding/json"
 	"fmt"
 
 	"strings"
@@ -104,13 +105,38 @@ func (m *Map[K, V]) Clear() {
 	m.inverseMap.Clear()
 }
 
+var _ json.Marshaler = (*Map[string, int])(nil)
+var _ json.Unmarshaler = (*Map[string, int])(nil)
+
+// MarshalJSON @implements json.Marshaler.
+func (m *Map[K, V]) MarshalJSON() ([]byte, error) {
+	return m.forwardMap.MarshalJSON()
+}
+
+// UnmarshalJSON @implements json.Unmarshaler.
+func (m *Map[K, V]) UnmarshalJSON(data []byte) error {
+	var elements map[K]V
+
+	err := json.Unmarshal(data, &elements)
+	if err != nil {
+		return err
+	}
+
+	m.Clear()
+
+	for key, value := range elements {
+		m.Put(key, value)
+	}
+
+	return nil
+}
+
 // String returns a string representation of container.
 func (m *Map[K, V]) String() string {
 	str := "TreeBidiMap\nmap["
-	it := m.forwardMap.Iterator()
 
-	for it.Next() {
-		str += fmt.Sprintf("%v:%v ", it.Key(), it.Value())
+	for k, v := range m.forwardMap.Iter() {
+		str += fmt.Sprintf("%v:%v ", k, v)
 	}
 
 	return strings.TrimRight(str, " ") + "]"

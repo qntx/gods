@@ -2,6 +2,7 @@
 package rbtreeset
 
 import (
+	"encoding/json"
 	"fmt"
 	"iter"
 	"reflect"
@@ -83,12 +84,33 @@ func (s *Set[T]) Values() []T {
 // All returns an iterator over all elements in the set in sorted order.
 func (s *Set[T]) Iter() iter.Seq[T] {
 	return func(yield func(T) bool) {
-		for it := s.tree.Iterator(); it.Next(); {
-			if !yield(it.Key()) {
+		for k := range s.tree.Iter() {
+			if !yield(k) {
 				return
 			}
 		}
 	}
+}
+
+var _ json.Marshaler = (*Set[string])(nil)
+var _ json.Unmarshaler = (*Set[string])(nil)
+
+// MarshalJSON outputs the JSON representation of the set.
+func (set *Set[T]) MarshalJSON() ([]byte, error) {
+	return json.Marshal(set.Values())
+}
+
+// UnmarshalJSON populates the set from the input JSON representation.
+func (set *Set[T]) UnmarshalJSON(data []byte) error {
+	var elements []T
+
+	err := json.Unmarshal(data, &elements)
+	if err == nil {
+		set.Clear()
+		set.Add(elements...)
+	}
+
+	return err
 }
 
 // String returns a string representation of the set.

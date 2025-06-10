@@ -161,7 +161,7 @@ func TestAVLTreeRemove(t *testing.T) {
 	}
 }
 
-func TestAVLTreeLeftAndRight(t *testing.T) {
+func TestAVLTreeBeginAndEnd(t *testing.T) {
 	tree := New[int, string]()
 
 	if actualValue := tree.GetBeginNode(); actualValue != nil {
@@ -247,7 +247,7 @@ func TestAVLTreeIterEmpty(t *testing.T) {
 	}
 }
 
-func TestTreeIterForward(t *testing.T) {
+func TestAVLTreeIter(t *testing.T) {
 	tree := New[int, string]()
 	tree.Put(5, "e")
 	tree.Put(6, "f")
@@ -277,11 +277,11 @@ func TestTreeIterForward(t *testing.T) {
 	}
 }
 
-func TestTreeReverseIterOnEmpty(t *testing.T) {
+func TestAVLTreeReverseIterOnEmpty(t *testing.T) {
 	tree := New[int, string]()
 
 	var count int
-	for range tree.ReverseIter() {
+	for range tree.RIter() {
 		count++
 	}
 
@@ -290,7 +290,7 @@ func TestTreeReverseIterOnEmpty(t *testing.T) {
 	}
 }
 
-func TestTreeReverseIter(t *testing.T) {
+func TestAVLTreeReverseIter(t *testing.T) {
 	tree := New[int, string]()
 	tree.Put(3, "c")
 	tree.Put(1, "a")
@@ -302,7 +302,7 @@ func TestTreeReverseIter(t *testing.T) {
 	actualKeys := make([]int, 0, tree.Len())
 	actualValues := make([]string, 0, tree.Len())
 
-	for key, value := range tree.ReverseIter() {
+	for key, value := range tree.RIter() {
 		actualKeys = append(actualKeys, key)
 		actualValues = append(actualValues, value)
 	}
@@ -316,7 +316,7 @@ func TestTreeReverseIter(t *testing.T) {
 	}
 }
 
-func TestTreeIterSkipsDeleted(t *testing.T) {
+func TestAVLTreeIterSkipsDeleted(t *testing.T) {
 	tree := New[int, string]()
 	tree.Put(10, "a")
 	tree.Put(20, "b")

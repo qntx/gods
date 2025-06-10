@@ -1,10 +1,12 @@
-package rbtreeset
+package rbtreeset_test
 
 import (
 	"testing"
+
+	"github.com/qntx/gods/rbtreeset"
 )
 
-func benchmarkContains(b *testing.B, set *Set[int], size int) {
+func benchmarkContains(b *testing.B, set *rbtreeset.Set[int], size int) {
 	b.Helper()
 
 	for b.N > 0 {
@@ -14,7 +16,7 @@ func benchmarkContains(b *testing.B, set *Set[int], size int) {
 	}
 }
 
-func benchmarkAdd(b *testing.B, set *Set[int], size int) {
+func benchmarkAdd(b *testing.B, set *rbtreeset.Set[int], size int) {
 	b.Helper()
 
 	for b.N > 0 {
@@ -24,7 +26,7 @@ func benchmarkAdd(b *testing.B, set *Set[int], size int) {
 	}
 }
 
-func benchmarkRemove(b *testing.B, set *Set[int], size int) {
+func benchmarkRemove(b *testing.B, set *rbtreeset.Set[int], size int) {
 	b.Helper()
 
 	for b.N > 0 {
@@ -38,7 +40,7 @@ func BenchmarkTreeSetContains100(b *testing.B) {
 	b.StopTimer()
 
 	size := 100
-	set := New[int]()
+	set := rbtreeset.New[int]()
 
 	for n := range size {
 		set.Add(n)
@@ -52,7 +54,7 @@ func BenchmarkTreeSetContains1000(b *testing.B) {
 	b.StopTimer()
 
 	size := 1000
-	set := New[int]()
+	set := rbtreeset.New[int]()
 
 	for n := range size {
 		set.Add(n)
@@ -66,7 +68,7 @@ func BenchmarkTreeSetContains10000(b *testing.B) {
 	b.StopTimer()
 
 	size := 10000
-	set := New[int]()
+	set := rbtreeset.New[int]()
 
 	for n := range size {
 		set.Add(n)
@@ -80,7 +82,7 @@ func BenchmarkTreeSetContains100000(b *testing.B) {
 	b.StopTimer()
 
 	size := 100000
-	set := New[int]()
+	set := rbtreeset.New[int]()
 
 	for n := range size {
 		set.Add(n)
@@ -94,7 +96,7 @@ func BenchmarkTreeSetAdd100(b *testing.B) {
 	b.StopTimer()
 
 	size := 100
-	set := New[int]()
+	set := rbtreeset.New[int]()
 
 	b.StartTimer()
 	benchmarkAdd(b, set, size)
@@ -104,7 +106,7 @@ func BenchmarkTreeSetAdd1000(b *testing.B) {
 	b.StopTimer()
 
 	size := 1000
-	set := New[int]()
+	set := rbtreeset.New[int]()
 
 	for n := range size {
 		set.Add(n)
@@ -118,7 +120,7 @@ func BenchmarkTreeSetAdd10000(b *testing.B) {
 	b.StopTimer()
 
 	size := 10000
-	set := New[int]()
+	set := rbtreeset.New[int]()
 
 	for n := range size {
 		set.Add(n)
@@ -132,7 +134,7 @@ func BenchmarkTreeSetAdd100000(b *testing.B) {
 	b.StopTimer()
 
 	size := 100000
-	set := New[int]()
+	set := rbtreeset.New[int]()
 
 	for n := range size {
 		set.Add(n)
@@ -146,7 +148,7 @@ func BenchmarkTreeSetRemove100(b *testing.B) {
 	b.StopTimer()
 
 	size := 100
-	set := New[int]()
+	set := rbtreeset.New[int]()
 
 	for n := range size {
 		set.Add(n)
@@ -160,7 +162,7 @@ func BenchmarkTreeSetRemove1000(b *testing.B) {
 	b.StopTimer()
 
 	size := 1000
-	set := New[int]()
+	set := rbtreeset.New[int]()
 
 	for n := range size {
 		set.Add(n)
@@ -174,7 +176,7 @@ func BenchmarkTreeSetRemove10000(b *testing.B) {
 	b.StopTimer()
 
 	size := 10000
-	set := New[int]()
+	set := rbtreeset.New[int]()
 
 	for n := range size {
 		set.Add(n)
@@ -188,7 +190,7 @@ func BenchmarkTreeSetRemove100000(b *testing.B) {
 	b.StopTimer()
 
 	size := 100000
-	set := New[int]()
+	set := rbtreeset.New[int]()
 
 	for n := range size {
 		set.Add(n)

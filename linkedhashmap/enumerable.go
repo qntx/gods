@@ -1,10 +1,5 @@
 package linkedhashmap
 
-import "github.com/qntx/gods/container"
-
-// Assert Enumerable implementation.
-var _ container.EnumerableWithKey[string, int] = (*Map[string, int])(nil)
-
 // Each calls the given function once for each element, passing that element's key and value.
 func (m *Map[K, V]) Each(f func(key K, value V)) {
 	iterator := m.Iterator()

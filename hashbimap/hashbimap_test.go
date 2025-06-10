@@ -1,9 +1,11 @@
-package hashbidimap
+package hashbimap_test
 
 import (
 	"encoding/json"
 	"strings"
 	"testing"
+
+	"github.com/qntx/gods/hashbimap"
 )
 
 func SameElements[T comparable](t *testing.T, actual, expected []T) {
@@ -22,7 +24,7 @@ outer:
 }
 
 func TestMapPut(t *testing.T) {
-	m := New[int, string]()
+	m := hashbimap.New[int, string]()
 	m.Put(5, "e")
 	m.Put(6, "f")
 	m.Put(7, "g")
@@ -61,7 +63,7 @@ func TestMapPut(t *testing.T) {
 }
 
 func TestMapRemove(t *testing.T) {
-	m := New[int, string]()
+	m := hashbimap.New[int, string]()
 	m.Put(5, "e")
 	m.Put(6, "f")
 	m.Put(7, "g")
@@ -122,7 +124,7 @@ func TestMapRemove(t *testing.T) {
 }
 
 func TestMapGetKey(t *testing.T) {
-	m := New[int, string]()
+	m := hashbimap.New[int, string]()
 	m.Put(5, "e")
 	m.Put(6, "f")
 	m.Put(7, "g")
@@ -154,7 +156,7 @@ func TestMapGetKey(t *testing.T) {
 }
 
 func TestMapSerialization(t *testing.T) {
-	m := New[string, float64]()
+	m := hashbimap.New[string, float64]()
 	m.Put("a", 1.0)
 	m.Put("b", 2.0)
 	m.Put("c", 3.0)
@@ -196,198 +198,10 @@ func TestMapSerialization(t *testing.T) {
 }
 
 func TestMapString(t *testing.T) {
-	c := New[string, int]()
+	c := hashbimap.New[string, int]()
 	c.Put("a", 1)
 
 	if !strings.HasPrefix(c.String(), "HashBidiMap") {
 		t.Errorf("String should start with container name")
 	}
-}
-
-func benchmarkGet(b *testing.B, m *Map[int, int], size int) {
-	for range b.N {
-		for n := range size {
-			m.Get(n)
-		}
-	}
-}
-
-func benchmarkPut(b *testing.B, m *Map[int, int], size int) {
-	for range b.N {
-		for n := range size {
-			m.Put(n, n)
-		}
-	}
-}
-
-func benchmarkRemove(b *testing.B, m *Map[int, int], size int) {
-	for range b.N {
-		for n := range size {
-			m.Remove(n)
-		}
-	}
-}
-
-func BenchmarkHashBidiMapGet100(b *testing.B) {
-	b.StopTimer()
-
-	size := 100
-	m := New[int, int]()
-
-	for n := range size {
-		m.Put(n, n)
-	}
-
-	b.StartTimer()
-	benchmarkGet(b, m, size)
-}
-
-func BenchmarkHashBidiMapGet1000(b *testing.B) {
-	b.StopTimer()
-
-	size := 1000
-	m := New[int, int]()
-
-	for n := range size {
-		m.Put(n, n)
-	}
-
-	b.StartTimer()
-	benchmarkGet(b, m, size)
-}
-
-func BenchmarkHashBidiMapGet10000(b *testing.B) {
-	b.StopTimer()
-
-	size := 10000
-	m := New[int, int]()
-
-	for n := range size {
-		m.Put(n, n)
-	}
-
-	b.StartTimer()
-	benchmarkGet(b, m, size)
-}
-
-func BenchmarkHashBidiMapGet100000(b *testing.B) {
-	b.StopTimer()
-
-	size := 100000
-	m := New[int, int]()
-
-	for n := range size {
-		m.Put(n, n)
-	}
-
-	b.StartTimer()
-	benchmarkGet(b, m, size)
-}
-
-func BenchmarkHashBidiMapPut100(b *testing.B) {
-	b.StopTimer()
-
-	size := 100
-	m := New[int, int]()
-
-	b.StartTimer()
-	benchmarkPut(b, m, size)
-}
-
-func BenchmarkHashBidiMapPut1000(b *testing.B) {
-	b.StopTimer()
-
-	size := 1000
-	m := New[int, int]()
-
-	for n := range size {
-		m.Put(n, n)
-	}
-
-	b.StartTimer()
-	benchmarkPut(b, m, size)
-}
-
-func BenchmarkHashBidiMapPut10000(b *testing.B) {
-	b.StopTimer()
-
-	size := 10000
-	m := New[int, int]()
-
-	for n := range size {
-		m.Put(n, n)
-	}
-
-	b.StartTimer()
-	benchmarkPut(b, m, size)
-}
-
-func BenchmarkHashBidiMapPut100000(b *testing.B) {
-	b.StopTimer()
-
-	size := 100000
-	m := New[int, int]()
-
-	for n := range size {
-		m.Put(n, n)
-	}
-
-	b.StartTimer()
-	benchmarkPut(b, m, size)
-}
-
-func BenchmarkHashBidiMapRemove100(b *testing.B) {
-	b.StopTimer()
-
-	size := 100
-	m := New[int, int]()
-
-	for n := range size {
-		m.Put(n, n)
-	}
-
-	b.StartTimer()
-	benchmarkRemove(b, m, size)
-}
-
-func BenchmarkHashBidiMapRemove1000(b *testing.B) {
-	b.StopTimer()
-
-	size := 1000
-	m := New[int, int]()
-
-	for n := range size {
-		m.Put(n, n)
-	}
-
-	b.StartTimer()
-	benchmarkRemove(b, m, size)
-}
-
-func BenchmarkHashBidiMapRemove10000(b *testing.B) {
-	b.StopTimer()
-
-	size := 10000
-	m := New[int, int]()
-
-	for n := range size {
-		m.Put(n, n)
-	}
-
-	b.StartTimer()
-	benchmarkRemove(b, m, size)
-}
-
-func BenchmarkHashBidiMapRemove100000(b *testing.B) {
-	b.StopTimer()
-
-	size := 100000
-	m := New[int, int]()
-
-	for n := range size {
-		m.Put(n, n)
-	}
-
-	b.StartTimer()
-	benchmarkRemove(b, m, size)
 }

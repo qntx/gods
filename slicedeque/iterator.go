@@ -6,29 +6,12 @@ package slicedeque
 
 import (
 	"errors"
-
-	"github.com/qntx/gods/container"
 )
-
-// --------------------------------------------------------------------------------
-// Constants and Errors
-// --------------------------------------------------------------------------------
 
 // Predefined errors for iterator operations.
 var (
 	ErrInvalidIteratorPosition = errors.New("iterator value accessed at invalid position")
 )
-
-// --------------------------------------------------------------------------------
-// Interface Assertions
-// --------------------------------------------------------------------------------
-
-// Ensure Iterator implements container.ReverseIteratorWithIndex at compile time.
-var _ container.ReverseIteratorWithIndex[int] = (*Iterator[int])(nil)
-
-// --------------------------------------------------------------------------------
-// Types
-// --------------------------------------------------------------------------------
 
 // Iterator provides forward and reverse traversal over a Queue's elements.
 //
@@ -40,10 +23,6 @@ type Iterator[T comparable] struct {
 	index int       // Current position: -1 (before start), Len() (past end), or valid index.
 }
 
-// --------------------------------------------------------------------------------
-// Constructor
-// --------------------------------------------------------------------------------
-
 // Iterator creates a new iterator for the queue.
 //
 // Starts in an invalid state (before the first element). Use Next() to reach the
@@ -54,10 +33,6 @@ func (q *Deque[T]) Iterator() *Iterator[T] {
 		index: -1, // Before-first state.
 	}
 }
-
-// --------------------------------------------------------------------------------
-// Public Methods
-// --------------------------------------------------------------------------------
 
 // Next advances the iterator to the next element.
 //
@@ -184,10 +159,6 @@ func (it *Iterator[T]) PrevTo(f func(index int, value T) bool) bool {
 
 	return false
 }
-
-// --------------------------------------------------------------------------------
-// Private Helpers
-// --------------------------------------------------------------------------------
 
 // valid checks if the iterator is at a valid element position.
 func (it *Iterator[T]) valid() bool {

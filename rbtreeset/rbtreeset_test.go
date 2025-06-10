@@ -1,14 +1,16 @@
-package rbtreeset
+package rbtreeset_test
 
 import (
 	"encoding/json"
 	"fmt"
 	"strings"
 	"testing"
+
+	"github.com/qntx/gods/rbtreeset"
 )
 
 func TestSetNew(t *testing.T) {
-	set := New(2, 1)
+	set := rbtreeset.New(2, 1)
 	if actualValue := set.Len(); actualValue != 2 {
 		t.Errorf("Got %v expected %v", actualValue, 2)
 	}
@@ -24,7 +26,7 @@ func TestSetNew(t *testing.T) {
 }
 
 func TestSetAdd(t *testing.T) {
-	set := New[int]()
+	set := rbtreeset.New[int]()
 	set.Add()
 	set.Add(1)
 	set.Add(2)
@@ -41,7 +43,7 @@ func TestSetAdd(t *testing.T) {
 }
 
 func TestSetContains(t *testing.T) {
-	set := New[int]()
+	set := rbtreeset.New[int]()
 	set.Add(3, 1, 2)
 
 	if actualValue := set.Contains(); actualValue != true {
@@ -62,7 +64,7 @@ func TestSetContains(t *testing.T) {
 }
 
 func TestSetRemove(t *testing.T) {
-	set := New[int]()
+	set := rbtreeset.New[int]()
 	set.Add(3, 1, 2)
 	set.Remove()
 
@@ -87,7 +89,7 @@ func TestSetRemove(t *testing.T) {
 }
 
 func TestSetEach(t *testing.T) {
-	set := New[string]()
+	set := rbtreeset.New[string]()
 	set.Add("c", "a", "b")
 	set.Each(func(index int, value string) {
 		switch index {
@@ -110,7 +112,7 @@ func TestSetEach(t *testing.T) {
 }
 
 func TestSetMap(t *testing.T) {
-	set := New[string]()
+	set := rbtreeset.New[string]()
 	set.Add("c", "a", "b")
 
 	mappedSet := set.Map(func(index int, value string) string {
@@ -130,7 +132,7 @@ func TestSetMap(t *testing.T) {
 }
 
 func TestSetSelect(t *testing.T) {
-	set := New[string]()
+	set := rbtreeset.New[string]()
 	set.Add("c", "a", "b")
 
 	selectedSet := set.Select(func(index int, value string) bool {
@@ -151,7 +153,7 @@ func TestSetSelect(t *testing.T) {
 }
 
 func TestSetAny(t *testing.T) {
-	set := New[string]()
+	set := rbtreeset.New[string]()
 	set.Add("c", "a", "b")
 
 	any := set.Any(func(index int, value string) bool {
@@ -170,7 +172,7 @@ func TestSetAny(t *testing.T) {
 }
 
 func TestSetAll(t *testing.T) {
-	set := New[string]()
+	set := rbtreeset.New[string]()
 	set.Add("c", "a", "b")
 
 	all := set.All(func(index int, value string) bool {
@@ -189,7 +191,7 @@ func TestSetAll(t *testing.T) {
 }
 
 func TestSetFind(t *testing.T) {
-	set := New[string]()
+	set := rbtreeset.New[string]()
 	set.Add("c", "a", "b")
 
 	foundIndex, foundValue := set.Find(func(index int, value string) bool {
@@ -208,296 +210,12 @@ func TestSetFind(t *testing.T) {
 }
 
 func TestSetChaining(t *testing.T) {
-	set := New[string]()
+	set := rbtreeset.New[string]()
 	set.Add("c", "a", "b")
-}
-
-func TestSetIteratorNextOnEmpty(t *testing.T) {
-	set := New[string]()
-
-	it := set.Iterator()
-	for it.Next() {
-		t.Errorf("Shouldn't iterate on empty set")
-	}
-}
-
-func TestSetIteratorPrevOnEmpty(t *testing.T) {
-	set := New[string]()
-
-	it := set.Iterator()
-	for it.Prev() {
-		t.Errorf("Shouldn't iterate on empty set")
-	}
-}
-
-func TestSetIteratorNext(t *testing.T) {
-	set := New[string]()
-	set.Add("c", "a", "b")
-	it := set.Iterator()
-	count := 0
-
-	for it.Next() {
-		count++
-		index := it.Index()
-		value := it.Value()
-
-		switch index {
-		case 0:
-			if actualValue, expectedValue := value, "a"; actualValue != expectedValue {
-				t.Errorf("Got %v expected %v", actualValue, expectedValue)
-			}
-		case 1:
-			if actualValue, expectedValue := value, "b"; actualValue != expectedValue {
-				t.Errorf("Got %v expected %v", actualValue, expectedValue)
-			}
-		case 2:
-			if actualValue, expectedValue := value, "c"; actualValue != expectedValue {
-				t.Errorf("Got %v expected %v", actualValue, expectedValue)
-			}
-		default:
-			t.Errorf("Too many")
-		}
-
-		if actualValue, expectedValue := index, count-1; actualValue != expectedValue {
-			t.Errorf("Got %v expected %v", actualValue, expectedValue)
-		}
-	}
-
-	if actualValue, expectedValue := count, 3; actualValue != expectedValue {
-		t.Errorf("Got %v expected %v", actualValue, expectedValue)
-	}
-}
-
-func TestSetIteratorPrev(t *testing.T) {
-	set := New[string]()
-	set.Add("c", "a", "b")
-
-	it := set.Iterator()
-	for it.Prev() {
-	}
-
-	count := 0
-	for it.Next() {
-		count++
-		index := it.Index()
-		value := it.Value()
-
-		switch index {
-		case 0:
-			if actualValue, expectedValue := value, "a"; actualValue != expectedValue {
-				t.Errorf("Got %v expected %v", actualValue, expectedValue)
-			}
-		case 1:
-			if actualValue, expectedValue := value, "b"; actualValue != expectedValue {
-				t.Errorf("Got %v expected %v", actualValue, expectedValue)
-			}
-		case 2:
-			if actualValue, expectedValue := value, "c"; actualValue != expectedValue {
-				t.Errorf("Got %v expected %v", actualValue, expectedValue)
-			}
-		default:
-			t.Errorf("Too many")
-		}
-
-		if actualValue, expectedValue := index, count-1; actualValue != expectedValue {
-			t.Errorf("Got %v expected %v", actualValue, expectedValue)
-		}
-	}
-
-	if actualValue, expectedValue := count, 3; actualValue != expectedValue {
-		t.Errorf("Got %v expected %v", actualValue, expectedValue)
-	}
-}
-
-func TestSetIteratorBegin(t *testing.T) {
-	set := New[string]()
-	it := set.Iterator()
-	it.Begin()
-	set.Add("a", "b", "c")
-
-	for it.Next() {
-	}
-
-	it.Begin()
-	it.Next()
-
-	if index, value := it.Index(), it.Value(); index != 0 || value != "a" {
-		t.Errorf("Got %v,%v expected %v,%v", index, value, 0, "a")
-	}
-}
-
-func TestSetIteratorEnd(t *testing.T) {
-	set := New[string]()
-	it := set.Iterator()
-
-	if index := it.Index(); index != -1 {
-		t.Errorf("Got %v expected %v", index, -1)
-	}
-
-	it.End()
-
-	if index := it.Index(); index != 0 {
-		t.Errorf("Got %v expected %v", index, 0)
-	}
-
-	set.Add("a", "b", "c")
-	it.End()
-
-	if index := it.Index(); index != set.Len() {
-		t.Errorf("Got %v expected %v", index, set.Len())
-	}
-
-	it.Prev()
-
-	if index, value := it.Index(), it.Value(); index != set.Len()-1 || value != "c" {
-		t.Errorf("Got %v,%v expected %v,%v", index, value, set.Len()-1, "c")
-	}
-}
-
-func TestSetIteratorFirst(t *testing.T) {
-	set := New[string]()
-	set.Add("a", "b", "c")
-
-	it := set.Iterator()
-	if actualValue, expectedValue := it.First(), true; actualValue != expectedValue {
-		t.Errorf("Got %v expected %v", actualValue, expectedValue)
-	}
-
-	if index, value := it.Index(), it.Value(); index != 0 || value != "a" {
-		t.Errorf("Got %v,%v expected %v,%v", index, value, 0, "a")
-	}
-}
-
-func TestSetIteratorLast(t *testing.T) {
-	set := New[string]()
-	set.Add("a", "b", "c")
-
-	it := set.Iterator()
-	if actualValue, expectedValue := it.Last(), true; actualValue != expectedValue {
-		t.Errorf("Got %v expected %v", actualValue, expectedValue)
-	}
-
-	if index, value := it.Index(), it.Value(); index != 2 || value != "c" {
-		t.Errorf("Got %v,%v expected %v,%v", index, value, 2, "c")
-	}
-}
-
-func TestSetIteratorNextTo(t *testing.T) {
-	// Sample seek function, i.e. string starting with "b"
-	seek := func(index int, value string) bool {
-		return strings.HasSuffix(value, "b")
-	}
-
-	// NextTo (empty)
-	{
-		set := New[string]()
-
-		it := set.Iterator()
-		for it.NextTo(seek) {
-			t.Errorf("Shouldn't iterate on empty set")
-		}
-	}
-
-	// NextTo (not found)
-	{
-		set := New[string]()
-		set.Add("xx", "yy")
-
-		it := set.Iterator()
-		for it.NextTo(seek) {
-			t.Errorf("Shouldn't iterate on empty set")
-		}
-	}
-
-	// NextTo (found)
-	{
-		set := New[string]()
-		set.Add("aa", "bb", "cc")
-		it := set.Iterator()
-		it.Begin()
-
-		if !it.NextTo(seek) {
-			t.Errorf("Shouldn't iterate on empty set")
-		}
-
-		if index, value := it.Index(), it.Value(); index != 1 || value != "bb" {
-			t.Errorf("Got %v,%v expected %v,%v", index, value, 1, "bb")
-		}
-
-		if !it.Next() {
-			t.Errorf("Should go to first element")
-		}
-
-		if index, value := it.Index(), it.Value(); index != 2 || value != "cc" {
-			t.Errorf("Got %v,%v expected %v,%v", index, value, 2, "cc")
-		}
-
-		if it.Next() {
-			t.Errorf("Should not go past last element")
-		}
-	}
-}
-
-func TestSetIteratorPrevTo(t *testing.T) {
-	// Sample seek function, i.e. string starting with "b"
-	seek := func(index int, value string) bool {
-		return strings.HasSuffix(value, "b")
-	}
-
-	// PrevTo (empty)
-	{
-		set := New[string]()
-		it := set.Iterator()
-		it.End()
-
-		for it.PrevTo(seek) {
-			t.Errorf("Shouldn't iterate on empty set")
-		}
-	}
-
-	// PrevTo (not found)
-	{
-		set := New[string]()
-		set.Add("xx", "yy")
-		it := set.Iterator()
-		it.End()
-
-		for it.PrevTo(seek) {
-			t.Errorf("Shouldn't iterate on empty set")
-		}
-	}
-
-	// PrevTo (found)
-	{
-		set := New[string]()
-		set.Add("aa", "bb", "cc")
-		it := set.Iterator()
-		it.End()
-
-		if !it.PrevTo(seek) {
-			t.Errorf("Shouldn't iterate on empty set")
-		}
-
-		if index, value := it.Index(), it.Value(); index != 1 || value != "bb" {
-			t.Errorf("Got %v,%v expected %v,%v", index, value, 1, "bb")
-		}
-
-		if !it.Prev() {
-			t.Errorf("Should go to first element")
-		}
-
-		if index, value := it.Index(), it.Value(); index != 0 || value != "aa" {
-			t.Errorf("Got %v,%v expected %v,%v", index, value, 0, "aa")
-		}
-
-		if it.Prev() {
-			t.Errorf("Should not go before first element")
-		}
-	}
 }
 
 func TestSetSerialization(t *testing.T) {
-	set := New[string]()
+	set := rbtreeset.New[string]()
 	set.Add("a", "b", "c")
 
 	var err error
@@ -538,7 +256,7 @@ func TestSetSerialization(t *testing.T) {
 }
 
 func TestSetString(t *testing.T) {
-	c := New[int]()
+	c := rbtreeset.New[int]()
 	c.Add(1)
 
 	if !strings.HasPrefix(c.String(), "TreeSet") {
@@ -547,8 +265,8 @@ func TestSetString(t *testing.T) {
 }
 
 func TestSetIntersection(t *testing.T) {
-	set := New[string]()
-	another := New[string]()
+	set := rbtreeset.New[string]()
+	another := rbtreeset.New[string]()
 
 	intersection := set.Intersection(another)
 	if actualValue, expectedValue := intersection.Len(), 0; actualValue != expectedValue {
@@ -570,8 +288,8 @@ func TestSetIntersection(t *testing.T) {
 }
 
 func TestSetUnion(t *testing.T) {
-	set := New[string]()
-	another := New[string]()
+	set := rbtreeset.New[string]()
+	another := rbtreeset.New[string]()
 
 	union := set.Union(another)
 	if actualValue, expectedValue := union.Len(), 0; actualValue != expectedValue {
@@ -593,8 +311,8 @@ func TestSetUnion(t *testing.T) {
 }
 
 func TestSetDifference(t *testing.T) {
-	set := New[string]()
-	another := New[string]()
+	set := rbtreeset.New[string]()
+	another := rbtreeset.New[string]()
 
 	difference := set.Difference(another)
 	if actualValue, expectedValue := difference.Len(), 0; actualValue != expectedValue {

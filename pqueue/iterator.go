@@ -6,16 +6,7 @@ package pqueue
 
 import (
 	"cmp"
-
-	"github.com/qntx/gods/container"
 )
-
-// --------------------------------------------------------------------------------
-// Iterator Interface Assertions
-// --------------------------------------------------------------------------------
-
-// Verify Iterator implements required interfaces at compile time.
-var _ container.ReverseIteratorWithIndex[string] = (*Iterator[string, int])(nil)
 
 // --------------------------------------------------------------------------------
 // Iterator Type

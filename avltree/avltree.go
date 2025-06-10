@@ -460,12 +460,12 @@ func (t *Tree[K, V]) Iter() iter.Seq2[K, V] {
 	}
 }
 
-// ReverseIter returns a reverse iterator over all key-value pairs (from largest to smallest).
+// RIter returns a reverse iterator over all key-value pairs (from largest to smallest).
 //
 // Conforms to Go 1.22+ iterator design (iter.Seq2). Yields pairs via an efficient,
 // non-recursive reverse in-order traversal. First element retrieval is O(log n), subsequent
 // steps are amortized O(1), with overall iteration complexity of O(n).
-func (t *Tree[K, V]) ReverseIter() iter.Seq2[K, V] {
+func (t *Tree[K, V]) RIter() iter.Seq2[K, V] {
 	return func(yield func(K, V) bool) {
 		node := t.GetEndNode()
 		for node != nil {
