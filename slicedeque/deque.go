@@ -10,7 +10,7 @@
 // Reference:
 // - https://en.wikipedia.org/wiki/Circular_buffer
 // - https://en.wikipedia.org/wiki/Double-ended_queue
-package deque
+package slicedeque
 
 import (
 	"errors"

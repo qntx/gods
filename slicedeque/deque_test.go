@@ -1,4 +1,4 @@
-package deque_test
+package slicedeque_test
 
 import (
 	"encoding/json"
@@ -6,13 +6,13 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/qntx/gods/deque"
+	"github.com/qntx/gods/slicedeque"
 )
 
 func TestQueuePushFront(t *testing.T) {
 	t.Parallel()
 
-	queue := deque.New[int](3)
+	queue := slicedeque.New[int](3)
 	if actualValue := queue.Empty(); actualValue != true {
 		t.Errorf("Got %v expected %v", actualValue, true)
 	}
@@ -51,7 +51,7 @@ func TestQueuePushFront(t *testing.T) {
 func TestQueuePushBack(t *testing.T) {
 	t.Parallel()
 
-	queue := deque.New[int](3)
+	queue := slicedeque.New[int](3)
 	if actualValue := queue.Empty(); actualValue != true {
 		t.Errorf("Got %v expected %v", actualValue, true)
 	}
@@ -84,7 +84,7 @@ func TestQueuePushBack(t *testing.T) {
 func TestQueueFront(t *testing.T) {
 	t.Parallel()
 
-	queue := deque.New[int](3)
+	queue := slicedeque.New[int](3)
 	if actualValue, ok := queue.Front(); actualValue != 0 || ok {
 		t.Errorf("Got %v expected %v", actualValue, nil)
 	}
@@ -100,7 +100,7 @@ func TestQueueFront(t *testing.T) {
 func TestQueueBack(t *testing.T) {
 	t.Parallel()
 
-	queue := deque.New[int](3)
+	queue := slicedeque.New[int](3)
 	if actualValue, ok := queue.Back(); actualValue != 0 || ok {
 		t.Errorf("Got %v expected %v", actualValue, 0)
 	}
@@ -117,7 +117,7 @@ func TestQueueBack(t *testing.T) {
 func TestQueueGet(t *testing.T) {
 	t.Parallel()
 
-	queue := deque.New[int](3)
+	queue := slicedeque.New[int](3)
 
 	queue.PushBack(1)
 	queue.PushBack(2)
@@ -145,7 +145,7 @@ func TestQueuePopFront(t *testing.T) {
 		}
 	}
 
-	queue := deque.New[int](3)
+	queue := slicedeque.New[int](3)
 	assert(queue.Empty(), true)
 	assert(queue.Empty(), true)
 	assert(queue.Full(), false)
@@ -203,7 +203,7 @@ func TestQueuePopFrontFull(t *testing.T) {
 		}
 	}
 
-	queue := deque.New[int](2)
+	queue := slicedeque.New[int](2)
 	assert(queue.Empty(), true)
 	assert(queue.Full(), false)
 	assert(queue.Len(), 0)
@@ -262,7 +262,7 @@ func TestQueuePopBack(t *testing.T) {
 		}
 	}
 
-	queue := deque.New[int](3)
+	queue := slicedeque.New[int](3)
 	assert(queue.Empty(), true)
 	assert(queue.Full(), false)
 	assert(queue.Len(), 0)
@@ -343,7 +343,7 @@ func TestQueuePopBackFull(t *testing.T) {
 		}
 	}
 
-	queue := deque.New[int](2)
+	queue := slicedeque.New[int](2)
 	assert(queue.Empty(), true)
 	assert(queue.Full(), false)
 	assert(queue.Len(), 0)
@@ -390,7 +390,7 @@ func TestQueuePopBackFull(t *testing.T) {
 func TestQueueClear(t *testing.T) {
 	t.Parallel()
 
-	queue := deque.New[int](3)
+	queue := slicedeque.New[int](3)
 	queue.PushBack(1)
 	queue.PushBack(2)
 	queue.PushBack(3)
@@ -417,7 +417,7 @@ func TestQueueClear(t *testing.T) {
 func TestQueueIteratorOnEmpty(t *testing.T) {
 	t.Parallel()
 
-	queue := deque.New[int](3)
+	queue := slicedeque.New[int](3)
 
 	it := queue.Iterator()
 	for it.Next() {
@@ -428,7 +428,7 @@ func TestQueueIteratorOnEmpty(t *testing.T) {
 func TestQueueIteratorNext(t *testing.T) {
 	t.Parallel()
 
-	queue := deque.New[string](3)
+	queue := slicedeque.New[string](3)
 	queue.PushBack("a")
 	queue.PushBack("b")
 	queue.PushBack("c")
@@ -478,7 +478,7 @@ func TestQueueIteratorNext(t *testing.T) {
 func TestQueueIteratorPrev(t *testing.T) {
 	t.Parallel()
 
-	queue := deque.New[string](3)
+	queue := slicedeque.New[string](3)
 	queue.PushBack("a")
 	queue.PushBack("b")
 	queue.PushBack("c")
@@ -523,7 +523,7 @@ func TestQueueIteratorPrev(t *testing.T) {
 func TestQueueIteratorBegin(t *testing.T) {
 	t.Parallel()
 
-	queue := deque.New[string](3)
+	queue := slicedeque.New[string](3)
 	it := queue.Iterator()
 	it.Begin()
 	queue.PushBack("a")
@@ -544,7 +544,7 @@ func TestQueueIteratorBegin(t *testing.T) {
 func TestQueueIteratorEnd(t *testing.T) {
 	t.Parallel()
 
-	queue := deque.New[string](3)
+	queue := slicedeque.New[string](3)
 	it := queue.Iterator()
 
 	if index := it.Index(); index != -1 {
@@ -576,7 +576,7 @@ func TestQueueIteratorEnd(t *testing.T) {
 func TestQueueIteratorFirst(t *testing.T) {
 	t.Parallel()
 
-	queue := deque.New[string](3)
+	queue := slicedeque.New[string](3)
 
 	it := queue.Iterator()
 	if actualValue, expectedValue := it.First(), false; actualValue != expectedValue {
@@ -599,7 +599,7 @@ func TestQueueIteratorFirst(t *testing.T) {
 func TestQueueIteratorLast(t *testing.T) {
 	t.Parallel()
 
-	queue := deque.New[string](3)
+	queue := slicedeque.New[string](3)
 
 	it := queue.Iterator()
 	if actualValue, expectedValue := it.Last(), false; actualValue != expectedValue {
@@ -629,7 +629,7 @@ func TestQueueIteratorNextTo(t *testing.T) {
 
 	// NextTo (empty)
 	{
-		queue := deque.New[string](3)
+		queue := slicedeque.New[string](3)
 
 		it := queue.Iterator()
 		for it.NextTo(seek) {
@@ -639,7 +639,7 @@ func TestQueueIteratorNextTo(t *testing.T) {
 
 	// NextTo (not found)
 	{
-		queue := deque.New[string](3)
+		queue := slicedeque.New[string](3)
 		queue.PushBack("xx")
 		queue.PushBack("yy")
 
@@ -651,7 +651,7 @@ func TestQueueIteratorNextTo(t *testing.T) {
 
 	// NextTo (found)
 	{
-		queue := deque.New[string](3)
+		queue := slicedeque.New[string](3)
 		queue.PushBack("aa")
 		queue.PushBack("bb")
 		queue.PushBack("cc")
@@ -690,7 +690,7 @@ func TestQueueIteratorPrevTo(t *testing.T) {
 
 	// PrevTo (empty)
 	{
-		queue := deque.New[string](3)
+		queue := slicedeque.New[string](3)
 		it := queue.Iterator()
 		it.End()
 
@@ -701,7 +701,7 @@ func TestQueueIteratorPrevTo(t *testing.T) {
 
 	// PrevTo (not found)
 	{
-		queue := deque.New[string](3)
+		queue := slicedeque.New[string](3)
 		queue.PushBack("xx")
 		queue.PushBack("yy")
 		it := queue.Iterator()
@@ -714,7 +714,7 @@ func TestQueueIteratorPrevTo(t *testing.T) {
 
 	// PrevTo (found)
 	{
-		queue := deque.New[string](3)
+		queue := slicedeque.New[string](3)
 		queue.PushBack("aa")
 		queue.PushBack("bb")
 		queue.PushBack("cc")
@@ -752,7 +752,7 @@ func TestQueueIterator(t *testing.T) {
 		}
 	}
 
-	queue := deque.New[string](2)
+	queue := slicedeque.New[string](2)
 
 	queue.PushBack("a")
 	queue.PushBack("b")
@@ -806,7 +806,7 @@ func TestQueueIterator(t *testing.T) {
 func TestQueueSerialization(t *testing.T) {
 	t.Parallel()
 
-	queue := deque.New[string](3)
+	queue := slicedeque.New[string](3)
 	queue.PushBack("a")
 	queue.PushBack("b")
 	queue.PushBack("c")
@@ -853,7 +853,7 @@ func TestQueueSerialization(t *testing.T) {
 func TestQueueString(t *testing.T) {
 	t.Parallel()
 
-	c := deque.New[int](3)
+	c := slicedeque.New[int](3)
 	c.PushBack(1)
 
 	if !strings.HasPrefix(c.String(), "Deque") {
@@ -861,7 +861,7 @@ func TestQueueString(t *testing.T) {
 	}
 }
 
-func benchmarkPushBack(b *testing.B, queue *deque.Deque[int], size int) {
+func benchmarkPushBack(b *testing.B, queue *slicedeque.Deque[int], size int) {
 	b.Helper()
 
 	for b.N > 0 {
@@ -871,7 +871,7 @@ func benchmarkPushBack(b *testing.B, queue *deque.Deque[int], size int) {
 	}
 }
 
-func benchmarkPopFront(b *testing.B, queue *deque.Deque[int], size int) {
+func benchmarkPopFront(b *testing.B, queue *slicedeque.Deque[int], size int) {
 	b.Helper()
 
 	for b.N > 0 {
@@ -885,7 +885,7 @@ func BenchmarkArrayQueuePopFront100(b *testing.B) {
 	b.StopTimer()
 
 	size := 100
-	queue := deque.New[int](3)
+	queue := slicedeque.New[int](3)
 
 	for n := range size {
 		queue.PushBack(n)
@@ -899,7 +899,7 @@ func BenchmarkArrayQueuePopFront1000(b *testing.B) {
 	b.StopTimer()
 
 	size := 1000
-	queue := deque.New[int](3)
+	queue := slicedeque.New[int](3)
 
 	for n := range size {
 		queue.PushBack(n)
@@ -913,7 +913,7 @@ func BenchmarkArrayQueuePopFront10000(b *testing.B) {
 	b.StopTimer()
 
 	size := 10000
-	queue := deque.New[int](3)
+	queue := slicedeque.New[int](3)
 
 	for n := range size {
 		queue.PushBack(n)
@@ -927,7 +927,7 @@ func BenchmarkArrayQueuePopFront100000(b *testing.B) {
 	b.StopTimer()
 
 	size := 100000
-	queue := deque.New[int](3)
+	queue := slicedeque.New[int](3)
 
 	for n := range size {
 		queue.PushBack(n)
@@ -941,7 +941,7 @@ func BenchmarkArrayQueuePushBack100(b *testing.B) {
 	b.StopTimer()
 
 	size := 100
-	queue := deque.New[int](3)
+	queue := slicedeque.New[int](3)
 
 	b.StartTimer()
 	benchmarkPushBack(b, queue, size)
@@ -951,7 +951,7 @@ func BenchmarkArrayQueuePushBack1000(b *testing.B) {
 	b.StopTimer()
 
 	size := 1000
-	queue := deque.New[int](3)
+	queue := slicedeque.New[int](3)
 
 	for n := range size {
 		queue.PushBack(n)
@@ -965,7 +965,7 @@ func BenchmarkArrayQueuePushBack10000(b *testing.B) {
 	b.StopTimer()
 
 	size := 10000
-	queue := deque.New[int](3)
+	queue := slicedeque.New[int](3)
 
 	for n := range size {
 		queue.PushBack(n)
@@ -979,7 +979,7 @@ func BenchmarkArrayQueuePushBack100000(b *testing.B) {
 	b.StopTimer()
 
 	size := 100000
-	queue := deque.New[int](3)
+	queue := slicedeque.New[int](3)
 
 	for n := range size {
 		queue.PushBack(n)

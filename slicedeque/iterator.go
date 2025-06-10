@@ -2,7 +2,7 @@
 //
 // This file implements a stateful iterator for the Queue type, supporting both
 // forward and reverse iteration with O(1) access to elements and indices.
-package deque
+package slicedeque
 
 import (
 	"errors"

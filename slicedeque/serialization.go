@@ -2,7 +2,7 @@
 //
 // This package extends the Queue type with methods to convert to and from JSON format,
 // implementing the container.JSONSerializer and container.JSONDeserializer interfaces.
-package deque
+package slicedeque
 
 import (
 	"encoding/json"
