@@ -761,7 +761,7 @@ func TestBTreeIteratorValuesAndKeys(t *testing.T) {
 func TestBTreeIteratorNextOnEmpty(t *testing.T) {
 	tree := New[int, string](3)
 
-	for _, _ = range tree.Iter() {
+	for range tree.Iter() {
 		t.Errorf("Shouldn't iterate on empty tree")
 	}
 }
@@ -769,7 +769,7 @@ func TestBTreeIteratorNextOnEmpty(t *testing.T) {
 func TestBTreeIteratorPrevOnEmpty(t *testing.T) {
 	tree := New[int, string](3)
 
-	for _, _ = range tree.RIter() {
+	for range tree.RIter() {
 		t.Errorf("Shouldn't iterate on empty tree")
 	}
 }

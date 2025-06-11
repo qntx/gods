@@ -19,6 +19,7 @@ deps:
 .PHONY: fmt
 fmt:
 	$(GO) fmt ./...
+	gofmt -s -w .
 
 # Lint code (requires golangci-lint to be installed)
 .PHONY: lint

@@ -330,7 +330,7 @@ func (t *Tree[K, V]) Clear() {
 // Keys returns a slice of all keys in sorted order. Time complexity: O(n).
 func (t *Tree[K, V]) Keys() []K {
 	keys := make([]K, 0, t.len)
-	for k, _ := range t.Iter() {
+	for k := range t.Iter() {
 		keys = append(keys, k)
 	}
 
