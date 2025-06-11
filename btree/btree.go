@@ -21,6 +21,8 @@ import (
 
 	"slices"
 
+	"maps"
+
 	"github.com/qntx/gods/cmp"
 	"github.com/qntx/gods/container"
 )
@@ -327,32 +329,66 @@ func (tree *Tree[K, V]) Entries() ([]K, []V) {
 	return keys, values
 }
 
-// Iter returns an iterator over key-value pairs from the tree.
-// The iteration order is in-order based on the key.
-func (tree *Tree[K, V]) Iter() iter.Seq2[K, V] {
+// Iter returns an iterator over all key-value pairs in sorted order.
+// Yields pairs in in-order traversal.
+// Time complexity: O(log n) per element.
+func (t *Tree[K, V]) Iter() iter.Seq2[K, V] {
 	return func(yield func(K, V) bool) {
-		it := tree.Iterator()
-		for it.Next() {
-			if !yield(it.Key(), it.Value()) {
-				return
-			}
-		}
+		t.inorder(t.Root, yield)
 	}
 }
 
-// RIter returns an iterator over key-value pairs in descending order.
-// Time complexity: O(n) for full iteration.
-func (tree *Tree[K, V]) RIter() iter.Seq2[K, V] {
+// RIter returns an iterator over all key-value pairs in reverse sorted order.
+// Yields pairs in reverse in-order traversal.
+// Time complexity: O(log n) per element.
+func (t *Tree[K, V]) RIter() iter.Seq2[K, V] {
 	return func(yield func(K, V) bool) {
-		it := tree.Iterator()
-		it.End()
+		t.inorderReverse(t.Root, yield)
+	}
+}
 
-		for it.Prev() {
-			if !yield(it.Key(), it.Value()) {
-				return
+func (t *Tree[K, V]) inorder(node *Node[K, V], yield func(K, V) bool) bool {
+	if node == nil {
+		return true
+	}
+	for i := range node.Entries {
+		if i < len(node.Children) {
+			if !t.inorder(node.Children[i], yield) {
+				return false
+			}
+		}
+		if !yield(node.Entries[i].Key, node.Entries[i].Value) {
+			return false
+		}
+	}
+	if len(node.Children) > len(node.Entries) {
+		if !t.inorder(node.Children[len(node.Children)-1], yield) {
+			return false
+		}
+	}
+	return true
+}
+
+func (t *Tree[K, V]) inorderReverse(node *Node[K, V], yield func(K, V) bool) bool {
+	if node == nil {
+		return true
+	}
+	if len(node.Children) > len(node.Entries) {
+		if !t.inorderReverse(node.Children[len(node.Children)-1], yield) {
+			return false
+		}
+	}
+	for i := len(node.Entries) - 1; i >= 0; i-- {
+		if !yield(node.Entries[i].Key, node.Entries[i].Value) {
+			return false
+		}
+		if i < len(node.Children) {
+			if !t.inorderReverse(node.Children[i], yield) {
+				return false
 			}
 		}
 	}
+	return true
 }
 
 // Height returns the height of the tree.
@@ -375,28 +411,23 @@ func (tree *Tree[K, V]) String() string {
 
 // ToJSON outputs the JSON representation of the tree.
 func (tree *Tree[K, V]) MarshalJSON() ([]byte, error) {
-	elements := make(map[K]V)
-	it := tree.Iterator()
+	elems := maps.Collect(tree.Iter())
 
-	for it.Next() {
-		elements[it.Key()] = it.Value()
-	}
-
-	return json.Marshal(&elements)
+	return json.Marshal(&elems)
 }
 
 // FromJSON populates the tree from the input JSON representation.
 func (tree *Tree[K, V]) UnmarshalJSON(data []byte) error {
-	elements := make(map[K]V)
+	elems := make(map[K]V)
 
-	err := json.Unmarshal(data, &elements)
+	err := json.Unmarshal(data, &elems)
 	if err != nil {
 		return err
 	}
 
 	tree.Clear()
 
-	for key, value := range elements {
+	for key, value := range elems {
 		tree.Put(key, value)
 	}
 

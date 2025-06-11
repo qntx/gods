@@ -7,6 +7,32 @@ import (
 	"testing"
 )
 
+func assertValidTree[K comparable, V any](t *testing.T, tree *Tree[K, V], expectedSize int) {
+	if actualValue, expectedValue := tree.size, expectedSize; actualValue != expectedValue {
+		t.Errorf("Got %v expected %v for tree size", actualValue, expectedValue)
+	}
+}
+
+func assertValidTreeNode[K comparable, V any](t *testing.T, node *Node[K, V], expectedEntries int, expectedChildren int, keys []K, hasParent bool) {
+	if actualValue, expectedValue := node.Parent != nil, hasParent; actualValue != expectedValue {
+		t.Errorf("Got %v expected %v for hasParent", actualValue, expectedValue)
+	}
+
+	if actualValue, expectedValue := len(node.Entries), expectedEntries; actualValue != expectedValue {
+		t.Errorf("Got %v expected %v for entries size", actualValue, expectedValue)
+	}
+
+	if actualValue, expectedValue := len(node.Children), expectedChildren; actualValue != expectedValue {
+		t.Errorf("Got %v expected %v for children size", actualValue, expectedValue)
+	}
+
+	for i, key := range keys {
+		if actualValue, expectedValue := node.Entries[i].Key, key; actualValue != expectedValue {
+			t.Errorf("Got %v expected %v for key", actualValue, expectedValue)
+		}
+	}
+}
+
 func TestBTreeGet1(t *testing.T) {
 	tree := New[int, string](3)
 	tree.Put(1, "a")
@@ -735,8 +761,7 @@ func TestBTreeIteratorValuesAndKeys(t *testing.T) {
 func TestBTreeIteratorNextOnEmpty(t *testing.T) {
 	tree := New[int, string](3)
 
-	it := tree.Iterator()
-	for it.Next() {
+	for _, _ = range tree.Iter() {
 		t.Errorf("Shouldn't iterate on empty tree")
 	}
 }
@@ -744,8 +769,7 @@ func TestBTreeIteratorNextOnEmpty(t *testing.T) {
 func TestBTreeIteratorPrevOnEmpty(t *testing.T) {
 	tree := New[int, string](3)
 
-	it := tree.Iterator()
-	for it.Prev() {
+	for _, _ = range tree.RIter() {
 		t.Errorf("Shouldn't iterate on empty tree")
 	}
 }
@@ -760,14 +784,12 @@ func TestBTreeIterator1Next(t *testing.T) {
 	tree.Put(1, "x")
 	tree.Put(2, "b")
 	tree.Put(1, "a") //overwrite
-	it := tree.Iterator()
 	count := 0
 
-	for it.Next() {
+	for k := range tree.Iter() {
 		count++
 
-		key := it.Key()
-		if actualValue, expectedValue := key, count; actualValue != expectedValue {
+		if actualValue, expectedValue := k, count; actualValue != expectedValue {
 			t.Errorf("Got %v expected %v", actualValue, expectedValue)
 		}
 	}
@@ -788,15 +810,13 @@ func TestBTreeIterator1Prev(t *testing.T) {
 	tree.Put(2, "b")
 	tree.Put(1, "a") //overwrite
 
-	it := tree.Iterator()
-	for it.Next() {
+	for range tree.RIter() {
 	}
 
 	countDown := tree.size
 
-	for it.Prev() {
-		key := it.Key()
-		if actualValue, expectedValue := key, countDown; actualValue != expectedValue {
+	for k := range tree.RIter() {
+		if actualValue, expectedValue := k, countDown; actualValue != expectedValue {
 			t.Errorf("Got %v expected %v", actualValue, expectedValue)
 		}
 
@@ -813,14 +833,12 @@ func TestBTreeIterator2Next(t *testing.T) {
 	tree.Put(3, "c")
 	tree.Put(1, "a")
 	tree.Put(2, "b")
-	it := tree.Iterator()
 	count := 0
 
-	for it.Next() {
+	for k := range tree.Iter() {
 		count++
 
-		key := it.Key()
-		if actualValue, expectedValue := key, count; actualValue != expectedValue {
+		if actualValue, expectedValue := k, count; actualValue != expectedValue {
 			t.Errorf("Got %v expected %v", actualValue, expectedValue)
 		}
 	}
@@ -836,15 +854,13 @@ func TestBTreeIterator2Prev(t *testing.T) {
 	tree.Put(1, "a")
 	tree.Put(2, "b")
 
-	it := tree.Iterator()
-	for it.Next() {
+	for range tree.Iter() {
 	}
 
 	countDown := tree.size
 
-	for it.Prev() {
-		key := it.Key()
-		if actualValue, expectedValue := key, countDown; actualValue != expectedValue {
+	for k := range tree.RIter() {
+		if actualValue, expectedValue := k, countDown; actualValue != expectedValue {
 			t.Errorf("Got %v expected %v", actualValue, expectedValue)
 		}
 
@@ -859,14 +875,12 @@ func TestBTreeIterator2Prev(t *testing.T) {
 func TestBTreeIterator3Next(t *testing.T) {
 	tree := New[int, string](3)
 	tree.Put(1, "a")
-	it := tree.Iterator()
 	count := 0
 
-	for it.Next() {
+	for k := range tree.Iter() {
 		count++
 
-		key := it.Key()
-		if actualValue, expectedValue := key, count; actualValue != expectedValue {
+		if actualValue, expectedValue := k, count; actualValue != expectedValue {
 			t.Errorf("Got %v expected %v", actualValue, expectedValue)
 		}
 	}
@@ -880,15 +894,13 @@ func TestBTreeIterator3Prev(t *testing.T) {
 	tree := New[int, string](3)
 	tree.Put(1, "a")
 
-	it := tree.Iterator()
-	for it.Next() {
+	for range tree.Iter() {
 	}
 
 	countDown := tree.size
 
-	for it.Prev() {
-		key := it.Key()
-		if actualValue, expectedValue := key, countDown; actualValue != expectedValue {
+	for k := range tree.RIter() {
+		if actualValue, expectedValue := k, countDown; actualValue != expectedValue {
 			t.Errorf("Got %v expected %v", actualValue, expectedValue)
 		}
 
@@ -912,14 +924,12 @@ func TestBTreeIterator4Next(t *testing.T) {
 	tree.Put(6, 2)
 	tree.Put(22, 8)
 	tree.Put(27, 10)
-	it := tree.Iterator()
 	count := 0
 
-	for it.Next() {
+	for _, v := range tree.Iter() {
 		count++
 
-		value := it.Value()
-		if actualValue, expectedValue := value, count; actualValue != expectedValue {
+		if actualValue, expectedValue := v, count; actualValue != expectedValue {
 			t.Errorf("Got %v expected %v", actualValue, expectedValue)
 		}
 	}
@@ -941,15 +951,10 @@ func TestBTreeIterator4Prev(t *testing.T) {
 	tree.Put(6, 2)
 	tree.Put(22, 8)
 	tree.Put(27, 10)
-	it := tree.Iterator()
 	count := tree.Len()
 
-	for it.Next() {
-	}
-
-	for it.Prev() {
-		value := it.Value()
-		if actualValue, expectedValue := value, count; actualValue != expectedValue {
+	for _, v := range tree.RIter() {
+		if actualValue, expectedValue := v, count; actualValue != expectedValue {
 			t.Errorf("Got %v expected %v", actualValue, expectedValue)
 		}
 
@@ -958,101 +963,6 @@ func TestBTreeIterator4Prev(t *testing.T) {
 
 	if actualValue, expectedValue := count, 0; actualValue != expectedValue {
 		t.Errorf("Size different. Got %v expected %v", actualValue, expectedValue)
-	}
-}
-
-func TestBTreeIteratorBegin(t *testing.T) {
-	tree := New[int, string](3)
-	tree.Put(3, "c")
-	tree.Put(1, "a")
-	tree.Put(2, "b")
-	it := tree.Iterator()
-
-	if it.node != nil {
-		t.Errorf("Got %v expected %v", it.node, nil)
-	}
-
-	it.Begin()
-
-	if it.node != nil {
-		t.Errorf("Got %v expected %v", it.node, nil)
-	}
-
-	for it.Next() {
-	}
-
-	it.Begin()
-
-	if it.node != nil {
-		t.Errorf("Got %v expected %v", it.node, nil)
-	}
-
-	it.Next()
-
-	if key, value := it.Key(), it.Value(); key != 1 || value != "a" {
-		t.Errorf("Got %v,%v expected %v,%v", key, value, 1, "a")
-	}
-}
-
-func TestBTreeIteratorEnd(t *testing.T) {
-	tree := New[int, string](3)
-	it := tree.Iterator()
-
-	if it.node != nil {
-		t.Errorf("Got %v expected %v", it.node, nil)
-	}
-
-	it.End()
-
-	if it.node != nil {
-		t.Errorf("Got %v expected %v", it.node, nil)
-	}
-
-	tree.Put(3, "c")
-	tree.Put(1, "a")
-	tree.Put(2, "b")
-	it.End()
-
-	if it.node != nil {
-		t.Errorf("Got %v expected %v", it.node, nil)
-	}
-
-	it.Prev()
-
-	if key, value := it.Key(), it.Value(); key != 3 || value != "c" {
-		t.Errorf("Got %v,%v expected %v,%v", key, value, 3, "c")
-	}
-}
-
-func TestBTreeIteratorFirst(t *testing.T) {
-	tree := New[int, string](3)
-	tree.Put(3, "c")
-	tree.Put(1, "a")
-	tree.Put(2, "b")
-
-	it := tree.Iterator()
-	if actualValue, expectedValue := it.First(), true; actualValue != expectedValue {
-		t.Errorf("Got %v expected %v", actualValue, expectedValue)
-	}
-
-	if key, value := it.Key(), it.Value(); key != 1 || value != "a" {
-		t.Errorf("Got %v,%v expected %v,%v", key, value, 1, "a")
-	}
-}
-
-func TestBTreeIteratorLast(t *testing.T) {
-	tree := New[int, string](3)
-	tree.Put(3, "c")
-	tree.Put(1, "a")
-	tree.Put(2, "b")
-
-	it := tree.Iterator()
-	if actualValue, expectedValue := it.Last(), true; actualValue != expectedValue {
-		t.Errorf("Got %v expected %v", actualValue, expectedValue)
-	}
-
-	if key, value := it.Key(), it.Value(); key != 3 || value != "c" {
-		t.Errorf("Got %v,%v expected %v,%v", key, value, 3, "c")
 	}
 }
 
@@ -1098,152 +1008,6 @@ func TestBTreeSearch(t *testing.T) {
 			if actualValue, expectedValue := found, test[2]; actualValue != expectedValue {
 				t.Errorf("Got %v expected %v", actualValue, expectedValue)
 			}
-		}
-	}
-}
-
-func assertValidTree[K comparable, V any](t *testing.T, tree *Tree[K, V], expectedSize int) {
-	if actualValue, expectedValue := tree.size, expectedSize; actualValue != expectedValue {
-		t.Errorf("Got %v expected %v for tree size", actualValue, expectedValue)
-	}
-}
-
-func assertValidTreeNode[K comparable, V any](t *testing.T, node *Node[K, V], expectedEntries int, expectedChildren int, keys []K, hasParent bool) {
-	if actualValue, expectedValue := node.Parent != nil, hasParent; actualValue != expectedValue {
-		t.Errorf("Got %v expected %v for hasParent", actualValue, expectedValue)
-	}
-
-	if actualValue, expectedValue := len(node.Entries), expectedEntries; actualValue != expectedValue {
-		t.Errorf("Got %v expected %v for entries size", actualValue, expectedValue)
-	}
-
-	if actualValue, expectedValue := len(node.Children), expectedChildren; actualValue != expectedValue {
-		t.Errorf("Got %v expected %v for children size", actualValue, expectedValue)
-	}
-
-	for i, key := range keys {
-		if actualValue, expectedValue := node.Entries[i].Key, key; actualValue != expectedValue {
-			t.Errorf("Got %v expected %v for key", actualValue, expectedValue)
-		}
-	}
-}
-
-func TestBTreeIteratorNextTo(t *testing.T) {
-	// Sample seek function, i.e. string starting with "b"
-	seek := func(index int, value string) bool {
-		return strings.HasSuffix(value, "b")
-	}
-
-	// NextTo (empty)
-	{
-		tree := New[int, string](3)
-
-		it := tree.Iterator()
-		for it.NextTo(seek) {
-			t.Errorf("Shouldn't iterate on empty tree")
-		}
-	}
-
-	// NextTo (not found)
-	{
-		tree := New[int, string](3)
-		tree.Put(0, "xx")
-		tree.Put(1, "yy")
-
-		it := tree.Iterator()
-		for it.NextTo(seek) {
-			t.Errorf("Shouldn't iterate on empty tree")
-		}
-	}
-
-	// NextTo (found)
-	{
-		tree := New[int, string](3)
-		tree.Put(2, "cc")
-		tree.Put(0, "aa")
-		tree.Put(1, "bb")
-		it := tree.Iterator()
-		it.Begin()
-
-		if !it.NextTo(seek) {
-			t.Errorf("Shouldn't iterate on empty tree")
-		}
-
-		if index, value := it.Key(), it.Value(); index != 1 || value != "bb" {
-			t.Errorf("Got %v,%v expected %v,%v", index, value, 1, "bb")
-		}
-
-		if !it.Next() {
-			t.Errorf("Should go to first element")
-		}
-
-		if index, value := it.Key(), it.Value(); index != 2 || value != "cc" {
-			t.Errorf("Got %v,%v expected %v,%v", index, value, 2, "cc")
-		}
-
-		if it.Next() {
-			t.Errorf("Should not go past last element")
-		}
-	}
-}
-
-func TestBTreeIteratorPrevTo(t *testing.T) {
-	// Sample seek function, i.e. string starting with "b"
-	seek := func(index int, value string) bool {
-		return strings.HasSuffix(value, "b")
-	}
-
-	// PrevTo (empty)
-	{
-		tree := New[int, string](3)
-		it := tree.Iterator()
-		it.End()
-
-		for it.PrevTo(seek) {
-			t.Errorf("Shouldn't iterate on empty tree")
-		}
-	}
-
-	// PrevTo (not found)
-	{
-		tree := New[int, string](3)
-		tree.Put(0, "xx")
-		tree.Put(1, "yy")
-		it := tree.Iterator()
-		it.End()
-
-		for it.PrevTo(seek) {
-			t.Errorf("Shouldn't iterate on empty tree")
-		}
-	}
-
-	// PrevTo (found)
-	{
-		tree := New[int, string](3)
-		tree.Put(2, "cc")
-		tree.Put(0, "aa")
-		tree.Put(1, "bb")
-		it := tree.Iterator()
-		it.End()
-
-		if !it.PrevTo(seek) {
-			t.Errorf("Shouldn't iterate on empty tree")
-		}
-
-		if index, value := it.Key(), it.Value(); index != 1 || value != "bb" {
-			t.Errorf("Got %v,%v expected %v,%v", index, value, 1, "bb")
-		}
-
-		if !it.Prev() {
-			t.Errorf("Should go to first element")
-		}
-
-		if index, value := it.Key(), it.Value(); index != 0 || value != "aa" {
-			t.Errorf("Got %v,%v expected %v,%v", index, value, 0, "aa")
-		}
-
-		if it.Prev() {
-			t.Errorf("Should not go before first element")
 		}
 	}
 }
