@@ -784,6 +784,7 @@ func TestBTreeIterator1Next(t *testing.T) {
 	tree.Put(1, "x")
 	tree.Put(2, "b")
 	tree.Put(1, "a") //overwrite
+
 	count := 0
 
 	for k := range tree.Iter() {
@@ -833,6 +834,7 @@ func TestBTreeIterator2Next(t *testing.T) {
 	tree.Put(3, "c")
 	tree.Put(1, "a")
 	tree.Put(2, "b")
+
 	count := 0
 
 	for k := range tree.Iter() {
@@ -875,6 +877,7 @@ func TestBTreeIterator2Prev(t *testing.T) {
 func TestBTreeIterator3Next(t *testing.T) {
 	tree := New[int, string](3)
 	tree.Put(1, "a")
+
 	count := 0
 
 	for k := range tree.Iter() {
@@ -924,6 +927,7 @@ func TestBTreeIterator4Next(t *testing.T) {
 	tree.Put(6, 2)
 	tree.Put(22, 8)
 	tree.Put(27, 10)
+
 	count := 0
 
 	for _, v := range tree.Iter() {

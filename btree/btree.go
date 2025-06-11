@@ -80,10 +80,12 @@ func (n *Node[K, V]) Size() int {
 	if n == nil {
 		return 0
 	}
+
 	size := 1
 	for _, children := range n.children {
 		size += children.Size()
 	}
+
 	return size
 }
 
@@ -95,20 +97,26 @@ func (n *Node[K, V]) height() int {
 		h++
 		n = n.children[0]
 	}
+
 	return h
 }
 
 // String returns a string representation of the node.
 func (n *Node[K, V]) String() string {
 	var sb strings.Builder
+
 	sb.WriteString("[")
+
 	for i, e := range n.entries {
 		if i > 0 {
 			sb.WriteString(", ")
 		}
+
 		sb.WriteString(e.String())
 	}
+
 	sb.WriteString("]")
+
 	return sb.String()
 }
 
@@ -154,6 +162,7 @@ func NewWith[K comparable, V any](order int, cmp cmp.Comparator[K]) *Tree[K, V] 
 	if order < 3 {
 		panic("Invalid B-tree order: must be 3 or greater")
 	}
+
 	return &Tree[K, V]{m: order, cmp: cmp}
 }
 
@@ -165,6 +174,7 @@ func (t *Tree[K, V]) Put(key K, value V) {
 	if t.root == nil {
 		t.root = &Node[K, V]{entries: []*entry[K, V]{e}}
 		t.len++
+
 		return
 	}
 
@@ -181,7 +191,9 @@ func (t *Tree[K, V]) Get(key K) (V, bool) {
 	if index != notFound {
 		return node.entries[index].value, true
 	}
+
 	var zeroV V
+
 	return zeroV, false
 }
 
@@ -193,6 +205,7 @@ func (t *Tree[K, V]) GetNode(key K) *Node[K, V] {
 	if index != notFound {
 		return node
 	}
+
 	return nil
 }
 
@@ -200,6 +213,7 @@ func (t *Tree[K, V]) GetNode(key K) *Node[K, V] {
 // Time complexity: O(log n).
 func (t *Tree[K, V]) Has(key K) bool {
 	_, index := t.lookup(key)
+
 	return index != notFound
 }
 
@@ -211,11 +225,14 @@ func (t *Tree[K, V]) Delete(key K) bool {
 	if index == notFound {
 		return false
 	}
+
 	t.delete(node, index)
+
 	t.len--
 	if t.len == 0 {
 		t.root = nil
 	}
+
 	return true
 }
 
@@ -225,8 +242,10 @@ func (t *Tree[K, V]) Begin() (k K, v V, ok bool) {
 	if t.IsEmpty() {
 		return k, v, false
 	}
+
 	node := getMinNode(t.root)
 	e := node.entries[0]
+
 	return e.key, e.value, true
 }
 
@@ -236,8 +255,10 @@ func (t *Tree[K, V]) End() (k K, v V, ok bool) {
 	if t.IsEmpty() {
 		return k, v, false
 	}
+
 	node := getMaxNode(t.root)
 	e := node.entries[len(node.entries)-1]
+
 	return e.key, e.value, true
 }
 
@@ -248,8 +269,10 @@ func (t *Tree[K, V]) DeleteBegin() (k K, v V, ok bool) {
 	key, value, found := t.Begin()
 	if found {
 		t.Delete(key)
+
 		return key, value, true
 	}
+
 	return k, v, false
 }
 
@@ -260,8 +283,10 @@ func (t *Tree[K, V]) DeleteEnd() (k K, v V, ok bool) {
 	key, value, found := t.End()
 	if found {
 		t.Delete(key)
+
 		return key, value, true
 	}
+
 	return k, v, false
 }
 
@@ -286,6 +311,7 @@ func (t *Tree[K, V]) Height() int {
 	if t.root == nil {
 		return 0
 	}
+
 	return t.root.height()
 }
 
@@ -307,6 +333,7 @@ func (t *Tree[K, V]) Keys() []K {
 	for k, _ := range t.Iter() {
 		keys = append(keys, k)
 	}
+
 	return keys
 }
 
@@ -316,6 +343,7 @@ func (t *Tree[K, V]) Values() []V {
 	for _, v := range t.Iter() {
 		values = append(values, v)
 	}
+
 	return values
 }
 
@@ -328,10 +356,12 @@ func (t *Tree[K, V]) ToSlice() []V {
 func (t *Tree[K, V]) Entries() ([]K, []V) {
 	keys := make([]K, 0, t.len)
 	values := make([]V, 0, t.len)
+
 	for k, v := range t.Iter() {
 		keys = append(keys, k)
 		values = append(values, v)
 	}
+
 	return keys, values
 }
 
@@ -341,6 +371,7 @@ func (t *Tree[K, V]) Clone() container.Map[K, V] {
 	if t.root != nil {
 		newTree.root = cloneNode(t.root, nil)
 	}
+
 	return newTree
 }
 
@@ -363,9 +394,12 @@ func (t *Tree[K, V]) String() string {
 	if t.IsEmpty() {
 		return "BTree[]"
 	}
+
 	var sb strings.Builder
+
 	sb.WriteString("BTree\n")
 	t.output(&sb, t.root, "", true)
+
 	return sb.String()
 }
 
@@ -380,10 +414,13 @@ func (t *Tree[K, V]) UnmarshalJSON(data []byte) error {
 	if err := json.Unmarshal(data, &elems); err != nil {
 		return err
 	}
+
 	t.Clear()
+
 	for k, v := range elems {
 		t.Put(k, v)
 	}
+
 	return nil
 }
 
@@ -400,14 +437,17 @@ func (t *Tree[K, V]) lookup(key K) (*Node[K, V], int) {
 	}
 
 	node := t.root
+
 	for {
 		index, found := t.search(node, key)
 		if found {
 			return node, index
 		}
+
 		if node.isLeaf() {
 			return nil, notFound
 		}
+
 		node = node.children[index]
 	}
 }
@@ -424,6 +464,7 @@ func (t *Tree[K, V]) insert(node *Node[K, V], e *entry[K, V]) bool {
 	if node.isLeaf() {
 		return t.insertIntoLeaf(node, e)
 	}
+
 	return t.insertIntoInternal(node, e)
 }
 
@@ -431,10 +472,13 @@ func (t *Tree[K, V]) insertIntoLeaf(node *Node[K, V], e *entry[K, V]) bool {
 	index, found := t.search(node, e.key)
 	if found {
 		node.entries[index] = e
+
 		return false
 	}
+
 	node.entries = slices.Insert(node.entries, index, e)
 	t.split(node)
+
 	return true
 }
 
@@ -442,8 +486,10 @@ func (t *Tree[K, V]) insertIntoInternal(node *Node[K, V], e *entry[K, V]) bool {
 	index, found := t.search(node, e.key)
 	if found {
 		node.entries[index] = e
+
 		return false
 	}
+
 	return t.insert(node.children[index], e)
 }
 
@@ -455,8 +501,10 @@ func (t *Tree[K, V]) split(node *Node[K, V]) {
 
 	if node == t.root {
 		t.splitRoot()
+
 		return
 	}
+
 	t.splitNonRoot(node)
 }
 
@@ -560,6 +608,7 @@ func (t *Tree[K, V]) rebalance(node *Node[K, V]) {
 		leftSibling := parent.children[nodeIndex-1]
 		if len(leftSibling.entries) > t.minEntries() {
 			t.borrowFromSibling(node, leftSibling, nodeIndex)
+
 			return
 		}
 	}
@@ -569,6 +618,7 @@ func (t *Tree[K, V]) rebalance(node *Node[K, V]) {
 		rightSibling := parent.children[nodeIndex+1]
 		if len(rightSibling.entries) > t.minEntries() {
 			t.borrowFromSibling(node, rightSibling, nodeIndex)
+
 			return
 		}
 	}
@@ -595,6 +645,7 @@ func (t *Tree[K, V]) borrowFromSibling(node, sibling *Node[K, V], nodeIndexInPar
 		// Rotate right
 		node.entries = slices.Insert(node.entries, 0, parent.entries[parentIndex])
 		parent.entries[parentIndex] = sibling.entries[len(sibling.entries)-1]
+
 		sibling.entries = slices.Delete(sibling.entries, len(sibling.entries)-1, len(sibling.entries))
 		if !sibling.isLeaf() {
 			childToMove := sibling.children[len(sibling.children)-1]
@@ -607,6 +658,7 @@ func (t *Tree[K, V]) borrowFromSibling(node, sibling *Node[K, V], nodeIndexInPar
 		// Rotate left
 		node.entries = append(node.entries, parent.entries[parentIndex])
 		parent.entries[parentIndex] = sibling.entries[0]
+
 		sibling.entries = slices.Delete(sibling.entries, 0, 1)
 		if !sibling.isLeaf() {
 			childToMove := sibling.children[0]
@@ -657,6 +709,7 @@ func findChildIndex[K comparable, V any](parent, children *Node[K, V]) int {
 			return i
 		}
 	}
+
 	return notFound
 }
 
@@ -664,9 +717,11 @@ func getMinNode[K comparable, V any](node *Node[K, V]) *Node[K, V] {
 	if node == nil {
 		return nil
 	}
+
 	for !node.isLeaf() {
 		node = node.children[0]
 	}
+
 	return node
 }
 
@@ -674,9 +729,11 @@ func getMaxNode[K comparable, V any](node *Node[K, V]) *Node[K, V] {
 	if node == nil {
 		return nil
 	}
+
 	for !node.isLeaf() {
 		node = node.children[len(node.children)-1]
 	}
+
 	return node
 }
 
@@ -684,17 +741,21 @@ func cloneNode[K comparable, V any](node *Node[K, V], parent *Node[K, V]) *Node[
 	if node == nil {
 		return nil
 	}
+
 	newNode := &Node[K, V]{parent: parent}
 	newNode.entries = make([]*entry[K, V], len(node.entries))
+
 	for i, e := range node.entries {
 		newNode.entries[i] = &entry[K, V]{key: e.key, value: e.value}
 	}
+
 	if !node.isLeaf() {
 		newNode.children = make([]*Node[K, V], len(node.children))
 		for i, c := range node.children {
 			newNode.children[i] = cloneNode(c, newNode)
 		}
 	}
+
 	return newNode
 }
 
@@ -703,21 +764,25 @@ func inorder[K comparable, V any](n *Node[K, V], yield func(K, V) bool) bool {
 	if n == nil {
 		return true
 	}
-	for i := 0; i < len(n.entries); i++ {
+
+	for i := range len(n.entries) {
 		if !n.isLeaf() {
 			if !inorder(n.children[i], yield) {
 				return false
 			}
 		}
+
 		if !yield(n.entries[i].key, n.entries[i].value) {
 			return false
 		}
 	}
+
 	if !n.isLeaf() {
 		if !inorder(n.children[len(n.children)-1], yield) {
 			return false
 		}
 	}
+
 	return true
 }
 
@@ -726,21 +791,25 @@ func inorderReverse[K comparable, V any](n *Node[K, V], yield func(K, V) bool) b
 	if n == nil {
 		return true
 	}
+
 	if !n.isLeaf() {
 		if !inorderReverse(n.children[len(n.children)-1], yield) {
 			return false
 		}
 	}
+
 	for i := len(n.entries) - 1; i >= 0; i-- {
 		if !yield(n.entries[i].key, n.entries[i].value) {
 			return false
 		}
+
 		if !n.isLeaf() {
 			if !inorderReverse(n.children[i], yield) {
 				return false
 			}
 		}
 	}
+
 	return true
 }
 
@@ -749,18 +818,24 @@ func (t *Tree[K, V]) output(sb *strings.Builder, n *Node[K, V], prefix string, i
 	if n == nil {
 		return
 	}
+
 	sb.WriteString(prefix)
+
 	if isTail {
 		sb.WriteString("└── ")
+
 		prefix += "    "
 	} else {
 		sb.WriteString("├── ")
+
 		prefix += "│   "
 	}
+
 	entryKeys := make([]string, len(n.entries))
 	for i, e := range n.entries {
 		entryKeys[i] = fmt.Sprintf("%v", e.key)
 	}
+
 	sb.WriteString(strings.Join(entryKeys, ", ") + "\n")
 
 	for i, children := range n.children {

@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"iter"
-	"reflect"
 	"strings"
 
 	"github.com/qntx/gods/cmp"
@@ -132,13 +131,6 @@ func (s *Set[T]) String() string {
 func (s *Set[T]) Intersection(other *Set[T]) *Set[T] {
 	res := NewWith(s.tree.Comparator())
 
-	sCmp := reflect.ValueOf(s.tree.Comparator())
-	oCmp := reflect.ValueOf(other.tree.Comparator())
-
-	if sCmp.Pointer() != oCmp.Pointer() {
-		return res
-	}
-
 	// Iterate over smaller set for efficiency.
 	src, dst := s, other
 	if s.Len() > other.Len() {
@@ -160,13 +152,6 @@ func (s *Set[T]) Intersection(other *Set[T]) *Set[T] {
 func (s *Set[T]) Union(other *Set[T]) *Set[T] {
 	res := NewWith(s.tree.Comparator())
 
-	sCmp := reflect.ValueOf(s.tree.Comparator())
-	oCmp := reflect.ValueOf(other.tree.Comparator())
-
-	if sCmp.Pointer() != oCmp.Pointer() {
-		return res
-	}
-
 	for v := range s.Iter() {
 		res.Add(v)
 	}
@@ -183,13 +168,6 @@ func (s *Set[T]) Union(other *Set[T]) *Set[T] {
 // Ref: https://proofwiki.org/wiki/Definition:Set_Difference
 func (s *Set[T]) Difference(other *Set[T]) *Set[T] {
 	res := NewWith(s.tree.Comparator())
-
-	sCmp := reflect.ValueOf(s.tree.Comparator())
-	oCmp := reflect.ValueOf(other.tree.Comparator())
-
-	if sCmp.Pointer() != oCmp.Pointer() {
-		return res
-	}
 
 	for v := range s.Iter() {
 		if !other.Contains(v) {
