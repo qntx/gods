@@ -73,7 +73,7 @@ type PriorityQueue[T comparable, V cmp.Ordered] struct {
 //	pq := New[int, int](MinHeap)
 //	pq.Put(1, 10)
 func New[T comparable, V cmp.Ordered](kind HeapKind) *PriorityQueue[T, V] {
-	return NewWith[T](kind, cmp.GenericComparator[V])
+	return NewWith[T](kind, cmp.Compare[V])
 }
 
 // NewWith creates a new priority queue with a custom comparator for priorities.
@@ -90,7 +90,7 @@ func New[T comparable, V cmp.Ordered](kind HeapKind) *PriorityQueue[T, V] {
 //
 // Example:
 //
-//	pq := NewWith[string, int](MaxHeap, cmp.GenericComparator[int])
+//	pq := NewWith[string, int](MaxHeap, cmp.Compare[int])
 //	pq.Put("task1", 5)
 func NewWith[T comparable, V cmp.Ordered](kind HeapKind, cmp cmp.Comparator[V]) *PriorityQueue[T, V] {
 	if cmp == nil {

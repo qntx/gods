@@ -674,11 +674,11 @@ func TestBTreeHeight(t *testing.T) {
 func TestBTreeLeftAndRight(t *testing.T) {
 	tree := New[int, string](3)
 
-	if actualValue := tree.Left(); actualValue != nil {
+	if actualValue := tree.GetBeginNode(); actualValue != nil {
 		t.Errorf("Got %v expected %v", actualValue, nil)
 	}
 
-	if actualValue := tree.Right(); actualValue != nil {
+	if actualValue := tree.GetEndNode(); actualValue != nil {
 		t.Errorf("Got %v expected %v", actualValue, nil)
 	}
 
@@ -691,19 +691,19 @@ func TestBTreeLeftAndRight(t *testing.T) {
 	tree.Put(1, "x") // overwrite
 	tree.Put(2, "b")
 
-	if actualValue, expectedValue := tree.LeftKey(), 1; actualValue != expectedValue {
+	if actualValue, expectedValue := tree.GetBeginNode().Entries[0].Key, 1; actualValue != expectedValue {
 		t.Errorf("Got %v expected %v", actualValue, expectedValue)
 	}
 
-	if actualValue, expectedValue := tree.LeftValue(), "x"; actualValue != expectedValue {
+	if actualValue, expectedValue := tree.GetBeginNode().Entries[0].Value, "x"; actualValue != expectedValue {
 		t.Errorf("Got %v expected %v", actualValue, expectedValue)
 	}
 
-	if actualValue, expectedValue := tree.RightKey(), 7; actualValue != expectedValue {
+	if actualValue, expectedValue := tree.GetEndNode().Entries[len(tree.GetEndNode().Entries)-1].Key, 7; actualValue != expectedValue {
 		t.Errorf("Got %v expected %v", actualValue, expectedValue)
 	}
 
-	if actualValue, expectedValue := tree.RightValue(), "g"; actualValue != expectedValue {
+	if actualValue, expectedValue := tree.GetEndNode().Entries[len(tree.GetEndNode().Entries)-1].Value, "g"; actualValue != expectedValue {
 		t.Errorf("Got %v expected %v", actualValue, expectedValue)
 	}
 }

@@ -40,7 +40,7 @@ func Less[T Ordered](x, y T) bool {
 	return (IsNaN(x) && !IsNaN(y)) || x < y
 }
 
-// GenericComparator returns
+// Compare returns
 //
 //	-1 if x is less than y,
 //	 0 if x equals y,
@@ -48,7 +48,7 @@ func Less[T Ordered](x, y T) bool {
 //
 // For floating-point types, a NaN is considered less than any non-NaN,
 // a NaN is considered equal to a NaN, and -0.0 is equal to 0.0.
-func GenericComparator[T Ordered](x, y T) int {
+func Compare[T Ordered](x, y T) int {
 	xNaN := IsNaN(x)
 	yNaN := IsNaN(y)
 

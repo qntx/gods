@@ -32,7 +32,7 @@ var _ json.Unmarshaler = (*Map[int, int])(nil)
 func New[K cmp.Ordered, V any]() *Map[K, V] {
 	return &Map[K, V]{
 		m:   make(map[K]V),
-		cmp: cmp.GenericComparator[K],
+		cmp: cmp.Compare[K],
 	}
 }
 

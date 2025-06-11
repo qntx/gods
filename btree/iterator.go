@@ -30,7 +30,7 @@ func (iterator *Iterator[K, V]) Next() bool {
 	}
 	// If at beginning, get the left-most entry in the tree
 	if iterator.position == begin {
-		left := iterator.tree.Left()
+		left := iterator.tree.GetBeginNode()
 		if left == nil {
 			goto end
 		}
@@ -96,7 +96,7 @@ func (iterator *Iterator[K, V]) Prev() bool {
 	}
 	// If at end, get the right-most entry in the tree
 	if iterator.position == end {
-		right := iterator.tree.Right()
+		right := iterator.tree.GetEndNode()
 		if right == nil {
 			goto begin
 		}

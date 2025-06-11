@@ -22,7 +22,7 @@ type Set[T comparable] struct {
 
 // New creates a new set for ordered types with optional initial values.
 func New[T cmp.Ordered](values ...T) *Set[T] {
-	return NewWith(cmp.GenericComparator[T], 4, values...)
+	return NewWith(cmp.Compare[T], 4, values...)
 }
 
 // NewWith creates a new set with a custom comparator and optional initial values.

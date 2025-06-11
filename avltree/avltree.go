@@ -89,7 +89,7 @@ type Tree[K comparable, V any] struct {
 //
 // K must implement cmp.Ordered (e.g., int, string). Time complexity: O(1).
 func New[K cmp.Ordered, V any]() *Tree[K, V] {
-	return &Tree[K, V]{cmp: cmp.GenericComparator[K]}
+	return &Tree[K, V]{cmp: cmp.Compare[K]}
 }
 
 // NewWith creates a new AVL tree with a custom comparator.

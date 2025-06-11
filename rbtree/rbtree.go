@@ -142,6 +142,9 @@ func (n *Node[K, V]) grandparent() *Node[K, V] {
 
 var _ container.OrderedMap[int, int] = (*Tree[int, int])(nil)
 
+var _ json.Marshaler = (*Tree[string, int])(nil)
+var _ json.Unmarshaler = (*Tree[string, int])(nil)
+
 // Tree manages a red-black tree with key-value pairs.
 //
 // K must be comparable and compatible with the provided comparator.
@@ -156,7 +159,7 @@ type Tree[K comparable, V any] struct {
 //
 // K must implement cmp.Ordered (e.g., int, string). Time complexity: O(1).
 func New[K cmp.Ordered, V any]() *Tree[K, V] {
-	return &Tree[K, V]{cmp: cmp.GenericComparator[K]}
+	return &Tree[K, V]{cmp: cmp.Compare[K]}
 }
 
 // NewWith creates a new red-black tree with a custom comparator.
@@ -520,9 +523,6 @@ func (t *Tree[K, V]) Clear() {
 	t.root = nil
 	t.len = 0
 }
-
-var _ json.Marshaler = (*Tree[string, int])(nil)
-var _ json.Unmarshaler = (*Tree[string, int])(nil)
 
 // MarshalJSON serializes the tree into a JSON object.
 //
