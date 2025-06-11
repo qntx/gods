@@ -15,7 +15,7 @@ func (m *Map[K, V]) Each(f func(key K, value V)) {
 // Map invokes the given function once for each element and returns a container
 // containing the values returned by the given function as key/value pairs.
 func (m *Map[K, V]) Map(f func(key1 K, value1 V) (K, V)) *Map[K, V] {
-	newMap := NewWith(m.forwardMap.MaxChildren(), m.forwardMap.Comparator, m.inverseMap.Comparator)
+	newMap := NewWith(m.forwardMap.MaxChildren(), m.forwardMap.Comparator(), m.inverseMap.Comparator())
 
 	for k, v := range m.forwardMap.Iter() {
 		key2, value2 := f(k, v)
@@ -27,7 +27,7 @@ func (m *Map[K, V]) Map(f func(key1 K, value1 V) (K, V)) *Map[K, V] {
 
 // Select returns a new container containing all elements for which the given function returns a true value.
 func (m *Map[K, V]) Select(f func(key K, value V) bool) *Map[K, V] {
-	newMap := NewWith(m.forwardMap.MaxChildren(), m.forwardMap.Comparator, m.inverseMap.Comparator)
+	newMap := NewWith(m.forwardMap.MaxChildren(), m.forwardMap.Comparator(), m.inverseMap.Comparator())
 
 	for k, v := range m.forwardMap.Iter() {
 		if f(k, v) {

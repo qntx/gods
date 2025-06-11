@@ -130,7 +130,7 @@ func (s *Set[T]) String() string {
 // Returns an empty set if comparators differ.
 // Ref: https://en.wikipedia.org/wiki/Intersection_(set_theory)
 func (s *Set[T]) Intersection(other *Set[T]) *Set[T] {
-	res := NewWith(s.tree.Comparator, s.tree.MaxChildren())
+	res := NewWith(s.tree.Comparator(), s.tree.MaxChildren())
 
 	sCmp := reflect.ValueOf(s.tree.Comparator)
 	oCmp := reflect.ValueOf(other.tree.Comparator)
@@ -158,7 +158,7 @@ func (s *Set[T]) Intersection(other *Set[T]) *Set[T] {
 // Returns an empty set if comparators differ.
 // Ref: https://en.wikipedia.org/wiki/Union_(set_theory)
 func (s *Set[T]) Union(other *Set[T]) *Set[T] {
-	res := NewWith(s.tree.Comparator, s.tree.MaxChildren())
+	res := NewWith(s.tree.Comparator(), s.tree.MaxChildren())
 
 	sCmp := reflect.ValueOf(s.tree.Comparator)
 	oCmp := reflect.ValueOf(other.tree.Comparator)
@@ -182,7 +182,7 @@ func (s *Set[T]) Union(other *Set[T]) *Set[T] {
 // Returns an empty set if comparators differ.
 // Ref: https://proofwiki.org/wiki/Definition:Set_Difference
 func (s *Set[T]) Difference(other *Set[T]) *Set[T] {
-	res := NewWith(s.tree.Comparator, s.tree.MaxChildren())
+	res := NewWith(s.tree.Comparator(), s.tree.MaxChildren())
 
 	sCmp := reflect.ValueOf(s.tree.Comparator)
 	oCmp := reflect.ValueOf(other.tree.Comparator)

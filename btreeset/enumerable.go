@@ -20,7 +20,7 @@ func (s *Set[T]) Each(f func(index int, value T)) {
 // Map invokes the given function once for each element and returns a
 // container containing the values returned by the given function.
 func (s *Set[T]) Map(f func(index int, value T) T) *Set[T] {
-	newSet := &Set[T]{tree: btree.NewWith[T, struct{}](s.tree.MaxChildren(), s.tree.Comparator)}
+	newSet := &Set[T]{tree: btree.NewWith[T, struct{}](s.tree.MaxChildren(), s.tree.Comparator())}
 	index := 0
 
 	for value := range s.tree.Iter() {
@@ -34,7 +34,7 @@ func (s *Set[T]) Map(f func(index int, value T) T) *Set[T] {
 
 // Select returns a new container containing all elements for which the given function returns a true value.
 func (s *Set[T]) Select(f func(index int, value T) bool) *Set[T] {
-	newSet := &Set[T]{tree: btree.NewWith[T, struct{}](s.tree.MaxChildren(), s.tree.Comparator)}
+	newSet := &Set[T]{tree: btree.NewWith[T, struct{}](s.tree.MaxChildren(), s.tree.Comparator())}
 	index := 0
 
 	for value := range s.tree.Iter() {

@@ -952,7 +952,7 @@ func (t *Tree[K, V]) deleteFixup(x *Node[K, V]) {
 			// Action: Recolor `s` to red. Move `x` up to `x.parent`.
 			// Effect: The "extra black" is passed up the tree. Loop continues from `x.parent`.
 			//         If `x.parent` was red, it becomes black (absorbing extra black), loop terminates.
-			if color(s.left) == black && color(s.right) == black {
+			if s == nil || (color(s.left) == black && color(s.right) == black) {
 				if s != nil {
 					s.color = red
 				} // s could be nil if tree is malformed, but typically not.
@@ -982,9 +982,7 @@ func (t *Tree[K, V]) deleteFixup(x *Node[K, V]) {
 					s.left.color = black
 				}
 
-				if s != nil {
-					s.color = red
-				}
+				s.color = red
 
 				t.rotateRight(s)
 				s = x.parent.right // Update `s` to the new sibling. Crucial after rotation.
@@ -1052,7 +1050,7 @@ func (t *Tree[K, V]) deleteFixup(x *Node[K, V]) {
 			//
 			// Action: Recolor `s` to red. Move `x` up to `x.parent`.
 			// Effect: The "extra black" is passed up the tree. Loop continues from `x.parent`.
-			if color(s.right) == black && color(s.left) == black {
+			if s == nil || (color(s.right) == black && color(s.left) == black) {
 				if s != nil {
 					s.color = red
 				}
@@ -1082,9 +1080,7 @@ func (t *Tree[K, V]) deleteFixup(x *Node[K, V]) {
 					s.right.color = black
 				}
 
-				if s != nil {
-					s.color = red
-				}
+				s.color = red
 
 				t.rotateLeft(s)
 				s = x.parent.left // Update `s`. Crucial after rotation.
