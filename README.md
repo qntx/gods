@@ -11,8 +11,8 @@ A collection of data structures implemented in Go.
 |          | `RBTree`        | Y           | Y            | Y                | Key               | √               |
 |          | `AVLTree`       | Y           | Y            | Y                | Key               | √               |
 | Map      |                 |             |              |                  |                   |                 |
-|          | `HashMap`       | N           | Y            | Y                | Key               | √               |
-|          | `HashBiMap`     | N           | Y            | Y                | Key               | √               |
+|          | `HashMap`       | Y (sort)    | Y            | Y                | Key               | √               |
+|          | `HashBiMap`     | Y (sort)    | Y            | Y                | Key               | √               |
 |          | `BTreeBiMap`    | Y           | Y            | Y                | Key               | √               |
 |          | `RBTreeBiMap`   | Y           | Y            | Y                | Key               | √               |
 |          | `LinkedHashMap` | Y           | Y            | Y                | Key               | √               |
@@ -25,7 +25,7 @@ A collection of data structures implemented in Go.
 |          | `SliceDeque`    | Y           | Y            | Y                | Index             | √               |
 |          | `PriorityQueue` | Y           | Y            | N                | Index             | √               |
 | Stack    |                 |             |              |                  |                   |                 |
-|          | `SliceStack`    | Y           | Y            | N                | Index             | ×               |
+|          | `SliceStack`    | Y           | Y            | Y                | Index             | √               |
 
 ## Benchmarks
 

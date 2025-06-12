@@ -93,8 +93,8 @@ func (m *Map[K, V]) Clear() {
 	clear(m.m)
 }
 
-// Keys returns a slice containing all keys in the map (in random order).
-func (m *Map[K, V]) Keys() []K {
+// UnsortedKeys returns a slice containing all keys in the map (in random order).
+func (m *Map[K, V]) UnsortedKeys() []K {
 	k := make([]K, 0, len(m.m))
 	for key := range m.m {
 		k = append(k, key)
@@ -103,13 +103,13 @@ func (m *Map[K, V]) Keys() []K {
 	return k
 }
 
-// SortedKeys returns a slice containing all keys in the map, sorted using the comparator.
-func (m *Map[K, V]) SortedKeys() []K {
+// Keys returns a slice containing all keys in the map, sorted using the comparator.
+func (m *Map[K, V]) Keys() []K {
 	return slices.SortedFunc(maps.Keys(m.m), m.cmp)
 }
 
-// Values returns a slice containing all values in the map (in random order).
-func (m *Map[K, V]) Values() []V {
+// UnsortedValues returns a slice containing all values in the map (in random order).
+func (m *Map[K, V]) UnsortedValues() []V {
 	v := make([]V, 0, len(m.m))
 	for _, value := range m.m {
 		v = append(v, value)
@@ -118,9 +118,9 @@ func (m *Map[K, V]) Values() []V {
 	return v
 }
 
-// SortedValues returns a slice containing all values in the map, sorted by their corresponding keys using m.cmp.
-func (m *Map[K, V]) SortedValues() []V {
-	k := m.SortedKeys()
+// Values returns a slice containing all values in the map, sorted by their corresponding keys using m.cmp.
+func (m *Map[K, V]) Values() []V {
+	k := m.Keys()
 	v := make([]V, len(k))
 
 	for i, key := range k {
@@ -135,8 +135,8 @@ func (m *Map[K, V]) ToSlice() []V {
 	return m.Values()
 }
 
-// Entries returns two slices containing all keys and values in the map (in random order).
-func (m *Map[K, V]) Entries() (keys []K, values []V) {
+// UnsortedEntries returns two slices containing all keys and values in the map (in random order).
+func (m *Map[K, V]) UnsortedEntries() (keys []K, values []V) {
 	k := make([]K, 0, len(m.m))
 	v := make([]V, 0, len(m.m))
 
@@ -150,8 +150,8 @@ func (m *Map[K, V]) Entries() (keys []K, values []V) {
 
 // SortedEntries returns two slices containing all keys and values in the map,
 // sorted by keys using m.cmp.
-func (m *Map[K, V]) SortedEntries() (keys []K, values []V) {
-	return m.SortedKeys(), m.SortedValues()
+func (m *Map[K, V]) Entries() (keys []K, values []V) {
+	return m.Keys(), m.Values()
 }
 
 // Iter returns an iterator over key-value pairs from m.
