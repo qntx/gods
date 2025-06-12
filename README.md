@@ -4,26 +4,28 @@ A collection of data structures implemented in Go.
 
 ## Containers
 
-| **Data** | **Structure**   | **Ordered** | **Iterator** | **Enumerable** | **Referenced by** | **Implemented** |
-| -------- | --------------- | ----------- | ------------ | -------------- | ----------------- | --------------- |
-| Set      |                 |             |              |                |                   |                 |
-|          | `HashSet`       | N           | N            | N              | Index             | Y               |
-|          | `BTreeSet`      | Y           | Y            | Y              | Index             | Y               |
-|          | `RBTreeSet`     | Y           | Y            | Y              | Index             | Y               |
-|          | `LinkedHashSet` | Y           | Y            | Y              | Index             | Y               |
-| Map      |                 |             |              |                |                   |                 |
-|          | `HashMap`       | N           | Y            | N              | Key               | Y               |
-|          | `HashBiMap`     | N           | Y            | N              | Key               | Y               |
-|          | `BTreeBiMap`    | Y           | Y            | Y              | Key               | Y               |
-|          | `RBTreeBiMap`   | Y           | Y            | Y              | Key               | Y               |
-|          | `LinkedHashMap` | Y           | Y            | Y              | Key               | Y               |
-| Tree     |                 |             |              |                |                   |                 |
-|          | `AVLTree`       | Y           | Y            | N              | Key               | Y               |
-|          | `BTree`         | Y           | Y            | N              | Key               | Y               |
-|          | `RBTree`        | Y           | Y            | N              | Key               | Y               |
-| Queue    |                 |             |              |                |                   |                 |
-|          | `SliceDeque`    | Y           | Y            | N              | Index             | Y               |
-|          | `PriorityQueue` | Y           | Y            | N              | Index             | Y               |
+| **Data** | **Structure**   | **Ordered** | **Iterator** | **Referenced by** | **Implemented** |
+| -------- | --------------- | ----------- | ------------ | ----------------- | --------------- |
+| Tree     |                 |             |              |                   |                 |
+|          | `BTree`         | Y           | Y            | Key               | Y               |
+|          | `RBTree`        | Y           | Y            | Key               | Y               |
+|          | `AVLTree`       | Y           | Y            | Key               | Y               |
+| Map      |                 |             |              |                   |                 |
+|          | `HashMap`       | N           | Y            | Key               | Y               |
+|          | `HashBiMap`     | N           | Y            | Key               | Y               |
+|          | `BTreeBiMap`    | Y           | Y            | Key               | Y               |
+|          | `RBTreeBiMap`   | Y           | Y            | Key               | Y               |
+|          | `LinkedHashMap` | Y           | Y            | Key               | Y               |
+| Set      |                 |             |              |                   |                 |
+|          | `HashSet`       | N           | Y            | Index             | Y               |
+|          | `BTreeSet`      | Y           | Y            | Index             | Y               |
+|          | `RBTreeSet`     | Y           | Y            | Index             | Y               |
+|          | `LinkedHashSet` | Y           | Y            | Index             | Y               |
+| Queue    |                 |             |              |                   |                 |
+|          | `SliceDeque`    | Y           | Y            | Index             | Y               |
+|          | `PriorityQueue` | Y           | Y            | Index             | Y               |
+| Stack    |                 |             |              |                   |                 |
+|          | `SliceStack`    | Y           | Y            | Index             | N               |
 
 ## Benchmarks
 
@@ -37,9 +39,9 @@ MIT
 
 ## Acknowledgments
 
-- [google/btree](https://github.com/google/btree/tree/master)
 - [emirpasic/gods](https://github.com/emirpasic/gods)
+- [google/btree](https://github.com/google/btree/tree/master)
+- [huandu/skiplist](https://github.com/huandu/skiplist)
+- [deckarep/golang-set](https://github.com/deckarep/golang-set)
 - [gammazero/deque](https://github.com/gammazero/deque)
 - [dnaeon/go-priorityqueue](https://github.com/dnaeon/go-priorityqueue)
-- [deckarep/golang-set](https://github.com/deckarep/golang-set)
-- [huandu/skiplist](https://github.com/huandu/skiplist)

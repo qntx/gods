@@ -13,7 +13,7 @@ func TestQueuePushFront(t *testing.T) {
 	t.Parallel()
 
 	queue := slicedeque.New[int](3)
-	if actualValue := queue.Empty(); actualValue != true {
+	if actualValue := queue.IsEmpty(); actualValue != true {
 		t.Errorf("Got %v expected %v", actualValue, true)
 	}
 
@@ -25,7 +25,7 @@ func TestQueuePushFront(t *testing.T) {
 		t.Errorf("Got %v expected %v", actualValue, "[3,2,1]")
 	}
 
-	if actualValue := queue.Empty(); actualValue != false {
+	if actualValue := queue.IsEmpty(); actualValue != false {
 		t.Errorf("Got %v expected %v", actualValue, false)
 	}
 
@@ -52,7 +52,7 @@ func TestQueuePushBack(t *testing.T) {
 	t.Parallel()
 
 	queue := slicedeque.New[int](3)
-	if actualValue := queue.Empty(); actualValue != true {
+	if actualValue := queue.IsEmpty(); actualValue != true {
 		t.Errorf("Got %v expected %v", actualValue, true)
 	}
 
@@ -64,7 +64,7 @@ func TestQueuePushBack(t *testing.T) {
 		t.Errorf("Got %v expected %v", actualValue, "[1,2,3]")
 	}
 
-	if actualValue := queue.Empty(); actualValue != false {
+	if actualValue := queue.IsEmpty(); actualValue != false {
 		t.Errorf("Got %v expected %v", actualValue, false)
 	}
 
@@ -123,15 +123,15 @@ func TestQueueGet(t *testing.T) {
 	queue.PushBack(2)
 	queue.PushBack(3)
 
-	if actualValue := queue.Get(0); actualValue != 1 {
+	if actualValue, ok := queue.Get(0); actualValue != 1 || !ok {
 		t.Errorf("Got %v expected %v", actualValue, 1)
 	}
 
-	if actualValue := queue.Get(1); actualValue != 2 {
+	if actualValue, ok := queue.Get(1); actualValue != 2 || !ok {
 		t.Errorf("Got %v expected %v", actualValue, 2)
 	}
 
-	if actualValue := queue.Get(2); actualValue != 3 {
+	if actualValue, ok := queue.Get(2); actualValue != 3 || !ok {
 		t.Errorf("Got %v expected %v", actualValue, 3)
 	}
 }
@@ -146,8 +146,8 @@ func TestQueuePopFront(t *testing.T) {
 	}
 
 	queue := slicedeque.New[int](3)
-	assert(queue.Empty(), true)
-	assert(queue.Empty(), true)
+	assert(queue.IsEmpty(), true)
+	assert(queue.IsEmpty(), true)
 	assert(queue.Full(), false)
 	assert(queue.Len(), 0)
 	queue.PushBack(1)
@@ -157,7 +157,7 @@ func TestQueuePopFront(t *testing.T) {
 
 	queue.PushBack(3)
 	assert(queue.Len(), 3)
-	assert(queue.Empty(), false)
+	assert(queue.IsEmpty(), false)
 	assert(queue.Full(), true)
 
 	queue.PopFront()
@@ -180,7 +180,7 @@ func TestQueuePopFront(t *testing.T) {
 	}
 
 	assert(queue.Len(), 0)
-	assert(queue.Empty(), true)
+	assert(queue.IsEmpty(), true)
 	assert(queue.Full(), false)
 
 	if actualValue, ok := queue.PopFront(); actualValue != 0 || ok {
@@ -189,7 +189,7 @@ func TestQueuePopFront(t *testing.T) {
 
 	assert(queue.Len(), 0)
 
-	assert(queue.Empty(), true)
+	assert(queue.IsEmpty(), true)
 	assert(queue.Full(), false)
 	assert(len(queue.Values()), 0)
 }
@@ -204,7 +204,7 @@ func TestQueuePopFrontFull(t *testing.T) {
 	}
 
 	queue := slicedeque.New[int](2)
-	assert(queue.Empty(), true)
+	assert(queue.IsEmpty(), true)
 	assert(queue.Full(), false)
 	assert(queue.Len(), 0)
 
@@ -248,7 +248,7 @@ func TestQueuePopFrontFull(t *testing.T) {
 		t.Errorf("Got %v expected %v", actualValue, nil)
 	}
 
-	assert(queue.Empty(), true)
+	assert(queue.IsEmpty(), true)
 	assert(queue.Full(), false)
 	assert(len(queue.Values()), 0)
 }
@@ -263,7 +263,7 @@ func TestQueuePopBack(t *testing.T) {
 	}
 
 	queue := slicedeque.New[int](3)
-	assert(queue.Empty(), true)
+	assert(queue.IsEmpty(), true)
 	assert(queue.Full(), false)
 	assert(queue.Len(), 0)
 
@@ -278,7 +278,7 @@ func TestQueuePopBack(t *testing.T) {
 		t.Errorf("Got %v, %v expected 1, true", actualValue, ok)
 	}
 
-	assert(queue.Empty(), true)
+	assert(queue.IsEmpty(), true)
 	assert(queue.Len(), 0)
 
 	queue.PushBack(1)
@@ -329,7 +329,7 @@ func TestQueuePopBack(t *testing.T) {
 		t.Errorf("Got %v, %v expected 1, true", actualValue, ok)
 	}
 
-	assert(queue.Empty(), true)
+	assert(queue.IsEmpty(), true)
 	assert(queue.Full(), false)
 	assert(len(queue.Values()), 0)
 }
@@ -344,7 +344,7 @@ func TestQueuePopBackFull(t *testing.T) {
 	}
 
 	queue := slicedeque.New[int](2)
-	assert(queue.Empty(), true)
+	assert(queue.IsEmpty(), true)
 	assert(queue.Full(), false)
 	assert(queue.Len(), 0)
 
@@ -382,7 +382,7 @@ func TestQueuePopBackFull(t *testing.T) {
 		t.Errorf("Got %v, %v expected 2, true", actualValue, ok)
 	}
 
-	assert(queue.Empty(), true)
+	assert(queue.IsEmpty(), true)
 	assert(queue.Full(), false)
 	assert(len(queue.Values()), 0)
 }
@@ -397,7 +397,7 @@ func TestQueueClear(t *testing.T) {
 
 	queue.Clear()
 
-	if actualValue := queue.Empty(); actualValue != true {
+	if actualValue := queue.IsEmpty(); actualValue != true {
 		t.Errorf("Got %v expected %v", actualValue, true)
 	}
 

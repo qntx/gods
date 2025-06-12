@@ -1,5 +1,7 @@
 package container
 
+import "github.com/qntx/gods/cmp"
+
 // Queue is a generic interface for a first-in, first-out (FIFO) data structure.
 // It supports adding elements to the back and removing them from the front.
 // Implementations (e.g., array-based or linked-list queues) must provide all
@@ -8,13 +10,40 @@ package container
 type Queue[T comparable] interface {
 	Container[T]
 
-	// Push adds an element to the back of the queue.
-	Push(value T)
+	// Enqueue adds an element to the back of the queue.
+	Enqueue(value T)
 
-	// Pop removes and returns the front element of the queue.
+	// Dequeue removes and returns the front element of the queue.
 	// Returns the element and true if the queue is non-empty,
 	// or the zero value of T and false if the queue is empty.
-	Pop() (value T, ok bool)
+	Dequeue() (value T, ok bool)
+
+	// Peek returns the front element of the queue without removing it.
+	// Returns the element and true if the queue is non-empty,
+	// or the zero value of T and false if the queue is empty.
+	Peek() (value T, ok bool)
+}
+
+// PQueue is a generic interface for a priority queue.
+// It supports adding elements to the back and removing them from the front.
+// Implementations (e.g., array-based or linked-list priority queues) must provide all
+// operations defined here, including those inherited from Container[T] (e.g., Len, IsEmpty, Clear).
+// Type parameter T must be comparable to enable equality checks for elements.
+type PQueue[T comparable, V cmp.Ordered] interface {
+	Container[T]
+
+	// Enqueue adds an element to the queue.
+	Enqueue(value T, priority V)
+
+	// Dequeue removes and returns the front element of the queue.
+	// Returns the element and true if the queue is non-empty,
+	// or the zero value of T and false if the queue is empty.
+	Dequeue() (value T, priority V, ok bool)
+
+	// Peek returns the front element of the queue without removing it.
+	// Returns the element and true if the queue is non-empty,
+	// or the zero value of T and false if the queue is empty.
+	Peek() (value T, priority V, ok bool)
 }
 
 // Deque is a generic interface for a double-ended queue, allowing
@@ -56,10 +85,10 @@ type Deque[T comparable] interface {
 	// or -1 if the capacity is unbounded (e.g., for linked-list implementations).
 	Capacity() int
 
-	// At returns the element at the specified index, where 0 is the front.
+	// Get returns the element at the specified index, where 0 is the front.
 	// Returns the element and true if the index is valid,
 	// or the zero value of T and false if the index is out of bounds.
-	At(idx int) (value T, ok bool)
+	Get(idx int) (value T, ok bool)
 
 	// Set updates the element at the specified index, where 0 is the front.
 	// Panics if the index is out of bounds.
@@ -72,7 +101,7 @@ type Deque[T comparable] interface {
 
 	// Remove removes the element at the specified index, shifting subsequent elements.
 	// Panics if the index is out of bounds.
-	Remove(idx int)
+	Remove(idx int) (value T, ok bool)
 
 	// Swap exchanges the elements at the specified indices.
 	// Panics if either index is out of bounds.

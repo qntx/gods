@@ -17,6 +17,8 @@ import (
 	"errors"
 	"fmt"
 	"strings"
+
+	"github.com/qntx/gods/container"
 )
 
 const (
@@ -30,6 +32,10 @@ var (
 	ErrIndexOutOfRange = errors.New("index out of range")
 	ErrEmptyDeque      = errors.New("deque is empty")
 )
+
+var _ container.Deque[int] = (*Deque[int])(nil)
+var _ json.Marshaler = (*Deque[int])(nil)
+var _ json.Unmarshaler = (*Deque[int])(nil)
 
 // Deque represents a double-ended queue implemented as a circular buffer.
 //
@@ -104,7 +110,7 @@ func NewFrom[T comparable](values []T, capacity int, growable bool) *Deque[T] {
 func (d *Deque[T]) PushFront(val T) {
 	if d.Full() {
 		if d.growable {
-			d.Grow(d.Cap() * growthFactor)
+			d.Grow(d.Capacity() * growthFactor)
 		} else {
 			d.end = d.prev(d.end)
 		}
@@ -127,7 +133,7 @@ func (d *Deque[T]) PushFront(val T) {
 func (d *Deque[T]) PushBack(val T) {
 	if d.Full() {
 		if d.growable {
-			d.Grow(d.Cap() * growthFactor)
+			d.Grow(d.Capacity() * growthFactor)
 		} else {
 			d.start = d.next(d.start)
 		}
@@ -147,7 +153,7 @@ func (d *Deque[T]) PushBack(val T) {
 //
 // Time complexity: O(1).
 func (d *Deque[T]) PopFront() (val T, ok bool) {
-	if d.Empty() {
+	if d.IsEmpty() {
 		return val, false
 	}
 
@@ -164,7 +170,7 @@ func (d *Deque[T]) PopFront() (val T, ok bool) {
 //
 // Time complexity: O(1).
 func (d *Deque[T]) PopBack() (val T, ok bool) {
-	if d.Empty() {
+	if d.IsEmpty() {
 		return val, false
 	}
 
@@ -199,7 +205,7 @@ func (d *Deque[T]) Insert(idx int, val T) {
 
 	if d.Full() {
 		if d.growable {
-			d.Grow(d.Cap() * growthFactor)
+			d.Grow(d.Capacity() * growthFactor)
 		} else {
 			d.start = d.next(d.start)
 			d.len--
@@ -302,7 +308,7 @@ func (d *Deque[T]) Swap(i, j int) {
 // Returns the zero value of T and false if the deque is empty.
 // Time complexity: O(1).
 func (d *Deque[T]) Front() (val T, ok bool) {
-	if d.Empty() {
+	if d.IsEmpty() {
 		return val, false
 	}
 
@@ -314,7 +320,7 @@ func (d *Deque[T]) Front() (val T, ok bool) {
 // Returns the zero value of T and false if the deque is empty.
 // Time complexity: O(1).
 func (d *Deque[T]) Back() (val T, ok bool) {
-	if d.Empty() {
+	if d.IsEmpty() {
 		return val, false
 	}
 
@@ -325,12 +331,12 @@ func (d *Deque[T]) Back() (val T, ok bool) {
 //
 // Index 0 is the front, Len()-1 is the back. Panics if the index is invalid.
 // Time complexity: O(1).
-func (d *Deque[T]) Get(idx int) (val T) {
+func (d *Deque[T]) Get(idx int) (val T, ok bool) {
 	if idx < 0 || idx >= d.len {
-		panic(fmt.Errorf("%w: idx [0,%d): %d", ErrIndexOutOfRange, d.len, idx))
+		return val, false
 	}
 
-	return d.buf[d.wrap(d.start+idx)]
+	return d.buf[d.wrap(d.start+idx)], true
 }
 
 // Set sets the element at the specified index.
@@ -345,10 +351,10 @@ func (d *Deque[T]) Set(idx int, val T) {
 	d.buf[d.wrap(d.start+idx)] = val
 }
 
-// Empty checks if the deque has no elements.
+// IsEmpty checks if the deque has no elements.
 //
 // Time complexity: O(1).
-func (d *Deque[T]) Empty() bool {
+func (d *Deque[T]) IsEmpty() bool {
 	return d.len == 0
 }
 
@@ -373,10 +379,10 @@ func (d *Deque[T]) Len() int {
 	return d.len
 }
 
-// Cap returns the current capacity of the deque.
+// Capacity returns the current capacity of the deque.
 //
 // Time complexity: O(1).
-func (d *Deque[T]) Cap() int {
+func (d *Deque[T]) Capacity() int {
 	return d.capacity
 }
 
@@ -395,7 +401,7 @@ func (d *Deque[T]) Grow(n int) {
 		panic(fmt.Errorf("%w: n >= %d: %d", ErrInvalidCapacity, minCapacity, n))
 	}
 
-	c := d.Cap()
+	c := d.Capacity()
 	l := d.Len()
 	// If already big enough.
 	if n <= c {
@@ -417,7 +423,7 @@ func (d *Deque[T]) Grow(n int) {
 //
 // Returns nil if the deque is empty. Time complexity: O(n).
 func (d *Deque[T]) Values() []T {
-	if d.Empty() {
+	if d.IsEmpty() {
 		return nil
 	}
 
@@ -429,21 +435,14 @@ func (d *Deque[T]) Values() []T {
 	return vals
 }
 
+// ToSlice returns a slice of all elements in FIFO order.
+//
+// Returns nil if the deque is empty. Time complexity: O(n).
+func (d *Deque[T]) ToSlice() []T {
+	return d.Values()
+}
+
 // MarshalJSON serializes the queue's elements into a JSON array in FIFO order.
-//
-// Elements are marshaled as a JSON array (e.g., "[1,2]"). The method returns an
-// error if the elements are not JSON-serializable.
-//
-// Example:
-//
-//	q := New[int](3)
-//	q.PushBack(1)
-//	q.PushBack(2)
-//	data, err := q.MarshalJSON() // Returns []byte("[1,2]"), nil
-//
-// Returns:
-//   - The JSON-encoded byte slice.
-//   - An error if marshaling fails.
 //
 // Time complexity: O(n), where n is the number of elements.
 func (q *Deque[T]) MarshalJSON() ([]byte, error) {
@@ -456,18 +455,6 @@ func (q *Deque[T]) MarshalJSON() ([]byte, error) {
 }
 
 // UnmarshalJSON populates the queue from a JSON array, appending elements to the back.
-//
-// The input must be a valid JSON array (e.g., "[1,2,3]"). The queue is cleared
-// before loading. If the capacity is exceeded, older elements are overwritten.
-//
-// Example:
-//
-//	q := New[int](2)
-//	err := q.UnmarshalJSON([]byte("[1,2,3]")) // Queue contains [2,3] after overflow
-//
-// Returns:
-//
-//	An error if the JSON is invalid or elements cannot be unmarshaled into type T.
 //
 // Time complexity: O(n), where n is the number of elements in the JSON array.
 func (q *Deque[T]) UnmarshalJSON(data []byte) error {

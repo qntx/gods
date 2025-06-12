@@ -120,6 +120,10 @@ func (n *Node[K, V]) String() string {
 	return sb.String()
 }
 
+var _ container.OrderedMap[int, int] = (*Tree[int, int])(nil)
+var _ json.Marshaler = (*Tree[string, int])(nil)
+var _ json.Unmarshaler = (*Tree[string, int])(nil)
+
 // Tree holds the elements and configuration of the B-tree.
 type Tree[K comparable, V any] struct {
 	root *Node[K, V]       // Root node of the tree.
@@ -142,11 +146,6 @@ func (t *Tree[K, V]) Comparator() cmp.Comparator[K] {
 func (t *Tree[K, V]) MaxChildren() int {
 	return t.m
 }
-
-// Ensure Tree implements the required interfaces.
-var _ container.OrderedMap[int, int] = (*Tree[int, int])(nil)
-var _ json.Marshaler = (*Tree[string, int])(nil)
-var _ json.Unmarshaler = (*Tree[string, int])(nil)
 
 // New creates a new B-tree with the specified order and a built-in comparator.
 // The order `m` must be 3 or greater. Panics if order is invalid.

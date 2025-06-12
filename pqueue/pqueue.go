@@ -14,21 +14,18 @@ package pqueue
 import (
 	"container/heap"
 	"errors"
+	"fmt"
 
 	"github.com/qntx/gods/cmp"
+	"github.com/qntx/gods/container"
 )
 
-// Error messages defined as constants.
+const defaultCapacity = 16
+
 var (
-	// ErrValueNotFound indicates that a value was not found in the queue.
-	ErrValueNotFound = errors.New("value not found in queue")
-	// ErrNilComparator indicates the comparator function is nil.
-	ErrNilComparator = errors.New("comparator cannot be nil")
-	// ErrInvalidItemType indicates an incorrect type was provided to Push.
 	ErrInvalidItemType = errors.New("invalid item type")
 )
 
-// HeapKind specifies the type of heap: min-heap or max-heap.
 type HeapKind int
 
 const (
@@ -40,20 +37,25 @@ const (
 
 // Item represents an element in the priority queue with a value and priority.
 type Item[T comparable, V any] struct {
+	index    int // index is used internally by the heap.Interface.
 	Value    T   // Value identifies the item.
 	Priority V   // Priority determines the item's order in the queue.
-	index    int // index is used internally by the heap.Interface.
 }
+
+var _ container.PQueue[int, int] = (*PriorityQueue[int, int])(nil)
+
+// var _ json.Marshaler = (*PriorityQueue[int, int])(nil)
+// var _ json.Unmarshaler = (*PriorityQueue[int, int])(nil)
 
 // PriorityQueue is a generic priority queue implementation using a heap.
 // It maintains items with associated priorities, supporting both min-heap and max-heap
 // configurations. The queue uses a map for O(1) value lookups and supports custom
 // comparators for priority ordering.
 type PriorityQueue[T comparable, V cmp.Ordered] struct {
-	kind   HeapKind
-	heap   []*Item[T, V]
-	idxMap map[T]*Item[T, V]
-	cmp    cmp.Comparator[V]
+	kind HeapKind
+	heap []*Item[T, V]
+	idx  map[T]*Item[T, V]
+	cmp  cmp.Comparator[V]
 }
 
 // New creates a new priority queue with the default comparator for ordered types.
@@ -93,15 +95,11 @@ func New[T comparable, V cmp.Ordered](kind HeapKind) *PriorityQueue[T, V] {
 //	pq := NewWith[string, int](MaxHeap, cmp.Compare[int])
 //	pq.Put("task1", 5)
 func NewWith[T comparable, V cmp.Ordered](kind HeapKind, cmp cmp.Comparator[V]) *PriorityQueue[T, V] {
-	if cmp == nil {
-		panic(ErrNilComparator)
-	}
-
 	pq := &PriorityQueue[T, V]{
-		kind:   kind,
-		heap:   make([]*Item[T, V], 0, 16), // Pre-allocate for efficiency.
-		idxMap: make(map[T]*Item[T, V], 16),
-		cmp:    cmp,
+		kind: kind,
+		heap: make([]*Item[T, V], 0, defaultCapacity), // Pre-allocate for efficiency.
+		idx:  make(map[T]*Item[T, V], defaultCapacity),
+		cmp:  cmp,
 	}
 	heap.Init(pq)
 
@@ -140,7 +138,7 @@ func (pq *PriorityQueue[T, V]) Push(x any) {
 
 	item.index = len(pq.heap)
 	pq.heap = append(pq.heap, item)
-	pq.idxMap[item.Value] = item
+	pq.idx[item.Value] = item
 }
 
 // Pop removes and returns the top item from the heap.
@@ -153,26 +151,17 @@ func (pq *PriorityQueue[T, V]) Pop() any {
 
 	item := pq.heap[n-1]
 	pq.heap = pq.heap[:n-1]
-	delete(pq.idxMap, item.Value)
+	delete(pq.idx, item.Value)
 
 	return item
 }
 
-// Put adds a value with the specified priority to the queue.
+// Enqueue adds a value with the specified priority to the queue.
 // If the value already exists, it updates the priority.
 //
-// Args:
-//
-//	value: The item value.
-//	priority: The priority associated with the value.
-//
-// Returns:
-//
-//	true if the operation was successful, false otherwise.
-//
 // Time complexity: O(log n).
-func (pq *PriorityQueue[T, V]) Put(value T, priority V) {
-	if _, exists := pq.idxMap[value]; exists {
+func (pq *PriorityQueue[T, V]) Enqueue(value T, priority V) {
+	if _, exists := pq.idx[value]; exists {
 		pq.Set(value, priority)
 
 		return
@@ -185,20 +174,38 @@ func (pq *PriorityQueue[T, V]) Put(value T, priority V) {
 	heap.Push(pq, item)
 }
 
+// Dequeue removes and returns the item with the highest/lowest priority, based on the heap kind.
+// Returns nil if the queue is empty.
+// Time complexity: O(log n).
+func (pq *PriorityQueue[T, V]) Dequeue() (value T, priority V, ok bool) {
+	if pq.IsEmpty() {
+		return
+	}
+
+	item := heap.Pop(pq)
+	if item == nil {
+		return
+	}
+
+	return item.(*Item[T, V]).Value, item.(*Item[T, V]).Priority, true
+}
+
+// Peek returns the item with the highest/lowest priority, based on the heap kind.
+// Returns nil if the queue is empty.
+// Time complexity: O(1).
+func (pq *PriorityQueue[T, V]) Peek() (value T, priority V, ok bool) {
+	if pq.IsEmpty() {
+		return
+	}
+
+	return pq.heap[0].Value, pq.heap[0].Priority, true
+}
+
 // Set changes the priority of an existing value in the queue.
-//
-// Args:
-//
-//	value: The item value to update.
-//	priority: The new priority.
-//
-// Returns:
-//
-//	true if the operation was successful, false otherwise.
 //
 // Time complexity: O(log n).
 func (pq *PriorityQueue[T, V]) Set(value T, priority V) bool {
-	item, exists := pq.idxMap[value]
+	item, exists := pq.idx[value]
 	if !exists {
 		return false
 	}
@@ -209,43 +216,17 @@ func (pq *PriorityQueue[T, V]) Set(value T, priority V) bool {
 	return true
 }
 
-// Get removes and returns the item with the highest/lowest priority, based on the heap kind.
-// Returns nil if the queue is empty.
-// Time complexity: O(log n).
-func (pq *PriorityQueue[T, V]) Get() (*Item[T, V], bool) {
-	if pq.Empty() {
-		return nil, false
-	}
-
-	item := heap.Pop(pq)
-	if item == nil {
-		return nil, false
-	}
-
-	return item.(*Item[T, V]), true
-}
-
-// Peek returns the item with the highest/lowest priority, based on the heap kind.
-// Returns nil if the queue is empty.
-// Time complexity: O(1).
-func (pq *PriorityQueue[T, V]) Peek() (*Item[T, V], bool) {
-	if pq.Empty() {
-		return nil, false
-	}
-
-	return pq.heap[0], true
-}
-
 // Remove removes the item with the specified value from the queue.
 // Returns true if the item was removed, false otherwise.
 // Time complexity: O(log n).
 func (pq *PriorityQueue[T, V]) Remove(value T) bool {
-	item, exists := pq.idxMap[value]
+	item, exists := pq.idx[value]
 	if !exists {
 		return false
 	}
 
 	heap.Remove(pq, item.index)
+	delete(pq.idx, value)
 
 	return true
 }
@@ -254,14 +235,33 @@ func (pq *PriorityQueue[T, V]) Remove(value T) bool {
 // Time complexity: O(1).
 func (pq *PriorityQueue[T, V]) Clear() {
 	pq.heap = pq.heap[:0]
-	pq.idxMap = make(map[T]*Item[T, V], 16)
+	pq.idx = make(map[T]*Item[T, V], defaultCapacity)
 	heap.Init(pq)
 }
 
-// Empty checks if the queue contains no items.
+// IsEmpty checks if the queue contains no items.
 // Time complexity: O(1).
-func (pq *PriorityQueue[T, V]) Empty() bool {
+func (pq *PriorityQueue[T, V]) IsEmpty() bool {
 	return len(pq.heap) == 0
+}
+
+// Values returns a copy of the values in the queue.
+// This is a safe operation that doesn't expose the internal heap structure.
+// Time complexity: O(n).
+func (pq *PriorityQueue[T, V]) Values() []T {
+	result := make([]T, len(pq.heap))
+	for i, item := range pq.heap {
+		result[i] = item.Value
+	}
+
+	return result
+}
+
+// ToSlice returns a copy of the heap slice containing all queue items.
+// This is a safe operation that doesn't expose the internal heap structure.
+// Time complexity: O(n).
+func (pq *PriorityQueue[T, V]) ToSlice() []T {
+	return pq.Values()
 }
 
 // Items returns a copy of the heap slice containing all queue items.
@@ -281,3 +281,30 @@ func (pq *PriorityQueue[T, V]) Items() []*Item[T, V] {
 func (pq *PriorityQueue[T, V]) UnsafeItems() []*Item[T, V] {
 	return pq.heap
 }
+
+// String returns a string representation of the queue.
+func (pq *PriorityQueue[T, V]) String() string {
+	return fmt.Sprint(pq.heap)
+}
+
+// // MarshalJSON implements the json.Marshaler interface.
+// func (pq *PriorityQueue[T, V]) MarshalJSON() ([]byte, error) {
+// 	return json.Marshal(pq.heap)
+// }
+
+// // UnmarshalJSON implements the json.Unmarshaler interface.
+// func (pq *PriorityQueue[T, V]) UnmarshalJSON(data []byte) error {
+// 	var items []*Item[T, V]
+// 	if err := json.Unmarshal(data, &items); err != nil {
+// 		return err
+// 	}
+
+// 	pq.Clear()
+// 	pq.heap = items
+// 	for _, item := range items {
+// 		pq.idx[item.Value] = item
+// 	}
+// 	heap.Init(pq)
+
+// 	return nil
+// }
