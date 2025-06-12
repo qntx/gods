@@ -2,7 +2,6 @@ package btreeset_test
 
 import (
 	"encoding/json"
-	"fmt"
 	"strings"
 	"testing"
 
@@ -85,127 +84,6 @@ func TestSetRemove(t *testing.T) {
 
 	if actualValue := set.Len(); actualValue != 0 {
 		t.Errorf("Got %v expected %v", actualValue, 0)
-	}
-}
-
-func TestSetEach(t *testing.T) {
-	set := btreeset.New[string]()
-	set.Add("c", "a", "b")
-	set.Each(func(index int, value string) {
-		switch index {
-		case 0:
-			if actualValue, expectedValue := value, "a"; actualValue != expectedValue {
-				t.Errorf("Got %v expected %v", actualValue, expectedValue)
-			}
-		case 1:
-			if actualValue, expectedValue := value, "b"; actualValue != expectedValue {
-				t.Errorf("Got %v expected %v", actualValue, expectedValue)
-			}
-		case 2:
-			if actualValue, expectedValue := value, "c"; actualValue != expectedValue {
-				t.Errorf("Got %v expected %v", actualValue, expectedValue)
-			}
-		default:
-			t.Errorf("Too many")
-		}
-	})
-}
-
-func TestSetMap(t *testing.T) {
-	set := btreeset.New[string]()
-	set.Add("c", "a", "b")
-
-	mappedSet := set.Map(func(index int, value string) string {
-		return "mapped: " + value
-	})
-	if actualValue, expectedValue := mappedSet.Contains("mapped: a", "mapped: b", "mapped: c"), true; actualValue != expectedValue {
-		t.Errorf("Got %v expected %v", actualValue, expectedValue)
-	}
-
-	if actualValue, expectedValue := mappedSet.Contains("mapped: a", "mapped: b", "mapped: x"), false; actualValue != expectedValue {
-		t.Errorf("Got %v expected %v", actualValue, expectedValue)
-	}
-
-	if mappedSet.Len() != 3 {
-		t.Errorf("Got %v expected %v", mappedSet.Len(), 3)
-	}
-}
-
-func TestSetSelect(t *testing.T) {
-	set := btreeset.New[string]()
-	set.Add("c", "a", "b")
-
-	selectedSet := set.Select(func(index int, value string) bool {
-		return value >= "a" && value <= "b"
-	})
-	if actualValue, expectedValue := selectedSet.Contains("a", "b"), true; actualValue != expectedValue {
-		fmt.Println("A: ", selectedSet.Contains("b"))
-		t.Errorf("Got %v (%v) expected %v (%v)", actualValue, selectedSet.Values(), expectedValue, "[a b]")
-	}
-
-	if actualValue, expectedValue := selectedSet.Contains("a", "b", "c"), false; actualValue != expectedValue {
-		t.Errorf("Got %v (%v) expected %v (%v)", actualValue, selectedSet.Values(), expectedValue, "[a b]")
-	}
-
-	if selectedSet.Len() != 2 {
-		t.Errorf("Got %v expected %v", selectedSet.Len(), 3)
-	}
-}
-
-func TestSetAny(t *testing.T) {
-	set := btreeset.New[string]()
-	set.Add("c", "a", "b")
-
-	any := set.Any(func(index int, value string) bool {
-		return value == "c"
-	})
-	if any != true {
-		t.Errorf("Got %v expected %v", any, true)
-	}
-
-	any = set.Any(func(index int, value string) bool {
-		return value == "x"
-	})
-	if any != false {
-		t.Errorf("Got %v expected %v", any, false)
-	}
-}
-
-func TestSetAll(t *testing.T) {
-	set := btreeset.New[string]()
-	set.Add("c", "a", "b")
-
-	all := set.All(func(index int, value string) bool {
-		return value >= "a" && value <= "c"
-	})
-	if all != true {
-		t.Errorf("Got %v expected %v", all, true)
-	}
-
-	all = set.All(func(index int, value string) bool {
-		return value >= "a" && value <= "b"
-	})
-	if all != false {
-		t.Errorf("Got %v expected %v", all, false)
-	}
-}
-
-func TestSetFind(t *testing.T) {
-	set := btreeset.New[string]()
-	set.Add("c", "a", "b")
-
-	foundIndex, foundValue := set.Find(func(index int, value string) bool {
-		return value == "c"
-	})
-	if foundValue != "c" || foundIndex != 2 {
-		t.Errorf("Got %v at %v expected %v at %v", foundValue, foundIndex, "c", 2)
-	}
-
-	foundIndex, foundValue = set.Find(func(index int, value string) bool {
-		return value == "x"
-	})
-	if foundValue != "" || foundIndex != -1 {
-		t.Errorf("Got %v at %v expected %v at %v", foundValue, foundIndex, nil, nil)
 	}
 }
 

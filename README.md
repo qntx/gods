@@ -4,28 +4,28 @@ A collection of data structures implemented in Go.
 
 ## Containers
 
-| **Data** | **Structure**   | **Ordered** | **Iterator** | **Referenced by** | **Implemented** |
-| -------- | --------------- | ----------- | ------------ | ----------------- | --------------- |
-| Tree     |                 |             |              |                   |                 |
-|          | `BTree`         | Y           | Y            | Key               | Y               |
-|          | `RBTree`        | Y           | Y            | Key               | Y               |
-|          | `AVLTree`       | Y           | Y            | Key               | Y               |
-| Map      |                 |             |              |                   |                 |
-|          | `HashMap`       | N           | Y            | Key               | Y               |
-|          | `HashBiMap`     | N           | Y            | Key               | Y               |
-|          | `BTreeBiMap`    | Y           | Y            | Key               | Y               |
-|          | `RBTreeBiMap`   | Y           | Y            | Key               | Y               |
-|          | `LinkedHashMap` | Y           | Y            | Key               | Y               |
-| Set      |                 |             |              |                   |                 |
-|          | `HashSet`       | N           | Y            | Index             | Y               |
-|          | `BTreeSet`      | Y           | Y            | Index             | Y               |
-|          | `RBTreeSet`     | Y           | Y            | Index             | Y               |
-|          | `LinkedHashSet` | Y           | Y            | Index             | Y               |
-| Queue    |                 |             |              |                   |                 |
-|          | `SliceDeque`    | Y           | Y            | Index             | Y               |
-|          | `PriorityQueue` | Y           | Y            | Index             | Y               |
-| Stack    |                 |             |              |                   |                 |
-|          | `SliceStack`    | Y           | Y            | Index             | N               |
+| **Data** | **Structure**   | **Ordered** | **Iterator** | **Serializable** | **Referenced by** | **Implemented** |
+| -------- | --------------- | ----------- | ------------ | ---------------- | ----------------- | --------------- |
+| Tree     |                 |             |              |                  |                   |                 |
+|          | `BTree`         | Y           | Y            | Y                | Key               | √               |
+|          | `RBTree`        | Y           | Y            | Y                | Key               | √               |
+|          | `AVLTree`       | Y           | Y            | Y                | Key               | √               |
+| Map      |                 |             |              |                  |                   |                 |
+|          | `HashMap`       | N           | Y            | Y                | Key               | √               |
+|          | `HashBiMap`     | N           | Y            | Y                | Key               | √               |
+|          | `BTreeBiMap`    | Y           | Y            | Y                | Key               | √               |
+|          | `RBTreeBiMap`   | Y           | Y            | Y                | Key               | √               |
+|          | `LinkedHashMap` | Y           | Y            | Y                | Key               | √               |
+| Set      |                 |             |              |                  |                   |                 |
+|          | `HashSet`       | N           | Y            | Y                | Index             | √               |
+|          | `BTreeSet`      | Y           | Y            | Y                | Index             | √               |
+|          | `RBTreeSet`     | Y           | Y            | Y                | Index             | √               |
+|          | `LinkedHashSet` | Y           | Y            | Y                | Index             | √               |
+| Queue    |                 |             |              |                  |                   |                 |
+|          | `SliceDeque`    | Y           | Y            | Y                | Index             | √               |
+|          | `PriorityQueue` | Y           | Y            | N                | Index             | √               |
+| Stack    |                 |             |              |                  |                   |                 |
+|          | `SliceStack`    | Y           | Y            | N                | Index             | ×               |
 
 ## Benchmarks
 

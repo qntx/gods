@@ -26,6 +26,7 @@ func TestPriorityQueueEnqueue(t *testing.T) {
 	queue.Enqueue(a, a.priority)
 	queue.Enqueue(c, c.priority)
 	queue.Enqueue(b, b.priority)
+
 	items := queue.Items()
 	if len(items) != 3 {
 		t.Errorf("Expected 3 items, got %d", len(items))
@@ -35,6 +36,7 @@ func TestPriorityQueueEnqueue(t *testing.T) {
 	if !ok || v.name != "c" || p != 3 {
 		t.Errorf("Expected peek to be 'c', got %v", v)
 	}
+
 	v1, p1, ok1 := queue.Dequeue()
 	if !ok1 || v1.name != "c" || p1 != 3 {
 		t.Errorf("Expected first item to be 'c' with priority 3, got %v", v1)
@@ -101,6 +103,7 @@ func TestPriorityQueueEnqueueBulk(t *testing.T) {
 	queue.Enqueue(1, 1)
 	queue.Enqueue(2, 2)
 	queue.Clear()
+
 	if !queue.IsEmpty() {
 		t.Errorf("Queue should be empty after Clear()")
 	}
@@ -159,7 +162,7 @@ func TestPriorityQueueRandom(t *testing.T) {
 	queue := pqueue.New[int, int](pqueue.MinHeap)
 
 	r := rand.New(rand.NewSource(3))
-	for i := 0; i < 10000; i++ {
+	for range 10000 {
 		val := int(r.Int31n(30))
 		queue.Enqueue(val, val)
 	}
@@ -174,9 +177,11 @@ func TestPriorityQueueRandom(t *testing.T) {
 		if !ok {
 			t.Fatal("Failed to get item from queue")
 		}
+
 		if prev > curr {
 			t.Errorf("Queue property invalidated. prev: %v current: %v", prev, curr)
 		}
+
 		prev = curr
 	}
 }
@@ -189,11 +194,13 @@ func TestPriorityQueueIsEmpty(t *testing.T) {
 	}
 
 	queue.Enqueue(1, 1)
+
 	if queue.IsEmpty() {
 		t.Error("Queue should not be empty after adding item")
 	}
 
 	_, _, _ = queue.Dequeue()
+
 	if !queue.IsEmpty() {
 		t.Error("Queue should be empty after removing only item")
 	}
@@ -210,6 +217,7 @@ func TestPriorityQueuePeek(t *testing.T) {
 	queue.Enqueue(3, 3)
 	queue.Enqueue(2, 2)
 	queue.Enqueue(1, 1)
+
 	v, p, ok := queue.Peek()
 	if !ok || v != 1 || p != 1 {
 		t.Errorf("Expected peek to return 1, got %v", v)
