@@ -149,10 +149,10 @@ func (t *Tree[K, V]) Put(key K, val V) {
 // Returns true if a node was removed, false if the key was not found.
 // Panics if the key type is incompatible with the comparator.
 // Time complexity: O(log n).
-func (t *Tree[K, V]) Delete(key K) bool {
+func (t *Tree[K, V]) Delete(key K) (value V, found bool) {
 	node := t.lookup(key)
 	if node == nil {
-		return false
+		return value, false
 	}
 
 	var fixupStartNode *Node[K, V]
@@ -182,7 +182,7 @@ func (t *Tree[K, V]) Delete(key K) bool {
 		t.deleteFixup(fixupStartNode)
 	}
 
-	return true
+	return node.value, true
 }
 
 // Get retrieves the value associated with the specified key.

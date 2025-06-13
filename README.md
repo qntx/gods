@@ -11,8 +11,8 @@ A collection of data structures implemented in Go.
 |          | `RBTree`        | Y           | Y            | Y                | Key               | √               |
 |          | `AVLTree`       | Y           | Y            | Y                | Key               | √               |
 | Map      |                 |             |              |                  |                   |                 |
-|          | `HashMap`       | Y (sort)    | Y            | Y                | Key               | √               |
-|          | `HashBiMap`     | Y (sort)    | Y            | Y                | Key               | √               |
+|          | `HashMap`       | N (sort)    | Y            | Y                | Key               | √               |
+|          | `HashBiMap`     | N (sort)    | Y            | Y                | Key               | √               |
 |          | `BTreeBiMap`    | Y           | Y            | Y                | Key               | √               |
 |          | `RBTreeBiMap`   | Y           | Y            | Y                | Key               | √               |
 |          | `LinkedHashMap` | Y           | Y            | Y                | Key               | √               |

@@ -6,11 +6,11 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/qntx/gods/rbtreebimap"
+	"github.com/qntx/gods/btreebimap"
 )
 
 func TestMapPut(t *testing.T) {
-	m := rbtreebimap.New[int, string]()
+	m := btreebimap.New[int, string]()
 	m.Put(5, "e")
 	m.Put(6, "f")
 	m.Put(7, "g")
@@ -48,8 +48,8 @@ func TestMapPut(t *testing.T) {
 	}
 }
 
-func TestMapRemove(t *testing.T) {
-	m := rbtreebimap.New[int, string]()
+func TestMapDelete(t *testing.T) {
+	m := btreebimap.New[int, string]()
 	m.Put(5, "e")
 	m.Put(6, "f")
 	m.Put(7, "g")
@@ -59,11 +59,11 @@ func TestMapRemove(t *testing.T) {
 	m.Put(2, "b")
 	m.Put(1, "a") //overwrite
 
-	m.Remove(5)
-	m.Remove(6)
-	m.Remove(7)
-	m.Remove(8)
-	m.Remove(5)
+	m.Delete(5)
+	m.Delete(6)
+	m.Delete(7)
+	m.Delete(8)
+	m.Delete(5)
 
 	slices.Equal(m.Keys(), []int{1, 2, 3, 4})
 	slices.Equal(m.Values(), []string{"a", "b", "c", "d"})
@@ -90,12 +90,12 @@ func TestMapRemove(t *testing.T) {
 		}
 	}
 
-	m.Remove(1)
-	m.Remove(4)
-	m.Remove(2)
-	m.Remove(3)
-	m.Remove(2)
-	m.Remove(2)
+	m.Delete(1)
+	m.Delete(4)
+	m.Delete(2)
+	m.Delete(3)
+	m.Delete(2)
+	m.Delete(2)
 
 	slices.Equal(m.Keys(), nil)
 	slices.Equal(m.Values(), nil)
@@ -104,13 +104,13 @@ func TestMapRemove(t *testing.T) {
 		t.Errorf("Got %v expected %v", actualValue, 0)
 	}
 
-	if actualValue := m.Empty(); actualValue != true {
+	if actualValue := m.IsEmpty(); actualValue != true {
 		t.Errorf("Got %v expected %v", actualValue, true)
 	}
 }
 
 func TestMapGetKey(t *testing.T) {
-	m := rbtreebimap.New[int, string]()
+	m := btreebimap.New[int, string]()
 	m.Put(5, "e")
 	m.Put(6, "f")
 	m.Put(7, "g")
@@ -142,7 +142,7 @@ func TestMapGetKey(t *testing.T) {
 }
 func TestMapSerialization(t *testing.T) {
 	for range 10 {
-		original := rbtreebimap.New[string, string]()
+		original := btreebimap.New[string, string]()
 		original.Put("d", "4")
 		original.Put("e", "5")
 		original.Put("c", "3")
@@ -154,7 +154,7 @@ func TestMapSerialization(t *testing.T) {
 			t.Errorf("Got error %v", err)
 		}
 
-		deserialized := rbtreebimap.New[string, string]()
+		deserialized := btreebimap.New[string, string]()
 
 		err = deserialized.UnmarshalJSON(serialized)
 		if err != nil {
@@ -166,7 +166,7 @@ func TestMapSerialization(t *testing.T) {
 		}
 	}
 
-	m := rbtreebimap.New[string, float64]()
+	m := btreebimap.New[string, float64]()
 	m.Put("a", 1.0)
 	m.Put("b", 2.0)
 	m.Put("c", 3.0)
@@ -183,7 +183,7 @@ func TestMapSerialization(t *testing.T) {
 }
 
 func TestMapString(t *testing.T) {
-	c := rbtreebimap.New[string, string]()
+	c := btreebimap.New[string, string]()
 	c.Put("a", "a")
 
 	if !strings.HasPrefix(c.String(), "TreeBidiMap") {

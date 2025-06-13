@@ -217,14 +217,15 @@ func (t *Tree[K, V]) Has(key K) bool {
 }
 
 // Delete removes a key-value pair from the tree.
-// Returns true if the key was found and removed, false otherwise.
+// Returns the value and true if the key was found and removed, false otherwise.
 // Time complexity: O(log n).
-func (t *Tree[K, V]) Delete(key K) bool {
+func (t *Tree[K, V]) Delete(key K) (v V, found bool) {
 	node, index := t.lookup(key)
 	if index == notFound {
-		return false
+		return v, false
 	}
 
+	v = node.entries[index].value
 	t.delete(node, index)
 
 	t.len--
@@ -232,7 +233,7 @@ func (t *Tree[K, V]) Delete(key K) bool {
 		t.root = nil
 	}
 
-	return true
+	return v, true
 }
 
 // Begin returns the minimum key-value pair.
@@ -507,187 +508,182 @@ func (t *Tree[K, V]) split(node *Node[K, V]) {
 	t.splitNonRoot(node)
 }
 
-func (t *Tree[K, V]) splitNonRoot(node *Node[K, V]) {
-	middle := t.middle()
-	parent := node.parent
+func (t *Tree[K, V]) splitNonRoot(n *Node[K, V]) {
+	mid := t.middle()
+	p := n.parent
 
 	// Promote middle entry to parent
-	medianEntry := node.entries[middle]
-	parentIndex, _ := t.search(parent, medianEntry.key)
-	parent.entries = slices.Insert(parent.entries, parentIndex, medianEntry)
+	med := n.entries[mid]
+	pi, _ := t.search(p, med.key)
+	p.entries = slices.Insert(p.entries, pi, med)
 
 	// Create new right sibling
-	rightSibling := &Node[K, V]{
-		parent:  parent,
-		entries: slices.Clone(node.entries[middle+1:]),
+	r := &Node[K, V]{
+		parent:  p,
+		entries: slices.Clone(n.entries[mid+1:]),
 	}
-	if !node.isLeaf() {
-		rightSibling.children = slices.Clone(node.children[middle+1:])
-		setParent(rightSibling.children, rightSibling)
+	if !n.isLeaf() {
+		r.children = slices.Clone(n.children[mid+1:])
+		setParent(r.children, r)
 	}
 
 	// Update original node to be the left sibling
-	node.entries = node.entries[:middle]
-	if !node.isLeaf() {
-		node.children = node.children[:middle+1]
+	n.entries = n.entries[:mid]
+	if !n.isLeaf() {
+		n.children = n.children[:mid+1]
 	}
 
 	// Insert right sibling into parent's children
-	parent.children = slices.Insert(parent.children, parentIndex+1, rightSibling)
+	p.children = slices.Insert(p.children, pi+1, r)
 
-	t.split(parent)
+	t.split(p)
 }
 
 func (t *Tree[K, V]) splitRoot() {
-	middle := t.middle()
-	medianEntry := t.root.entries[middle]
+	mid := t.middle()
+	med := t.root.entries[mid]
 
-	left := &Node[K, V]{entries: slices.Clone(t.root.entries[:middle])}
-	right := &Node[K, V]{entries: slices.Clone(t.root.entries[middle+1:])}
+	l := &Node[K, V]{entries: slices.Clone(t.root.entries[:mid])}
+	r := &Node[K, V]{entries: slices.Clone(t.root.entries[mid+1:])}
 
 	if !t.root.isLeaf() {
-		left.children = slices.Clone(t.root.children[:middle+1])
-		right.children = slices.Clone(t.root.children[middle+1:])
-		setParent(left.children, left)
-		setParent(right.children, right)
+		l.children = slices.Clone(t.root.children[:mid+1])
+		r.children = slices.Clone(t.root.children[mid+1:])
+		setParent(l.children, l)
+		setParent(r.children, r)
 	}
 
-	newRoot := &Node[K, V]{
-		entries:  []*entry[K, V]{medianEntry},
-		children: []*Node[K, V]{left, right},
+	nr := &Node[K, V]{
+		entries:  []*entry[K, V]{med},
+		children: []*Node[K, V]{l, r},
 	}
-	left.parent = newRoot
-	right.parent = newRoot
-	t.root = newRoot
+
+	l.parent = nr
+	r.parent = nr
+
+	t.root = nr
 }
 
 // delete handles the core deletion logic.
-func (t *Tree[K, V]) delete(node *Node[K, V], index int) {
-	// If node is an internal node, swap with successor to move deletion to a leaf.
-	if !node.isLeaf() {
-		successorNode := getMinNode(node.children[index+1])
-		node.entries[index] = successorNode.entries[0]
-		node, index = successorNode, 0 // Target the successor for actual deletion
+func (t *Tree[K, V]) delete(n *Node[K, V], i int) {
+	// If node is internal, swap with successor to move deletion to a leaf.
+	if !n.isLeaf() {
+		s := getMinNode(n.children[i+1])
+		n.entries[i] = s.entries[0]
+		n, i = s, 0 // Target the successor for actual deletion
 	}
 
 	// Delete entry from the (now guaranteed to be leaf) node.
-	node.entries = slices.Delete(node.entries, index, index+1)
-	t.rebalance(node)
+	n.entries = slices.Delete(n.entries, i, i+1)
+	t.rebalance(n)
 }
 
-// rebalance ensures the B-tree properties are maintained after a deletion.
-func (t *Tree[K, V]) rebalance(node *Node[K, V]) {
-	// If node has enough entries, it doesn't need rebalancing.
-	if len(node.entries) >= t.minEntries() {
+// rebalance ensures B-tree properties post-deletion.
+func (t *Tree[K, V]) rebalance(n *Node[K, V]) {
+	// If node has enough entries, no rebalancing needed.
+	if len(n.entries) >= t.minEntries() {
 		return
 	}
 
-	// If node is the current root of the tree.
-	// The root can have fewer than minEntries (e.g., if it's the only node or tree height is 1).
-	// If it becomes empty, mergeWithSibling handles root replacement.
-	if node == t.root {
+	// Root can have fewer entries or be empty (handled by merge).
+	if n == t.root {
 		return
 	}
 
-	// At this point: node is NOT t.root AND len(node.entries) < t.minEntries().
-	// Such a node must have a parent. If not, it's an orphaned former root.
-	parent := node.parent
-	if parent == nil {
-		// This state (node != t.root && node.parent == nil) occurs if 'node'
-		// was the root, got emptied during a merge, t.root was reassigned,
-		// and rebalance is now called on this 'node' (the old, detached root).
-		// No further parent-based rebalancing is applicable.
+	// Non-root node with too few entries must have a parent.
+	p := n.parent
+	if p == nil {
+		// Orphaned former root; no further rebalancing.
 		return
 	}
 
-	nodeIndex := findChildIndex(parent, node)
+	i := findChildIndex(p, n)
 
-	// Try to borrow from left sibling
-	if nodeIndex > 0 {
-		leftSibling := parent.children[nodeIndex-1]
-		if len(leftSibling.entries) > t.minEntries() {
-			t.borrowFromSibling(node, leftSibling, nodeIndex)
+	// Try borrowing from left sibling.
+	if i > 0 {
+		l := p.children[i-1]
+		if len(l.entries) > t.minEntries() {
+			t.borrowFromSibling(n, l, i)
 
 			return
 		}
 	}
 
-	// Try to borrow from right sibling
-	if nodeIndex < len(parent.children)-1 {
-		rightSibling := parent.children[nodeIndex+1]
-		if len(rightSibling.entries) > t.minEntries() {
-			t.borrowFromSibling(node, rightSibling, nodeIndex)
+	// Try borrowing from right sibling.
+	if i < len(p.children)-1 {
+		r := p.children[i+1]
+		if len(r.entries) > t.minEntries() {
+			t.borrowFromSibling(n, r, i)
 
 			return
 		}
 	}
 
-	// Merge with a sibling
-	if nodeIndex > 0 {
-		t.mergeWithSibling(parent.children[nodeIndex-1], node, nodeIndex-1) // Merge with left
+	// Merge with a sibling.
+	if i > 0 {
+		t.mergeWithSibling(p.children[i-1], n, i-1) // Merge with left.
 	} else {
-		t.mergeWithSibling(node, parent.children[nodeIndex+1], nodeIndex) // Merge with right
+		t.mergeWithSibling(n, p.children[i+1], i) // Merge with right.
 	}
 
-	t.rebalance(parent)
+	t.rebalance(p)
 }
 
-// borrowFromSibling performs a rotation to rebalance the tree.
-func (t *Tree[K, V]) borrowFromSibling(node, sibling *Node[K, V], nodeIndexInParent int) {
-	parent := node.parent
-	// Determine if the sibling is to the left or right of the node
-	// by finding the sibling's index in the parent's children list.
-	siblingIndexInParent := findChildIndex(parent, sibling)
+// borrowFromSibling rotates to rebalance the tree.
+func (t *Tree[K, V]) borrowFromSibling(n, s *Node[K, V], ni int) {
+	p := n.parent
+	// Find sibling's index in parent's children.
+	si := findChildIndex(p, s)
 
-	if siblingIndexInParent < nodeIndexInParent { // Sibling is to the left
-		parentIndex := nodeIndexInParent - 1 // This is also siblingIndexInParent
+	if si < ni { // Left sibling
+		pi := ni - 1
 		// Rotate right
-		node.entries = slices.Insert(node.entries, 0, parent.entries[parentIndex])
-		parent.entries[parentIndex] = sibling.entries[len(sibling.entries)-1]
+		n.entries = slices.Insert(n.entries, 0, p.entries[pi])
+		p.entries[pi] = s.entries[len(s.entries)-1]
 
-		sibling.entries = slices.Delete(sibling.entries, len(sibling.entries)-1, len(sibling.entries))
-		if !sibling.isLeaf() {
-			childToMove := sibling.children[len(sibling.children)-1]
-			childToMove.parent = node
-			node.children = slices.Insert(node.children, 0, childToMove)
-			sibling.children = slices.Delete(sibling.children, len(sibling.children)-1, len(sibling.children))
+		s.entries = slices.Delete(s.entries, len(s.entries)-1, len(s.entries))
+		if !s.isLeaf() {
+			c := s.children[len(s.children)-1]
+			c.parent = n
+			n.children = slices.Insert(n.children, 0, c)
+			s.children = slices.Delete(s.children, len(s.children)-1, len(s.children))
 		}
-	} else { // Sibling is to the right (siblingIndexInParent > nodeIndexInParent)
-		parentIndex := nodeIndexInParent // Separator entry in parent is at node's original index
+	} else { // Right sibling
+		pi := ni
 		// Rotate left
-		node.entries = append(node.entries, parent.entries[parentIndex])
-		parent.entries[parentIndex] = sibling.entries[0]
+		n.entries = append(n.entries, p.entries[pi])
+		p.entries[pi] = s.entries[0]
 
-		sibling.entries = slices.Delete(sibling.entries, 0, 1)
-		if !sibling.isLeaf() {
-			childToMove := sibling.children[0]
-			childToMove.parent = node
-			node.children = append(node.children, childToMove)
-			sibling.children = slices.Delete(sibling.children, 0, 1)
+		s.entries = slices.Delete(s.entries, 0, 1)
+		if !s.isLeaf() {
+			c := s.children[0]
+			c.parent = n
+			n.children = append(n.children, c)
+			s.children = slices.Delete(s.children, 0, 1)
 		}
 	}
 }
 
 // mergeWithSibling merges two adjacent nodes.
-func (t *Tree[K, V]) mergeWithSibling(left, right *Node[K, V], leftIndexInParent int) {
-	parent := left.parent
+func (t *Tree[K, V]) mergeWithSibling(l, r *Node[K, V], li int) {
+	p := l.parent
 	// Pull down separator from parent
-	separator := parent.entries[leftIndexInParent]
-	left.entries = append(left.entries, separator)
-	left.entries = append(left.entries, right.entries...)
+	sep := p.entries[li]
+	l.entries = append(l.entries, sep)
+	l.entries = append(l.entries, r.entries...)
 
-	if !left.isLeaf() {
-		left.children = append(left.children, right.children...)
-		setParent(left.children, left)
+	if !l.isLeaf() {
+		l.children = append(l.children, r.children...)
+		setParent(l.children, l)
 	}
 
-	// Remove separator from parent and right children from parent's children
-	parent.entries = slices.Delete(parent.entries, leftIndexInParent, leftIndexInParent+1)
-	parent.children = slices.Delete(parent.children, leftIndexInParent+1, leftIndexInParent+2)
+	// Remove separator and right node from parent
+	p.entries = slices.Delete(p.entries, li, li+1)
+	p.children = slices.Delete(p.children, li+1, li+2)
 
-	if len(parent.entries) == 0 && parent == t.root {
-		t.root = left
-		left.parent = nil
+	if len(p.entries) == 0 && p == t.root {
+		t.root = l
+		l.parent = nil
 	}
 }
 

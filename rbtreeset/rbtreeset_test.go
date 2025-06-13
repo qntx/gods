@@ -24,15 +24,15 @@ func TestSetNew(t *testing.T) {
 	}
 }
 
-func TestSetAdd(t *testing.T) {
+func TestSetAppend(t *testing.T) {
 	set := rbtreeset.New[int]()
-	set.Add()
-	set.Add(1)
-	set.Add(2)
-	set.Add(2, 3)
-	set.Add()
+	set.Append()
+	set.Append(1)
+	set.Append(2)
+	set.Append(2, 3)
+	set.Append()
 
-	if actualValue := set.Empty(); actualValue != false {
+	if actualValue := set.IsEmpty(); actualValue != false {
 		t.Errorf("Got %v expected %v", actualValue, false)
 	}
 
@@ -43,7 +43,7 @@ func TestSetAdd(t *testing.T) {
 
 func TestSetContains(t *testing.T) {
 	set := rbtreeset.New[int]()
-	set.Add(3, 1, 2)
+	set.Append(3, 1, 2)
 
 	if actualValue := set.Contains(); actualValue != true {
 		t.Errorf("Got %v expected %v", actualValue, true)
@@ -62,25 +62,25 @@ func TestSetContains(t *testing.T) {
 	}
 }
 
-func TestSetRemove(t *testing.T) {
+func TestSetRemoveAll(t *testing.T) {
 	set := rbtreeset.New[int]()
-	set.Add(3, 1, 2)
-	set.Remove()
+	set.Append(3, 1, 2)
+	set.RemoveAll()
 
 	if actualValue := set.Len(); actualValue != 3 {
 		t.Errorf("Got %v expected %v", actualValue, 3)
 	}
 
-	set.Remove(1)
+	set.RemoveAll(1)
 
 	if actualValue := set.Len(); actualValue != 2 {
 		t.Errorf("Got %v expected %v", actualValue, 2)
 	}
 
-	set.Remove(3)
-	set.Remove(3)
-	set.Remove()
-	set.Remove(2)
+	set.RemoveAll(3)
+	set.RemoveAll(3)
+	set.RemoveAll()
+	set.RemoveAll(2)
 
 	if actualValue := set.Len(); actualValue != 0 {
 		t.Errorf("Got %v expected %v", actualValue, 0)
@@ -89,7 +89,7 @@ func TestSetRemove(t *testing.T) {
 
 func TestSetSerialization(t *testing.T) {
 	set := rbtreeset.New[string]()
-	set.Add("a", "b", "c")
+	set.Append("a", "b", "c")
 
 	var err error
 
@@ -130,7 +130,7 @@ func TestSetSerialization(t *testing.T) {
 
 func TestSetString(t *testing.T) {
 	c := rbtreeset.New[int]()
-	c.Add(1)
+	c.Append(1)
 
 	if !strings.HasPrefix(c.String(), "TreeSet") {
 		t.Errorf("String should start with container name")
@@ -141,15 +141,15 @@ func TestSetIntersection(t *testing.T) {
 	set := rbtreeset.New[string]()
 	another := rbtreeset.New[string]()
 
-	intersection := set.Intersection(another)
+	intersection := set.Intersect(another)
 	if actualValue, expectedValue := intersection.Len(), 0; actualValue != expectedValue {
 		t.Errorf("Got %v expected %v", actualValue, expectedValue)
 	}
 
-	set.Add("a", "b", "c", "d")
-	another.Add("c", "d", "e", "f")
+	set.Append("a", "b", "c", "d")
+	another.Append("c", "d", "e", "f")
 
-	intersection = set.Intersection(another)
+	intersection = set.Intersect(another)
 
 	if actualValue, expectedValue := intersection.Len(), 2; actualValue != expectedValue {
 		t.Errorf("Got %v expected %v", actualValue, expectedValue)
@@ -169,8 +169,8 @@ func TestSetUnion(t *testing.T) {
 		t.Errorf("Got %v expected %v", actualValue, expectedValue)
 	}
 
-	set.Add("a", "b", "c", "d")
-	another.Add("c", "d", "e", "f")
+	set.Append("a", "b", "c", "d")
+	another.Append("c", "d", "e", "f")
 
 	union = set.Union(another)
 
@@ -192,8 +192,8 @@ func TestSetDifference(t *testing.T) {
 		t.Errorf("Got %v expected %v", actualValue, expectedValue)
 	}
 
-	set.Add("a", "b", "c", "d")
-	another.Add("c", "d", "e", "f")
+	set.Append("a", "b", "c", "d")
+	another.Append("c", "d", "e", "f")
 
 	difference = set.Difference(another)
 

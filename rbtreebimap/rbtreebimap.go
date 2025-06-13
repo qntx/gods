@@ -16,128 +16,185 @@ package rbtreebimap
 import (
 	"encoding/json"
 	"fmt"
+	"iter"
 
 	"strings"
 
 	"github.com/qntx/gods/cmp"
+	"github.com/qntx/gods/container"
 	"github.com/qntx/gods/rbtree"
 )
 
-// Map holds the elements in two red-black trees.
-type Map[K, V comparable] struct {
-	forwardMap rbtree.Tree[K, V]
-	inverseMap rbtree.Tree[V, K]
-}
-
+var _ container.OrderedBiMap[string, int] = (*Map[string, int])(nil)
 var _ json.Marshaler = (*Map[string, int])(nil)
 var _ json.Unmarshaler = (*Map[string, int])(nil)
 
-// New instantiates a bidirectional map.
+type Map[K, V comparable] struct {
+	fwd rbtree.Tree[K, V]
+	inv rbtree.Tree[V, K]
+}
+
 func New[K, V cmp.Ordered]() *Map[K, V] {
 	return &Map[K, V]{
-		forwardMap: *rbtree.New[K, V](),
-		inverseMap: *rbtree.New[V, K](),
+		fwd: *rbtree.New[K, V](),
+		inv: *rbtree.New[V, K](),
 	}
 }
 
-// NewWith instantiates a bidirectional map.
-func NewWith[K, V comparable](keyComparator cmp.Comparator[K], valueComparator cmp.Comparator[V]) *Map[K, V] {
+func NewWith[K, V comparable](kcmp cmp.Comparator[K], vcmp cmp.Comparator[V]) *Map[K, V] {
 	return &Map[K, V]{
-		forwardMap: *rbtree.NewWith[K, V](keyComparator),
-		inverseMap: *rbtree.NewWith[V, K](valueComparator),
+		fwd: *rbtree.NewWith[K, V](kcmp),
+		inv: *rbtree.NewWith[V, K](vcmp),
 	}
 }
 
-// Put inserts element into the map.
-func (m *Map[K, V]) Put(key K, value V) {
-	if v, ok := m.forwardMap.Get(key); ok {
-		m.inverseMap.Delete(v)
+func (m *Map[K, V]) Put(k K, v V) {
+	if val, ok := m.fwd.Get(k); ok {
+		m.inv.Delete(val)
 	}
 
-	if k, ok := m.inverseMap.Get(value); ok {
-		m.forwardMap.Delete(k)
+	if key, ok := m.inv.Get(v); ok {
+		m.fwd.Delete(key)
 	}
 
-	m.forwardMap.Put(key, value)
-	m.inverseMap.Put(value, key)
+	m.fwd.Put(k, v)
+	m.inv.Put(v, k)
 }
 
-// Get searches the element in the map by key and returns its value or nil if key is not found in map.
-// Second return parameter is true if key was found, otherwise false.
-func (m *Map[K, V]) Get(key K) (value V, found bool) {
-	return m.forwardMap.Get(key)
+func (m *Map[K, V]) Has(k K) bool {
+	return m.fwd.Has(k)
 }
 
-// GetKey searches the element in the map by value and returns its key or nil if value is not found in map.
-// Second return parameter is true if value was found, otherwise false.
-func (m *Map[K, V]) GetKey(value V) (key K, found bool) {
-	return m.inverseMap.Get(value)
+func (m *Map[K, V]) HasValue(v V) bool {
+	return m.inv.Has(v)
 }
 
-// Remove removes the element from the map by key.
-func (m *Map[K, V]) Remove(key K) {
-	if v, found := m.forwardMap.Get(key); found {
-		m.forwardMap.Delete(key)
-		m.inverseMap.Delete(v)
+func (m *Map[K, V]) Get(k K) (v V, ok bool) {
+	return m.fwd.Get(k)
+}
+
+func (m *Map[K, V]) GetKey(v V) (k K, ok bool) {
+	return m.inv.Get(v)
+}
+
+func (m *Map[K, V]) Delete(k K) (v V, ok bool) {
+	if v, ok := m.fwd.Get(k); ok {
+		m.fwd.Delete(k)
+		m.inv.Delete(v)
+
+		return v, true
 	}
+
+	return v, false
 }
 
-// Empty returns true if map does not contain any elements.
-func (m *Map[K, V]) Empty() bool {
+func (m *Map[K, V]) DeleteValue(v V) (k K, ok bool) {
+	if k, ok := m.inv.Get(v); ok {
+		m.fwd.Delete(k)
+		m.inv.Delete(v)
+
+		return k, true
+	}
+
+	return k, false
+}
+
+func (m *Map[K, V]) Begin() (k K, v V, ok bool) {
+	return m.fwd.Begin()
+}
+
+func (m *Map[K, V]) End() (k K, v V, ok bool) {
+	return m.fwd.End()
+}
+
+func (m *Map[K, V]) DeleteBegin() (k K, v V, ok bool) {
+	k, v, ok = m.fwd.DeleteBegin()
+	if ok {
+		m.inv.Delete(v)
+	}
+
+	return
+}
+
+func (m *Map[K, V]) DeleteEnd() (k K, v V, ok bool) {
+	k, v, ok = m.fwd.DeleteEnd()
+	if ok {
+		m.inv.Delete(v)
+	}
+
+	return
+}
+
+func (m *Map[K, V]) Iter() iter.Seq2[K, V] {
+	return m.fwd.Iter()
+}
+
+func (m *Map[K, V]) RIter() iter.Seq2[K, V] {
+	return m.fwd.RIter()
+}
+
+func (m *Map[K, V]) IsEmpty() bool {
 	return m.Len() == 0
 }
 
-// Len returns number of elements in the map.
 func (m *Map[K, V]) Len() int {
-	return m.forwardMap.Len()
+	return m.fwd.Len()
 }
 
-// Keys returns all keys (ordered).
 func (m *Map[K, V]) Keys() []K {
-	return m.forwardMap.Keys()
+	return m.fwd.Keys()
 }
 
-// Values returns all values (ordered).
 func (m *Map[K, V]) Values() []V {
-	return m.inverseMap.Keys()
+	return m.inv.Keys()
 }
 
-// Clear removes all elements from the map.
+func (m *Map[K, V]) ToSlice() []V {
+	return m.fwd.ToSlice()
+}
+
+func (m *Map[K, V]) Entries() ([]K, []V) {
+	return m.fwd.Entries()
+}
+
 func (m *Map[K, V]) Clear() {
-	m.forwardMap.Clear()
-	m.inverseMap.Clear()
+	m.fwd.Clear()
+	m.inv.Clear()
 }
 
-// MarshalJSON @implements json.Marshaler.
+func (m *Map[K, V]) Clone() container.Map[K, V] {
+	return &Map[K, V]{
+		fwd: *(m.fwd.Clone().(*rbtree.Tree[K, V])),
+		inv: *(m.inv.Clone().(*rbtree.Tree[V, K])),
+	}
+}
+
 func (m *Map[K, V]) MarshalJSON() ([]byte, error) {
-	return m.forwardMap.MarshalJSON()
+	return m.fwd.MarshalJSON()
 }
 
-// UnmarshalJSON @implements json.Unmarshaler.
 func (m *Map[K, V]) UnmarshalJSON(data []byte) error {
-	var elements map[K]V
+	var elems map[K]V
 
-	err := json.Unmarshal(data, &elements)
-	if err != nil {
+	if err := json.Unmarshal(data, &elems); err != nil {
 		return err
 	}
 
 	m.Clear()
 
-	for key, value := range elements {
-		m.Put(key, value)
+	for k, v := range elems {
+		m.Put(k, v)
 	}
 
 	return nil
 }
 
-// String returns a string representation of container.
 func (m *Map[K, V]) String() string {
-	str := "TreeBidiMap\nmap["
+	s := "TreeBidiMap\nmap["
 
-	for k, v := range m.forwardMap.Iter() {
-		str += fmt.Sprintf("%v:%v ", k, v)
+	for k, v := range m.fwd.Iter() {
+		s += fmt.Sprintf("%v:%v ", k, v)
 	}
 
-	return strings.TrimRight(str, " ") + "]"
+	return strings.TrimRight(s, " ") + "]"
 }

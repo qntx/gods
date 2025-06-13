@@ -18,15 +18,14 @@ import (
 	"github.com/qntx/gods/container"
 )
 
-// Map is a map backed by Go's native map, implementing the container.Map interface.
+var _ container.Map[int, int] = (*Map[int, int])(nil)
+var _ json.Marshaler = (*Map[int, int])(nil)
+var _ json.Unmarshaler = (*Map[int, int])(nil)
+
 type Map[K comparable, V any] struct {
 	m   map[K]V
 	cmp cmp.Comparator[K] // Comparator for key sorting
 }
-
-var _ container.Map[int, int] = (*Map[int, int])(nil)
-var _ json.Marshaler = (*Map[int, int])(nil)
-var _ json.Unmarshaler = (*Map[int, int])(nil)
 
 // New instantiates a hash map with no key comparator.
 func New[K cmp.Ordered, V any]() *Map[K, V] {
@@ -67,15 +66,15 @@ func (m *Map[K, V]) Has(key K) bool {
 }
 
 // Delete removes the key-value pair associated with the specified key.
-// Returns true if the key was found and removed, false if the key was not present.
-func (m *Map[K, V]) Delete(key K) bool {
+// Returns the value and true if the key was found and removed, false if the key was not present.
+func (m *Map[K, V]) Delete(key K) (value V, found bool) {
 	if _, found := m.m[key]; found {
 		delete(m.m, key)
 
-		return true
+		return value, true
 	}
 
-	return false
+	return value, false
 }
 
 // Len returns the number of key-value pairs in the map.

@@ -16,10 +16,14 @@ import (
 	"iter"
 	"slices"
 	"strings"
+
+	"github.com/qntx/gods/container"
 )
 
-// element is a helper struct to store the value and a pointer to the list element.
-// This allows for O(1) removal from the list.
+var _ container.Map[int, int] = (*Map[int, int])(nil)
+var _ json.Marshaler = (*Map[int, int])(nil)
+var _ json.Unmarshaler = (*Map[int, int])(nil)
+
 type element[V any] struct {
 	value    V
 	listElem *list.Element
@@ -62,31 +66,37 @@ func (m *Map[K, V]) Get(key K) (value V, found bool) {
 		return elem.value, true
 	}
 
-	var zeroV V // Required to return the zero value for V if not found
-
-	return zeroV, false
+	return
 }
 
-// Remove removes the element from the map by key.
+// Has returns true if the specified key is present in the map, false otherwise.
+func (m *Map[K, V]) Has(key K) bool {
+	_, ok := m.table[key]
+
+	return ok
+}
+
+// Delete removes the element from the map by key.
 // Key should adhere to the comparator's type assertion, otherwise method panics.
-func (m *Map[K, V]) Remove(key K) {
+func (m *Map[K, V]) Delete(key K) (value V, found bool) {
 	if elem, contains := m.table[key]; contains {
 		delete(m.table, key)
 		m.ordering.Remove(elem.listElem) // O(1) removal from list
+
+		return elem.value, true
 	}
+
+	return
 }
 
-// Empty returns true if map does not contain any elements.
-func (m *Map[K, V]) Empty() bool {
-	return m.Size() == 0
+func (m *Map[K, V]) IsEmpty() bool {
+	return m.Len() == 0
 }
 
-// Size returns number of elements in the map.
-func (m *Map[K, V]) Size() int {
+func (m *Map[K, V]) Len() int {
 	return m.ordering.Len() // Use Len() for container/list
 }
 
-// Keys returns all keys in-order.
 func (m *Map[K, V]) Keys() []K {
 	keys := make([]K, 0, m.ordering.Len())
 	for e := m.ordering.Front(); e != nil; e = e.Next() {
@@ -96,9 +106,8 @@ func (m *Map[K, V]) Keys() []K {
 	return keys
 }
 
-// Values returns all values in-order based on the key.
 func (m *Map[K, V]) Values() []V {
-	values := make([]V, m.Size())
+	values := make([]V, m.Len())
 	count := 0
 
 	for _, v := range m.Iter() {
@@ -109,8 +118,14 @@ func (m *Map[K, V]) Values() []V {
 	return values
 }
 
-// Iter returns an iterator over key-value pairs from m, in insertion order.
-// The iteration order is preserved.
+func (m *Map[K, V]) Entries() (keys []K, values []V) {
+	return m.Keys(), m.Values()
+}
+
+func (m *Map[K, V]) ToSlice() []V {
+	return m.Values()
+}
+
 func (m *Map[K, V]) Iter() iter.Seq2[K, V] {
 	return func(yield func(K, V) bool) {
 		for e := m.ordering.Front(); e != nil; e = e.Next() {
@@ -125,7 +140,6 @@ func (m *Map[K, V]) Iter() iter.Seq2[K, V] {
 	}
 }
 
-// Clear removes all elements from the map.
 func (m *Map[K, V]) Clear() {
 	// For Go versions < 1.21, or if specific deallocation logic per element was needed:
 	// for k := range m.table {
@@ -133,6 +147,15 @@ func (m *Map[K, V]) Clear() {
 	// }
 	clear(m.table)    // Efficiently clears the map (Go 1.21+)
 	m.ordering.Init() // Reinitializes the list, making it empty
+}
+
+func (m *Map[K, V]) Clone() container.Map[K, V] {
+	clone := New[K, V]()
+	for k, v := range m.Iter() {
+		clone.Put(k, v)
+	}
+
+	return clone
 }
 
 // MarshalJSON @implements json.Marshaler.
@@ -143,7 +166,7 @@ func (m *Map[K, V]) MarshalJSON() ([]byte, error) {
 	buf.WriteRune('{')
 
 	count := 0
-	lastIndex := m.Size() - 1
+	lastIndex := m.Len() - 1
 
 	for k, v := range m.Iter() {
 		km, err := json.Marshal(k)

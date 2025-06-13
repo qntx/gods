@@ -227,11 +227,11 @@ func (t *Tree[K, V]) Put(key K, val V) {
 //
 // Does nothing if key not found. Panics if key type is incompatible with comparator.
 // Time complexity: O(log n).
-func (t *Tree[K, V]) Delete(key K) bool {
+func (t *Tree[K, V]) Delete(key K) (value V, found bool) {
 	// Step 1: Find node to remove.
 	n := t.lookup(key)
 	if n == nil {
-		return false // Not found.
+		return value, false // Not found.
 	}
 
 	// unlink: node to be unlinked.
@@ -273,7 +273,7 @@ func (t *Tree[K, V]) Delete(key K) bool {
 	// Step 7: Decrement tree size.
 	t.len--
 
-	return true
+	return unlink.value, true
 }
 
 // Has checks if the given key exists in the tree.

@@ -3,29 +3,36 @@ package linkedhashmap_test
 import (
 	"testing"
 
+	"github.com/qntx/gods/internal/testutil"
 	"github.com/qntx/gods/linkedhashmap"
 )
 
-func benchmarkGet(b *testing.B, m *linkedhashmap.Map[int, int], size int) {
+func benchmarkGet(b *testing.B, m *linkedhashmap.Map[int, int], keys []int) {
+	b.Helper()
+
 	for range b.N {
-		for n := range size {
-			m.Get(n)
+		for key := range keys {
+			m.Get(key)
 		}
 	}
 }
 
-func benchmarkPut(b *testing.B, m *linkedhashmap.Map[int, int], size int) {
+func benchmarkPut(b *testing.B, m *linkedhashmap.Map[int, int], keys []int) {
+	b.Helper()
+
 	for range b.N {
-		for n := range size {
-			m.Put(n, n)
+		for key := range keys {
+			m.Put(key, key)
 		}
 	}
 }
 
-func benchmarkRemove(b *testing.B, m *linkedhashmap.Map[int, int], size int) {
+func benchmarkDelete(b *testing.B, m *linkedhashmap.Map[int, int], keys []int) {
+	b.Helper()
+
 	for range b.N {
-		for n := range size {
-			m.Remove(n)
+		for key := range keys {
+			m.Delete(key)
 		}
 	}
 }
@@ -36,12 +43,13 @@ func BenchmarkTreeMapGet100(b *testing.B) {
 	size := 100
 	m := linkedhashmap.New[int, int]()
 
-	for n := range size {
-		m.Put(n, n)
+	keys := testutil.GeneratePermutedInts(size)
+	for key := range keys {
+		m.Put(key, key)
 	}
 
 	b.StartTimer()
-	benchmarkGet(b, m, size)
+	benchmarkGet(b, m, keys)
 }
 
 func BenchmarkTreeMapGet1000(b *testing.B) {
@@ -49,13 +57,14 @@ func BenchmarkTreeMapGet1000(b *testing.B) {
 
 	size := 1000
 	m := linkedhashmap.New[int, int]()
+	keys := testutil.GeneratePermutedInts(size)
 
-	for n := range size {
-		m.Put(n, n)
+	for key := range keys {
+		m.Put(key, key)
 	}
 
 	b.StartTimer()
-	benchmarkGet(b, m, size)
+	benchmarkGet(b, m, keys)
 }
 
 func BenchmarkTreeMapGet10000(b *testing.B) {
@@ -63,13 +72,14 @@ func BenchmarkTreeMapGet10000(b *testing.B) {
 
 	size := 10000
 	m := linkedhashmap.New[int, int]()
+	keys := testutil.GeneratePermutedInts(size)
 
-	for n := range size {
-		m.Put(n, n)
+	for key := range keys {
+		m.Put(key, key)
 	}
 
 	b.StartTimer()
-	benchmarkGet(b, m, size)
+	benchmarkGet(b, m, keys)
 }
 
 func BenchmarkTreeMapGet100000(b *testing.B) {
@@ -77,13 +87,14 @@ func BenchmarkTreeMapGet100000(b *testing.B) {
 
 	size := 100000
 	m := linkedhashmap.New[int, int]()
+	keys := testutil.GeneratePermutedInts(size)
 
-	for n := range size {
-		m.Put(n, n)
+	for key := range keys {
+		m.Put(key, key)
 	}
 
 	b.StartTimer()
-	benchmarkGet(b, m, size)
+	benchmarkGet(b, m, keys)
 }
 
 func BenchmarkTreeMapPut100(b *testing.B) {
@@ -92,8 +103,10 @@ func BenchmarkTreeMapPut100(b *testing.B) {
 	size := 100
 	m := linkedhashmap.New[int, int]()
 
+	keys := testutil.GeneratePermutedInts(size)
+
 	b.StartTimer()
-	benchmarkPut(b, m, size)
+	benchmarkPut(b, m, keys)
 }
 
 func BenchmarkTreeMapPut1000(b *testing.B) {
@@ -102,12 +115,10 @@ func BenchmarkTreeMapPut1000(b *testing.B) {
 	size := 1000
 	m := linkedhashmap.New[int, int]()
 
-	for n := range size {
-		m.Put(n, n)
-	}
+	keys := testutil.GeneratePermutedInts(size)
 
 	b.StartTimer()
-	benchmarkPut(b, m, size)
+	benchmarkPut(b, m, keys)
 }
 
 func BenchmarkTreeMapPut10000(b *testing.B) {
@@ -116,12 +127,10 @@ func BenchmarkTreeMapPut10000(b *testing.B) {
 	size := 10000
 	m := linkedhashmap.New[int, int]()
 
-	for n := range size {
-		m.Put(n, n)
-	}
+	keys := testutil.GeneratePermutedInts(size)
 
 	b.StartTimer()
-	benchmarkPut(b, m, size)
+	benchmarkPut(b, m, keys)
 }
 
 func BenchmarkTreeMapPut100000(b *testing.B) {
@@ -130,66 +139,72 @@ func BenchmarkTreeMapPut100000(b *testing.B) {
 	size := 100000
 	m := linkedhashmap.New[int, int]()
 
-	for n := range size {
-		m.Put(n, n)
-	}
+	keys := testutil.GeneratePermutedInts(size)
 
 	b.StartTimer()
-	benchmarkPut(b, m, size)
+	benchmarkPut(b, m, keys)
 }
 
-func BenchmarkTreeMapRemove100(b *testing.B) {
+func BenchmarkTreeMapDelete100(b *testing.B) {
 	b.StopTimer()
 
 	size := 100
 	m := linkedhashmap.New[int, int]()
 
-	for n := range size {
-		m.Put(n, n)
+	keys := testutil.GeneratePermutedInts(size)
+
+	for key := range keys {
+		m.Put(key, key)
 	}
 
 	b.StartTimer()
-	benchmarkRemove(b, m, size)
+	benchmarkDelete(b, m, keys)
 }
 
-func BenchmarkTreeMapRemove1000(b *testing.B) {
+func BenchmarkTreeMapDelete1000(b *testing.B) {
 	b.StopTimer()
 
 	size := 1000
 	m := linkedhashmap.New[int, int]()
 
-	for n := range size {
-		m.Put(n, n)
+	keys := testutil.GeneratePermutedInts(size)
+
+	for key := range keys {
+		m.Put(key, key)
 	}
 
 	b.StartTimer()
-	benchmarkRemove(b, m, size)
+	benchmarkDelete(b, m, keys)
 }
 
-func BenchmarkTreeMapRemove10000(b *testing.B) {
+func BenchmarkTreeMapDelete10000(b *testing.B) {
 	b.StopTimer()
 
 	size := 10000
 	m := linkedhashmap.New[int, int]()
 
-	for n := range size {
-		m.Put(n, n)
+	keys := testutil.GeneratePermutedInts(size)
+
+	for key := range keys {
+		m.Put(key, key)
 	}
 
 	b.StartTimer()
-	benchmarkRemove(b, m, size)
+	benchmarkDelete(b, m, keys)
 }
 
-func BenchmarkTreeMapRemove100000(b *testing.B) {
+func BenchmarkTreeMapDelete100000(b *testing.B) {
 	b.StopTimer()
 
 	size := 100000
 	m := linkedhashmap.New[int, int]()
 
-	for n := range size {
-		m.Put(n, n)
+	keys := testutil.GeneratePermutedInts(size)
+
+	for key := range keys {
+		m.Put(key, key)
 	}
 
 	b.StartTimer()
-	benchmarkRemove(b, m, size)
+	benchmarkDelete(b, m, keys)
 }

@@ -20,7 +20,7 @@ func TestMapPut(t *testing.T) {
 	m.Put(2, "b")
 	m.Put(1, "a") //overwrite
 
-	if actualValue := m.Size(); actualValue != 7 {
+	if actualValue := m.Len(); actualValue != 7 {
 		t.Errorf("Got %v expected %v", actualValue, 7)
 	}
 
@@ -47,7 +47,7 @@ func TestMapPut(t *testing.T) {
 	}
 }
 
-func TestMapRemove(t *testing.T) {
+func TestMapDelete(t *testing.T) {
 	m := hashbimap.New[int, string]()
 	m.Put(5, "e")
 	m.Put(6, "f")
@@ -58,16 +58,16 @@ func TestMapRemove(t *testing.T) {
 	m.Put(2, "b")
 	m.Put(1, "a") //overwrite
 
-	m.Remove(5)
-	m.Remove(6)
-	m.Remove(7)
-	m.Remove(8)
-	m.Remove(5)
+	m.Delete(5)
+	m.Delete(6)
+	m.Delete(7)
+	m.Delete(8)
+	m.Delete(5)
 
 	slices.Equal(m.Keys(), []int{1, 2, 3, 4})
 	slices.Equal(m.Values(), []string{"a", "b", "c", "d"})
 
-	if actualValue := m.Size(); actualValue != 4 {
+	if actualValue := m.Len(); actualValue != 4 {
 		t.Errorf("Got %v expected %v", actualValue, 4)
 	}
 
@@ -89,21 +89,21 @@ func TestMapRemove(t *testing.T) {
 		}
 	}
 
-	m.Remove(1)
-	m.Remove(4)
-	m.Remove(2)
-	m.Remove(3)
-	m.Remove(2)
-	m.Remove(2)
+	m.Delete(1)
+	m.Delete(4)
+	m.Delete(2)
+	m.Delete(3)
+	m.Delete(2)
+	m.Delete(2)
 
 	slices.Equal(m.Keys(), nil)
 	slices.Equal(m.Values(), nil)
 
-	if actualValue := m.Size(); actualValue != 0 {
+	if actualValue := m.Len(); actualValue != 0 {
 		t.Errorf("Got %v expected %v", actualValue, 0)
 	}
 
-	if actualValue := m.Empty(); actualValue != true {
+	if actualValue := m.IsEmpty(); actualValue != true {
 		t.Errorf("Got %v expected %v", actualValue, true)
 	}
 }
@@ -152,7 +152,7 @@ func TestMapSerialization(t *testing.T) {
 		slices.Equal(m.Keys(), []string{"a", "b", "c"})
 		slices.Equal(m.Values(), []float64{1.0, 2.0, 3.0})
 
-		if actualValue, expectedValue := m.Size(), 3; actualValue != expectedValue {
+		if actualValue, expectedValue := m.Len(), 3; actualValue != expectedValue {
 			t.Errorf("Got %v expected %v", actualValue, expectedValue)
 		}
 

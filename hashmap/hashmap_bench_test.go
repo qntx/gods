@@ -4,27 +4,28 @@ import (
 	"testing"
 
 	"github.com/qntx/gods/hashmap"
+	"github.com/qntx/gods/internal/testutil"
 )
 
-func benchmarkGet(b *testing.B, m *hashmap.Map[int, int], size int) {
+func benchmarkGet(b *testing.B, m *hashmap.Map[int, int], keys []int) {
 	for range b.N {
-		for n := range size {
+		for n := range keys {
 			m.Get(n)
 		}
 	}
 }
 
-func benchmarkPut(b *testing.B, m *hashmap.Map[int, int], size int) {
+func benchmarkPut(b *testing.B, m *hashmap.Map[int, int], keys []int) {
 	for range b.N {
-		for n := range size {
+		for n := range keys {
 			m.Put(n, n)
 		}
 	}
 }
 
-func benchmarkDelete(b *testing.B, m *hashmap.Map[int, int], size int) {
+func benchmarkDelete(b *testing.B, m *hashmap.Map[int, int], keys []int) {
 	for range b.N {
-		for n := range size {
+		for n := range keys {
 			m.Delete(n)
 		}
 	}
@@ -35,13 +36,14 @@ func BenchmarkHashMapGet100(b *testing.B) {
 
 	size := 100
 	m := hashmap.New[int, int]()
+	keys := testutil.GeneratePermutedInts(size)
 
-	for n := range size {
-		m.Put(n, n)
+	for key := range keys {
+		m.Put(key, key)
 	}
 
 	b.StartTimer()
-	benchmarkGet(b, m, size)
+	benchmarkGet(b, m, keys)
 }
 
 func BenchmarkHashMapGet1000(b *testing.B) {
@@ -49,13 +51,14 @@ func BenchmarkHashMapGet1000(b *testing.B) {
 
 	size := 1000
 	m := hashmap.New[int, int]()
+	keys := testutil.GeneratePermutedInts(size)
 
-	for n := range size {
-		m.Put(n, n)
+	for key := range keys {
+		m.Put(key, key)
 	}
 
 	b.StartTimer()
-	benchmarkGet(b, m, size)
+	benchmarkGet(b, m, keys)
 }
 
 func BenchmarkHashMapGet10000(b *testing.B) {
@@ -63,13 +66,14 @@ func BenchmarkHashMapGet10000(b *testing.B) {
 
 	size := 10000
 	m := hashmap.New[int, int]()
+	keys := testutil.GeneratePermutedInts(size)
 
-	for n := range size {
-		m.Put(n, n)
+	for key := range keys {
+		m.Put(key, key)
 	}
 
 	b.StartTimer()
-	benchmarkGet(b, m, size)
+	benchmarkGet(b, m, keys)
 }
 
 func BenchmarkHashMapGet100000(b *testing.B) {
@@ -77,13 +81,14 @@ func BenchmarkHashMapGet100000(b *testing.B) {
 
 	size := 100000
 	m := hashmap.New[int, int]()
+	keys := testutil.GeneratePermutedInts(size)
 
-	for n := range size {
-		m.Put(n, n)
+	for key := range keys {
+		m.Put(key, key)
 	}
 
 	b.StartTimer()
-	benchmarkGet(b, m, size)
+	benchmarkGet(b, m, keys)
 }
 
 func BenchmarkHashMapPut100(b *testing.B) {
@@ -91,9 +96,10 @@ func BenchmarkHashMapPut100(b *testing.B) {
 
 	size := 100
 	m := hashmap.New[int, int]()
+	keys := testutil.GeneratePermutedInts(size)
 
 	b.StartTimer()
-	benchmarkPut(b, m, size)
+	benchmarkPut(b, m, keys)
 }
 
 func BenchmarkHashMapPut1000(b *testing.B) {
@@ -101,13 +107,10 @@ func BenchmarkHashMapPut1000(b *testing.B) {
 
 	size := 1000
 	m := hashmap.New[int, int]()
-
-	for n := range size {
-		m.Put(n, n)
-	}
+	keys := testutil.GeneratePermutedInts(size)
 
 	b.StartTimer()
-	benchmarkPut(b, m, size)
+	benchmarkPut(b, m, keys)
 }
 
 func BenchmarkHashMapPut10000(b *testing.B) {
@@ -115,13 +118,10 @@ func BenchmarkHashMapPut10000(b *testing.B) {
 
 	size := 10000
 	m := hashmap.New[int, int]()
-
-	for n := range size {
-		m.Put(n, n)
-	}
+	keys := testutil.GeneratePermutedInts(size)
 
 	b.StartTimer()
-	benchmarkPut(b, m, size)
+	benchmarkPut(b, m, keys)
 }
 
 func BenchmarkHashMapPut100000(b *testing.B) {
@@ -129,67 +129,68 @@ func BenchmarkHashMapPut100000(b *testing.B) {
 
 	size := 100000
 	m := hashmap.New[int, int]()
-
-	for n := range size {
-		m.Put(n, n)
-	}
+	keys := testutil.GeneratePermutedInts(size)
 
 	b.StartTimer()
-	benchmarkPut(b, m, size)
+	benchmarkPut(b, m, keys)
 }
 
-func BenchmarkHashMapRemove100(b *testing.B) {
+func BenchmarkHashMapDelete100(b *testing.B) {
 	b.StopTimer()
 
 	size := 100
 	m := hashmap.New[int, int]()
+	keys := testutil.GeneratePermutedInts(size)
 
-	for n := range size {
-		m.Put(n, n)
+	for key := range keys {
+		m.Put(key, key)
 	}
 
 	b.StartTimer()
-	benchmarkDelete(b, m, size)
+	benchmarkDelete(b, m, keys)
 }
 
-func BenchmarkHashMapRemove1000(b *testing.B) {
+func BenchmarkHashMapDelete1000(b *testing.B) {
 	b.StopTimer()
 
 	size := 1000
 	m := hashmap.New[int, int]()
+	keys := testutil.GeneratePermutedInts(size)
 
-	for n := range size {
-		m.Put(n, n)
+	for key := range keys {
+		m.Put(key, key)
 	}
 
 	b.StartTimer()
-	benchmarkDelete(b, m, size)
+	benchmarkDelete(b, m, keys)
 }
 
-func BenchmarkHashMapRemove10000(b *testing.B) {
+func BenchmarkHashMapDelete10000(b *testing.B) {
 	b.StopTimer()
 
 	size := 10000
 	m := hashmap.New[int, int]()
+	keys := testutil.GeneratePermutedInts(size)
 
-	for n := range size {
-		m.Put(n, n)
+	for key := range keys {
+		m.Put(key, key)
 	}
 
 	b.StartTimer()
-	benchmarkDelete(b, m, size)
+	benchmarkDelete(b, m, keys)
 }
 
-func BenchmarkHashMapRemove100000(b *testing.B) {
+func BenchmarkHashMapDelete100000(b *testing.B) {
 	b.StopTimer()
 
 	size := 100000
 	m := hashmap.New[int, int]()
+	keys := testutil.GeneratePermutedInts(size)
 
-	for n := range size {
-		m.Put(n, n)
+	for key := range keys {
+		m.Put(key, key)
 	}
 
 	b.StartTimer()
-	benchmarkDelete(b, m, size)
+	benchmarkDelete(b, m, keys)
 }

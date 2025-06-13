@@ -4,28 +4,35 @@ import (
 	"testing"
 
 	"github.com/qntx/gods/avltree"
+	"github.com/qntx/gods/internal/testutil"
 )
 
-func benchmarkGet(b *testing.B, tree *avltree.Tree[int, struct{}], size int) {
+func benchmarkGet(b *testing.B, tree *avltree.Tree[int, struct{}], keys []int) {
+	b.Helper()
+
 	for range b.N {
-		for n := range size {
-			tree.Get(n)
+		for key := range keys {
+			tree.Get(key)
 		}
 	}
 }
 
-func benchmarkPut(b *testing.B, tree *avltree.Tree[int, struct{}], size int) {
+func benchmarkPut(b *testing.B, tree *avltree.Tree[int, struct{}], keys []int) {
+	b.Helper()
+
 	for range b.N {
-		for n := range size {
-			tree.Put(n, struct{}{})
+		for key := range keys {
+			tree.Put(key, struct{}{})
 		}
 	}
 }
 
-func benchmarkRemove(b *testing.B, tree *avltree.Tree[int, struct{}], size int) {
+func benchmarkDelete(b *testing.B, tree *avltree.Tree[int, struct{}], keys []int) {
+	b.Helper()
+
 	for range b.N {
-		for n := range size {
-			tree.Delete(n)
+		for key := range keys {
+			tree.Delete(key)
 		}
 	}
 }
@@ -36,12 +43,13 @@ func BenchmarkAVLTreeGet100(b *testing.B) {
 	size := 100
 	tree := avltree.New[int, struct{}]()
 
-	for n := range size {
-		tree.Put(n, struct{}{})
+	keys := testutil.GeneratePermutedInts(size)
+	for key := range keys {
+		tree.Put(key, struct{}{})
 	}
 
 	b.StartTimer()
-	benchmarkGet(b, tree, size)
+	benchmarkGet(b, tree, keys)
 }
 
 func BenchmarkAVLTreeGet1000(b *testing.B) {
@@ -50,12 +58,13 @@ func BenchmarkAVLTreeGet1000(b *testing.B) {
 	size := 1000
 	tree := avltree.New[int, struct{}]()
 
-	for n := range size {
-		tree.Put(n, struct{}{})
+	keys := testutil.GeneratePermutedInts(size)
+	for key := range keys {
+		tree.Put(key, struct{}{})
 	}
 
 	b.StartTimer()
-	benchmarkGet(b, tree, size)
+	benchmarkGet(b, tree, keys)
 }
 
 func BenchmarkAVLTreeGet10000(b *testing.B) {
@@ -64,12 +73,13 @@ func BenchmarkAVLTreeGet10000(b *testing.B) {
 	size := 10000
 	tree := avltree.New[int, struct{}]()
 
-	for n := range size {
-		tree.Put(n, struct{}{})
+	keys := testutil.GeneratePermutedInts(size)
+	for key := range keys {
+		tree.Put(key, struct{}{})
 	}
 
 	b.StartTimer()
-	benchmarkGet(b, tree, size)
+	benchmarkGet(b, tree, keys)
 }
 
 func BenchmarkAVLTreeGet100000(b *testing.B) {
@@ -78,12 +88,13 @@ func BenchmarkAVLTreeGet100000(b *testing.B) {
 	size := 100000
 	tree := avltree.New[int, struct{}]()
 
-	for n := range size {
-		tree.Put(n, struct{}{})
+	keys := testutil.GeneratePermutedInts(size)
+	for key := range keys {
+		tree.Put(key, struct{}{})
 	}
 
 	b.StartTimer()
-	benchmarkGet(b, tree, size)
+	benchmarkGet(b, tree, keys)
 }
 
 func BenchmarkAVLTreePut100(b *testing.B) {
@@ -92,8 +103,10 @@ func BenchmarkAVLTreePut100(b *testing.B) {
 	size := 100
 	tree := avltree.New[int, struct{}]()
 
+	keys := testutil.GeneratePermutedInts(size)
+
 	b.StartTimer()
-	benchmarkPut(b, tree, size)
+	benchmarkPut(b, tree, keys)
 }
 
 func BenchmarkAVLTreePut1000(b *testing.B) {
@@ -102,12 +115,10 @@ func BenchmarkAVLTreePut1000(b *testing.B) {
 	size := 1000
 	tree := avltree.New[int, struct{}]()
 
-	for n := range size {
-		tree.Put(n, struct{}{})
-	}
+	keys := testutil.GeneratePermutedInts(size)
 
 	b.StartTimer()
-	benchmarkPut(b, tree, size)
+	benchmarkPut(b, tree, keys)
 }
 
 func BenchmarkAVLTreePut10000(b *testing.B) {
@@ -116,12 +127,10 @@ func BenchmarkAVLTreePut10000(b *testing.B) {
 	size := 10000
 	tree := avltree.New[int, struct{}]()
 
-	for n := range size {
-		tree.Put(n, struct{}{})
-	}
+	keys := testutil.GeneratePermutedInts(size)
 
 	b.StartTimer()
-	benchmarkPut(b, tree, size)
+	benchmarkPut(b, tree, keys)
 }
 
 func BenchmarkAVLTreePut100000(b *testing.B) {
@@ -130,66 +139,68 @@ func BenchmarkAVLTreePut100000(b *testing.B) {
 	size := 100000
 	tree := avltree.New[int, struct{}]()
 
-	for n := range size {
-		tree.Put(n, struct{}{})
-	}
+	keys := testutil.GeneratePermutedInts(size)
 
 	b.StartTimer()
-	benchmarkPut(b, tree, size)
+	benchmarkPut(b, tree, keys)
 }
 
-func BenchmarkAVLTreeRemove100(b *testing.B) {
+func BenchmarkAVLTreeDelete100(b *testing.B) {
 	b.StopTimer()
 
 	size := 100
 	tree := avltree.New[int, struct{}]()
 
-	for n := range size {
-		tree.Put(n, struct{}{})
+	keys := testutil.GeneratePermutedInts(size)
+	for key := range keys {
+		tree.Put(key, struct{}{})
 	}
 
 	b.StartTimer()
-	benchmarkRemove(b, tree, size)
+	benchmarkDelete(b, tree, keys)
 }
 
-func BenchmarkAVLTreeRemove1000(b *testing.B) {
+func BenchmarkAVLTreeDelete1000(b *testing.B) {
 	b.StopTimer()
 
 	size := 1000
 	tree := avltree.New[int, struct{}]()
 
-	for n := range size {
-		tree.Put(n, struct{}{})
+	keys := testutil.GeneratePermutedInts(size)
+	for key := range keys {
+		tree.Put(key, struct{}{})
 	}
 
 	b.StartTimer()
-	benchmarkRemove(b, tree, size)
+	benchmarkDelete(b, tree, keys)
 }
 
-func BenchmarkAVLTreeRemove10000(b *testing.B) {
+func BenchmarkAVLTreeDelete10000(b *testing.B) {
 	b.StopTimer()
 
 	size := 10000
 	tree := avltree.New[int, struct{}]()
 
-	for n := range size {
-		tree.Put(n, struct{}{})
+	keys := testutil.GeneratePermutedInts(size)
+	for key := range keys {
+		tree.Put(key, struct{}{})
 	}
 
 	b.StartTimer()
-	benchmarkRemove(b, tree, size)
+	benchmarkDelete(b, tree, keys)
 }
 
-func BenchmarkAVLTreeRemove100000(b *testing.B) {
+func BenchmarkAVLTreeDelete100000(b *testing.B) {
 	b.StopTimer()
 
 	size := 100000
 	tree := avltree.New[int, struct{}]()
 
-	for n := range size {
-		tree.Put(n, struct{}{})
+	keys := testutil.GeneratePermutedInts(size)
+	for key := range keys {
+		tree.Put(key, struct{}{})
 	}
 
 	b.StartTimer()
-	benchmarkRemove(b, tree, size)
+	benchmarkDelete(b, tree, keys)
 }

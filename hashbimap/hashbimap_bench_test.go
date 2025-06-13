@@ -4,28 +4,29 @@ import (
 	"testing"
 
 	"github.com/qntx/gods/hashbimap"
+	"github.com/qntx/gods/internal/testutil"
 )
 
-func benchmarkGet(b *testing.B, m *hashbimap.Map[int, int], size int) {
+func benchmarkGet(b *testing.B, m *hashbimap.Map[int, int], keys []int) {
 	for range b.N {
-		for n := range size {
-			m.Get(n)
+		for key := range keys {
+			m.Get(key)
 		}
 	}
 }
 
-func benchmarkPut(b *testing.B, m *hashbimap.Map[int, int], size int) {
+func benchmarkPut(b *testing.B, m *hashbimap.Map[int, int], keys []int) {
 	for range b.N {
-		for n := range size {
-			m.Put(n, n)
+		for key := range keys {
+			m.Put(key, key)
 		}
 	}
 }
 
-func benchmarkRemove(b *testing.B, m *hashbimap.Map[int, int], size int) {
+func benchmarkDelete(b *testing.B, m *hashbimap.Map[int, int], keys []int) {
 	for range b.N {
-		for n := range size {
-			m.Remove(n)
+		for key := range keys {
+			m.Delete(key)
 		}
 	}
 }
@@ -35,13 +36,14 @@ func BenchmarkHashBidiMapGet100(b *testing.B) {
 
 	size := 100
 	m := hashbimap.New[int, int]()
+	keys := testutil.GeneratePermutedInts(size)
 
-	for n := range size {
-		m.Put(n, n)
+	for key := range keys {
+		m.Put(key, key)
 	}
 
 	b.StartTimer()
-	benchmarkGet(b, m, size)
+	benchmarkGet(b, m, keys)
 }
 
 func BenchmarkHashBidiMapGet1000(b *testing.B) {
@@ -49,13 +51,14 @@ func BenchmarkHashBidiMapGet1000(b *testing.B) {
 
 	size := 1000
 	m := hashbimap.New[int, int]()
+	keys := testutil.GeneratePermutedInts(size)
 
-	for n := range size {
-		m.Put(n, n)
+	for key := range keys {
+		m.Put(key, key)
 	}
 
 	b.StartTimer()
-	benchmarkGet(b, m, size)
+	benchmarkGet(b, m, keys)
 }
 
 func BenchmarkHashBidiMapGet10000(b *testing.B) {
@@ -63,13 +66,14 @@ func BenchmarkHashBidiMapGet10000(b *testing.B) {
 
 	size := 10000
 	m := hashbimap.New[int, int]()
+	keys := testutil.GeneratePermutedInts(size)
 
-	for n := range size {
-		m.Put(n, n)
+	for key := range keys {
+		m.Put(key, key)
 	}
 
 	b.StartTimer()
-	benchmarkGet(b, m, size)
+	benchmarkGet(b, m, keys)
 }
 
 func BenchmarkHashBidiMapGet100000(b *testing.B) {
@@ -77,13 +81,14 @@ func BenchmarkHashBidiMapGet100000(b *testing.B) {
 
 	size := 100000
 	m := hashbimap.New[int, int]()
+	keys := testutil.GeneratePermutedInts(size)
 
-	for n := range size {
-		m.Put(n, n)
+	for key := range keys {
+		m.Put(key, key)
 	}
 
 	b.StartTimer()
-	benchmarkGet(b, m, size)
+	benchmarkGet(b, m, keys)
 }
 
 func BenchmarkHashBidiMapPut100(b *testing.B) {
@@ -91,9 +96,10 @@ func BenchmarkHashBidiMapPut100(b *testing.B) {
 
 	size := 100
 	m := hashbimap.New[int, int]()
+	keys := testutil.GeneratePermutedInts(size)
 
 	b.StartTimer()
-	benchmarkPut(b, m, size)
+	benchmarkPut(b, m, keys)
 }
 
 func BenchmarkHashBidiMapPut1000(b *testing.B) {
@@ -101,13 +107,10 @@ func BenchmarkHashBidiMapPut1000(b *testing.B) {
 
 	size := 1000
 	m := hashbimap.New[int, int]()
-
-	for n := range size {
-		m.Put(n, n)
-	}
+	keys := testutil.GeneratePermutedInts(size)
 
 	b.StartTimer()
-	benchmarkPut(b, m, size)
+	benchmarkPut(b, m, keys)
 }
 
 func BenchmarkHashBidiMapPut10000(b *testing.B) {
@@ -115,13 +118,10 @@ func BenchmarkHashBidiMapPut10000(b *testing.B) {
 
 	size := 10000
 	m := hashbimap.New[int, int]()
-
-	for n := range size {
-		m.Put(n, n)
-	}
+	keys := testutil.GeneratePermutedInts(size)
 
 	b.StartTimer()
-	benchmarkPut(b, m, size)
+	benchmarkPut(b, m, keys)
 }
 
 func BenchmarkHashBidiMapPut100000(b *testing.B) {
@@ -129,67 +129,68 @@ func BenchmarkHashBidiMapPut100000(b *testing.B) {
 
 	size := 100000
 	m := hashbimap.New[int, int]()
-
-	for n := range size {
-		m.Put(n, n)
-	}
+	keys := testutil.GeneratePermutedInts(size)
 
 	b.StartTimer()
-	benchmarkPut(b, m, size)
+	benchmarkPut(b, m, keys)
 }
 
-func BenchmarkHashBidiMapRemove100(b *testing.B) {
+func BenchmarkHashBidiMapDelete100(b *testing.B) {
 	b.StopTimer()
 
 	size := 100
 	m := hashbimap.New[int, int]()
+	keys := testutil.GeneratePermutedInts(size)
 
-	for n := range size {
-		m.Put(n, n)
+	for key := range keys {
+		m.Put(key, key)
 	}
 
 	b.StartTimer()
-	benchmarkRemove(b, m, size)
+	benchmarkDelete(b, m, keys)
 }
 
-func BenchmarkHashBidiMapRemove1000(b *testing.B) {
+func BenchmarkHashBidiMapDelete1000(b *testing.B) {
 	b.StopTimer()
 
 	size := 1000
 	m := hashbimap.New[int, int]()
+	keys := testutil.GeneratePermutedInts(size)
 
-	for n := range size {
-		m.Put(n, n)
+	for key := range keys {
+		m.Put(key, key)
 	}
 
 	b.StartTimer()
-	benchmarkRemove(b, m, size)
+	benchmarkDelete(b, m, keys)
 }
 
-func BenchmarkHashBidiMapRemove10000(b *testing.B) {
+func BenchmarkHashBidiMapDelete10000(b *testing.B) {
 	b.StopTimer()
 
 	size := 10000
 	m := hashbimap.New[int, int]()
+	keys := testutil.GeneratePermutedInts(size)
 
-	for n := range size {
-		m.Put(n, n)
+	for key := range keys {
+		m.Put(key, key)
 	}
 
 	b.StartTimer()
-	benchmarkRemove(b, m, size)
+	benchmarkDelete(b, m, keys)
 }
 
-func BenchmarkHashBidiMapRemove100000(b *testing.B) {
+func BenchmarkHashBidiMapDelete100000(b *testing.B) {
 	b.StopTimer()
 
 	size := 100000
 	m := hashbimap.New[int, int]()
+	keys := testutil.GeneratePermutedInts(size)
 
-	for n := range size {
-		m.Put(n, n)
+	for key := range keys {
+		m.Put(key, key)
 	}
 
 	b.StartTimer()
-	benchmarkRemove(b, m, size)
+	benchmarkDelete(b, m, keys)
 }

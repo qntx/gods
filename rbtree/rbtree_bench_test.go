@@ -3,35 +3,36 @@ package rbtree_test
 import (
 	"testing"
 
+	"github.com/qntx/gods/internal/testutil"
 	"github.com/qntx/gods/rbtree"
 )
 
-func benchmarkGet(b *testing.B, tree *rbtree.Tree[int, struct{}], size int) {
+func benchmarkGet(b *testing.B, tree *rbtree.Tree[int, struct{}], keys []int) {
 	b.Helper()
 
-	for b.N > 0 {
-		for n := range size {
-			tree.Get(n)
+	for range b.N {
+		for key := range keys {
+			tree.Get(key)
 		}
 	}
 }
 
-func benchmarkPut(b *testing.B, tree *rbtree.Tree[int, struct{}], size int) {
+func benchmarkPut(b *testing.B, tree *rbtree.Tree[int, struct{}], keys []int) {
 	b.Helper()
 
-	for b.N > 0 {
-		for n := range size {
-			tree.Put(n, struct{}{})
+	for range b.N {
+		for key := range keys {
+			tree.Put(key, struct{}{})
 		}
 	}
 }
 
-func benchmarkRemove(b *testing.B, tree *rbtree.Tree[int, struct{}], size int) {
+func benchmarkDelete(b *testing.B, tree *rbtree.Tree[int, struct{}], keys []int) {
 	b.Helper()
 
-	for b.N > 0 {
-		for n := range size {
-			tree.Delete(n)
+	for range b.N {
+		for key := range keys {
+			tree.Delete(key)
 		}
 	}
 }
@@ -41,13 +42,14 @@ func BenchmarkRedBlackTreeGet100(b *testing.B) {
 
 	size := 100
 	tree := rbtree.New[int, struct{}]()
+	keys := testutil.GeneratePermutedInts(size)
 
-	for n := range size {
+	for n := range keys {
 		tree.Put(n, struct{}{})
 	}
 
 	b.StartTimer()
-	benchmarkGet(b, tree, size)
+	benchmarkGet(b, tree, keys)
 }
 
 func BenchmarkRedBlackTreeGet1000(b *testing.B) {
@@ -55,13 +57,14 @@ func BenchmarkRedBlackTreeGet1000(b *testing.B) {
 
 	size := 1000
 	tree := rbtree.New[int, struct{}]()
+	keys := testutil.GeneratePermutedInts(size)
 
-	for n := range size {
+	for n := range keys {
 		tree.Put(n, struct{}{})
 	}
 
 	b.StartTimer()
-	benchmarkGet(b, tree, size)
+	benchmarkGet(b, tree, keys)
 }
 
 func BenchmarkRedBlackTreeGet10000(b *testing.B) {
@@ -69,13 +72,14 @@ func BenchmarkRedBlackTreeGet10000(b *testing.B) {
 
 	size := 10000
 	tree := rbtree.New[int, struct{}]()
+	keys := testutil.GeneratePermutedInts(size)
 
-	for n := range size {
+	for n := range keys {
 		tree.Put(n, struct{}{})
 	}
 
 	b.StartTimer()
-	benchmarkGet(b, tree, size)
+	benchmarkGet(b, tree, keys)
 }
 
 func BenchmarkRedBlackTreeGet100000(b *testing.B) {
@@ -83,13 +87,14 @@ func BenchmarkRedBlackTreeGet100000(b *testing.B) {
 
 	size := 100000
 	tree := rbtree.New[int, struct{}]()
+	keys := testutil.GeneratePermutedInts(size)
 
-	for n := range size {
+	for n := range keys {
 		tree.Put(n, struct{}{})
 	}
 
 	b.StartTimer()
-	benchmarkGet(b, tree, size)
+	benchmarkGet(b, tree, keys)
 }
 
 func BenchmarkRedBlackTreePut100(b *testing.B) {
@@ -97,9 +102,10 @@ func BenchmarkRedBlackTreePut100(b *testing.B) {
 
 	size := 100
 	tree := rbtree.New[int, struct{}]()
+	keys := testutil.GeneratePermutedInts(size)
 
 	b.StartTimer()
-	benchmarkPut(b, tree, size)
+	benchmarkPut(b, tree, keys)
 }
 
 func BenchmarkRedBlackTreePut1000(b *testing.B) {
@@ -107,13 +113,10 @@ func BenchmarkRedBlackTreePut1000(b *testing.B) {
 
 	size := 1000
 	tree := rbtree.New[int, struct{}]()
-
-	for n := range size {
-		tree.Put(n, struct{}{})
-	}
+	keys := testutil.GeneratePermutedInts(size)
 
 	b.StartTimer()
-	benchmarkPut(b, tree, size)
+	benchmarkPut(b, tree, keys)
 }
 
 func BenchmarkRedBlackTreePut10000(b *testing.B) {
@@ -121,13 +124,10 @@ func BenchmarkRedBlackTreePut10000(b *testing.B) {
 
 	size := 10000
 	tree := rbtree.New[int, struct{}]()
-
-	for n := range size {
-		tree.Put(n, struct{}{})
-	}
+	keys := testutil.GeneratePermutedInts(size)
 
 	b.StartTimer()
-	benchmarkPut(b, tree, size)
+	benchmarkPut(b, tree, keys)
 }
 
 func BenchmarkRedBlackTreePut100000(b *testing.B) {
@@ -135,67 +135,68 @@ func BenchmarkRedBlackTreePut100000(b *testing.B) {
 
 	size := 100000
 	tree := rbtree.New[int, struct{}]()
-
-	for n := range size {
-		tree.Put(n, struct{}{})
-	}
+	keys := testutil.GeneratePermutedInts(size)
 
 	b.StartTimer()
-	benchmarkPut(b, tree, size)
+	benchmarkPut(b, tree, keys)
 }
 
-func BenchmarkRedBlackTreeRemove100(b *testing.B) {
+func BenchmarkRedBlackTreeDelete100(b *testing.B) {
 	b.StopTimer()
 
 	size := 100
 	tree := rbtree.New[int, struct{}]()
+	keys := testutil.GeneratePermutedInts(size)
 
-	for n := range size {
+	for n := range keys {
 		tree.Put(n, struct{}{})
 	}
 
 	b.StartTimer()
-	benchmarkRemove(b, tree, size)
+	benchmarkDelete(b, tree, keys)
 }
 
-func BenchmarkRedBlackTreeRemove1000(b *testing.B) {
+func BenchmarkRedBlackTreeDelete1000(b *testing.B) {
 	b.StopTimer()
 
 	size := 1000
 	tree := rbtree.New[int, struct{}]()
+	keys := testutil.GeneratePermutedInts(size)
 
-	for n := range size {
+	for n := range keys {
 		tree.Put(n, struct{}{})
 	}
 
 	b.StartTimer()
-	benchmarkRemove(b, tree, size)
+	benchmarkDelete(b, tree, keys)
 }
 
-func BenchmarkRedBlackTreeRemove10000(b *testing.B) {
+func BenchmarkRedBlackTreeDelete10000(b *testing.B) {
 	b.StopTimer()
 
 	size := 10000
 	tree := rbtree.New[int, struct{}]()
+	keys := testutil.GeneratePermutedInts(size)
 
-	for n := range size {
+	for n := range keys {
 		tree.Put(n, struct{}{})
 	}
 
 	b.StartTimer()
-	benchmarkRemove(b, tree, size)
+	benchmarkDelete(b, tree, keys)
 }
 
-func BenchmarkRedBlackTreeRemove100000(b *testing.B) {
+func BenchmarkRedBlackTreeDelete100000(b *testing.B) {
 	b.StopTimer()
 
 	size := 100000
 	tree := rbtree.New[int, struct{}]()
+	keys := testutil.GeneratePermutedInts(size)
 
-	for n := range size {
+	for n := range keys {
 		tree.Put(n, struct{}{})
 	}
 
 	b.StartTimer()
-	benchmarkRemove(b, tree, size)
+	benchmarkDelete(b, tree, keys)
 }

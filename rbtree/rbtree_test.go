@@ -117,7 +117,7 @@ func TestRedBlackTreePut(t *testing.T) {
 	}
 }
 
-func TestRedBlackTreeRemove(t *testing.T) {
+func TestRedBlackTreeDelete(t *testing.T) {
 	t.Parallel()
 
 	// Initialize tree with data

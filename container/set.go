@@ -27,7 +27,7 @@ type Set[T comparable] interface {
 	RemoveAll(i ...T)
 
 	// Pop removes and returns an arbitrary item from the set.
-	Pop() (T, bool)
+	Pop() (val T, ok bool)
 
 	// ContainsOne returns whether the given item
 	// is in the set.
@@ -128,10 +128,6 @@ type Set[T comparable] interface {
 	// of the method. Otherwise, SymmetricDifference will
 	// panic.
 	SymmetricDifference(other Set[T]) Set[T]
-
-	// Each iterates over elements and executes the passed func against each element.
-	// If passed func returns true, stop iteration at the time.
-	Each(func(T) bool)
 
 	// Iter returns a channel of elements that you can
 	// range over.

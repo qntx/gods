@@ -10,15 +10,15 @@ type Stack[T comparable] interface {
 	Container[T]
 
 	// Push adds an element to the top of the stack.
-	Push(value T)
+	Push(val T)
 
 	// Pop removes and returns the top element of the stack.
 	// Returns the element and true if the stack is non-empty,
 	// or the zero value of T and false if the stack is empty.
-	Pop() (value T, ok bool)
+	Pop() (val T, ok bool)
 
 	// Peek returns the top element of the stack without removing it.
 	// Returns the element and true if the stack is non-empty,
 	// or the zero value of T and false if the stack is empty.
-	Peek() (value T, ok bool)
+	Peek() (val T, ok bool)
 }

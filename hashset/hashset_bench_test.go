@@ -4,34 +4,35 @@ import (
 	"testing"
 
 	"github.com/qntx/gods/hashset"
+	"github.com/qntx/gods/internal/testutil"
 )
 
-func benchmarkContains(b *testing.B, set *hashset.Set[int], size int) {
+func benchmarkContains(b *testing.B, set *hashset.Set[int], keys []int) {
 	b.Helper()
 
-	for b.N > 0 {
-		for n := range size {
-			set.Contains(n)
+	for range b.N {
+		for key := range keys {
+			set.Contains(key)
 		}
 	}
 }
 
-func benchmarkAdd(b *testing.B, set *hashset.Set[int], size int) {
+func benchmarkAdd(b *testing.B, set *hashset.Set[int], keys []int) {
 	b.Helper()
 
-	for b.N > 0 {
-		for n := range size {
-			set.Add(n)
+	for range b.N {
+		for key := range keys {
+			set.Add(key)
 		}
 	}
 }
 
-func benchmarkRemove(b *testing.B, set *hashset.Set[int], size int) {
+func benchmarkRemove(b *testing.B, set *hashset.Set[int], keys []int) {
 	b.Helper()
 
-	for b.N > 0 {
-		for n := range size {
-			set.Remove(n)
+	for range b.N {
+		for key := range keys {
+			set.Remove(key)
 		}
 	}
 }
@@ -42,12 +43,13 @@ func BenchmarkHashSetContains100(b *testing.B) {
 	size := 100
 	set := hashset.New[int]()
 
-	for n := range size {
-		set.Add(n)
+	keys := testutil.GeneratePermutedInts(size)
+	for key := range keys {
+		set.Add(key)
 	}
 
 	b.StartTimer()
-	benchmarkContains(b, set, size)
+	benchmarkContains(b, set, keys)
 }
 
 func BenchmarkHashSetContains1000(b *testing.B) {
@@ -56,12 +58,13 @@ func BenchmarkHashSetContains1000(b *testing.B) {
 	size := 1000
 	set := hashset.New[int]()
 
-	for n := range size {
-		set.Add(n)
+	keys := testutil.GeneratePermutedInts(size)
+	for key := range keys {
+		set.Add(key)
 	}
 
 	b.StartTimer()
-	benchmarkContains(b, set, size)
+	benchmarkContains(b, set, keys)
 }
 
 func BenchmarkHashSetContains10000(b *testing.B) {
@@ -70,12 +73,13 @@ func BenchmarkHashSetContains10000(b *testing.B) {
 	size := 10000
 	set := hashset.New[int]()
 
-	for n := range size {
-		set.Add(n)
+	keys := testutil.GeneratePermutedInts(size)
+	for key := range keys {
+		set.Add(key)
 	}
 
 	b.StartTimer()
-	benchmarkContains(b, set, size)
+	benchmarkContains(b, set, keys)
 }
 
 func BenchmarkHashSetContains100000(b *testing.B) {
@@ -84,12 +88,13 @@ func BenchmarkHashSetContains100000(b *testing.B) {
 	size := 100000
 	set := hashset.New[int]()
 
-	for n := range size {
-		set.Add(n)
+	keys := testutil.GeneratePermutedInts(size)
+	for key := range keys {
+		set.Add(key)
 	}
 
 	b.StartTimer()
-	benchmarkContains(b, set, size)
+	benchmarkContains(b, set, keys)
 }
 
 func BenchmarkHashSetAdd100(b *testing.B) {
@@ -97,9 +102,10 @@ func BenchmarkHashSetAdd100(b *testing.B) {
 
 	size := 100
 	set := hashset.New[int]()
+	keys := testutil.GeneratePermutedInts(size)
 
 	b.StartTimer()
-	benchmarkAdd(b, set, size)
+	benchmarkAdd(b, set, keys)
 }
 
 func BenchmarkHashSetAdd1000(b *testing.B) {
@@ -108,12 +114,10 @@ func BenchmarkHashSetAdd1000(b *testing.B) {
 	size := 1000
 	set := hashset.New[int]()
 
-	for n := range size {
-		set.Add(n)
-	}
+	keys := testutil.GeneratePermutedInts(size)
 
 	b.StartTimer()
-	benchmarkAdd(b, set, size)
+	benchmarkAdd(b, set, keys)
 }
 
 func BenchmarkHashSetAdd10000(b *testing.B) {
@@ -122,12 +126,10 @@ func BenchmarkHashSetAdd10000(b *testing.B) {
 	size := 10000
 	set := hashset.New[int]()
 
-	for n := range size {
-		set.Add(n)
-	}
+	keys := testutil.GeneratePermutedInts(size)
 
 	b.StartTimer()
-	benchmarkAdd(b, set, size)
+	benchmarkAdd(b, set, keys)
 }
 
 func BenchmarkHashSetAdd100000(b *testing.B) {
@@ -136,12 +138,10 @@ func BenchmarkHashSetAdd100000(b *testing.B) {
 	size := 100000
 	set := hashset.New[int]()
 
-	for n := range size {
-		set.Add(n)
-	}
+	keys := testutil.GeneratePermutedInts(size)
 
 	b.StartTimer()
-	benchmarkAdd(b, set, size)
+	benchmarkAdd(b, set, keys)
 }
 
 func BenchmarkHashSetRemove100(b *testing.B) {
@@ -150,12 +150,13 @@ func BenchmarkHashSetRemove100(b *testing.B) {
 	size := 100
 	set := hashset.New[int]()
 
-	for n := range size {
-		set.Add(n)
+	keys := testutil.GeneratePermutedInts(size)
+	for key := range keys {
+		set.Add(key)
 	}
 
 	b.StartTimer()
-	benchmarkRemove(b, set, size)
+	benchmarkRemove(b, set, keys)
 }
 
 func BenchmarkHashSetRemove1000(b *testing.B) {
@@ -164,12 +165,13 @@ func BenchmarkHashSetRemove1000(b *testing.B) {
 	size := 1000
 	set := hashset.New[int]()
 
-	for n := range size {
-		set.Add(n)
+	keys := testutil.GeneratePermutedInts(size)
+	for key := range keys {
+		set.Add(key)
 	}
 
 	b.StartTimer()
-	benchmarkRemove(b, set, size)
+	benchmarkRemove(b, set, keys)
 }
 
 func BenchmarkHashSetRemove10000(b *testing.B) {
@@ -178,12 +180,13 @@ func BenchmarkHashSetRemove10000(b *testing.B) {
 	size := 10000
 	set := hashset.New[int]()
 
-	for n := range size {
-		set.Add(n)
+	keys := testutil.GeneratePermutedInts(size)
+	for key := range keys {
+		set.Add(key)
 	}
 
 	b.StartTimer()
-	benchmarkRemove(b, set, size)
+	benchmarkRemove(b, set, keys)
 }
 
 func BenchmarkHashSetRemove100000(b *testing.B) {
@@ -192,10 +195,11 @@ func BenchmarkHashSetRemove100000(b *testing.B) {
 	size := 100000
 	set := hashset.New[int]()
 
-	for n := range size {
-		set.Add(n)
+	keys := testutil.GeneratePermutedInts(size)
+	for key := range keys {
+		set.Add(key)
 	}
 
 	b.StartTimer()
-	benchmarkRemove(b, set, size)
+	benchmarkRemove(b, set, keys)
 }

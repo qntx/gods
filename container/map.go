@@ -20,19 +20,19 @@ type Map[K comparable, V any] interface {
 	// Put associates the specified value with the given key in the map.
 	// If the key already exists, its value is updated with the new value.
 	// If the key does not exist, a new key-value pair is added.
-	Put(key K, value V)
+	Put(key K, val V)
 
 	// Get retrieves the value associated with the specified key.
 	// Returns the value and true if the key was found, or the zero value of V
 	// and false if the key was not present.
-	Get(key K) (V, bool)
+	Get(key K) (val V, found bool)
 
 	// Has returns true if the specified key is present in the map, false otherwise.
 	Has(key K) bool
 
 	// Delete removes the key-value pair associated with the specified key.
-	// Returns true if the key was found and removed, false if the key was not present.
-	Delete(key K) bool
+	// Returns the key, value, and true if the key was found and removed, false if the key was not present.
+	Delete(key K) (val V, found bool)
 
 	// Keys returns a slice containing all keys in the map.
 	// The order of keys matches the map's ordering (e.g., sorted for tree maps).
@@ -55,7 +55,7 @@ type Map[K comparable, V any] interface {
 	//   for i := 0; i < len(keys); i++ {
 	//       fmt.Printf("Key: %v, Value: %v\n", keys[i], values[i])
 	//   }
-	Entries() (keys []K, values []V)
+	Entries() (keys []K, vals []V)
 
 	// Clone returns a clone of the map using the same implementation,
 	// duplicating all keys and values.
@@ -78,26 +78,26 @@ type OrderedMap[K comparable, V any] interface {
 	// according to the map's comparison function.
 	// Returns the key, value, and true if the map is non-empty, or zero values
 	// and false if the map is empty.
-	Begin() (K, V, bool)
+	Begin() (key K, val V, ok bool)
 
 	// End returns the last key-value pair in the map's ordering.
 	// For ordered implementations, this is the largest key according to the
 	// map's comparison function.
 	// Returns the key, value, and true if the map is non-empty, or zero values
 	// and false if the map is empty.
-	End() (K, V, bool)
+	End() (key K, val V, ok bool)
 
 	// DeleteBegin removes and returns the first key-value pair in the map's ordering.
 	// For ordered implementations, this removes the smallest key.
 	// Returns the key, value, and true if the map was non-empty, or zero values
 	// and false if the map was empty.
-	DeleteBegin() (K, V, bool)
+	DeleteBegin() (key K, val V, ok bool)
 
 	// DeleteEnd removes and returns the last key-value pair in the map's ordering.
 	// For ordered implementations, this removes the largest key.
 	// Returns the key, value, and true if the map was non-empty, or zero values
 	// and false if the map was empty.
-	DeleteEnd() (K, V, bool)
+	DeleteEnd() (key K, val V, ok bool)
 
 	// Iter returns an iterator over the key-value pairs in the map.
 	// The iterator yields pairs in the map's ordering (e.g., sorted for tree maps).
@@ -126,7 +126,7 @@ type OrderedMap[K comparable, V any] interface {
 	RIter() iter.Seq2[K, V]
 }
 
-// BidiMap is a generic interface for bidirectional maps, extending the Map
+// BiMap is a generic interface for bidirectional maps, extending the Map
 // interface to support lookups by both keys and values. In a bidirectional map,
 // both keys and values are unique, allowing values to map back to their
 // corresponding keys.
@@ -135,19 +135,48 @@ type OrderedMap[K comparable, V any] interface {
 // Type parameter V must also be comparable to ensure value uniqueness and
 // lookup capability.
 //
-// BidiMap inherits all Map operations and adds methods specific to
+// BiMap inherits all Map operations and adds methods specific to
 // bidirectional functionality. Implementations must maintain the invariant that
 // each value is associated with exactly one key, just as each key is associated
 // with exactly one value.
-type BidiMap[K comparable, V comparable] interface {
+type BiMap[K comparable, V comparable] interface {
 	Map[K, V]
 
 	// GetKey retrieves the key associated with the specified value.
 	// Returns the key and true if the value was found, or the zero value of K
 	// and false if the value was not present.
-	GetKey(value V) (K, bool)
+	GetKey(val V) (key K, found bool)
+
+	// HasValue returns true if the map contains the value.
+	HasValue(val V) bool
 
 	// DeleteValue removes the key-value pair associated with the specified value.
-	// Returns true if the value was found and removed, false if the value was not present.
-	DeleteValue(value V) bool
+	// Returns the key and true if the value was found and removed, false if the value was not present.
+	DeleteValue(val V) (key K, found bool)
+}
+
+// OrderedBiMap is a generic interface for bidirectional maps that maintain a
+// specific ordering of keys. It combines the features of an OrderedMap and a
+// BiMap, supporting lookups by both keys and values while preserving key order.
+//
+// Both keys and values must be unique and comparable. Type parameter K must be
+// comparable for key equality and ordering, and V must be comparable for value
+// uniqueness and lookup.
+//
+// OrderedBiMap inherits all operations from OrderedMap and BiMap, providing a
+// comprehensive set of features for ordered, bidirectional key-value mappings.
+type OrderedBiMap[K comparable, V comparable] interface {
+	OrderedMap[K, V]
+
+	// GetKey retrieves the key associated with the specified value.
+	// Returns the key and true if the value was found, or the zero value of K
+	// and false if the value was not present.
+	GetKey(val V) (key K, found bool)
+
+	// HasValue returns true if the map contains the value.
+	HasValue(val V) bool
+
+	// DeleteValue removes the key-value pair associated with the specified value.
+	// Returns the key and true if the value was found and removed, false if the value was not present.
+	DeleteValue(val V) (key K, found bool)
 }

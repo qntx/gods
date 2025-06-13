@@ -33,11 +33,11 @@ func NewWith[T comparable](cardinality int, vals ...T) *Set[T] {
 	return &t
 }
 
-func (s Set[T]) Add(v T) bool {
-	prevLen := len(s)
-	s[v] = struct{}{}
+func (s *Set[T]) Add(v T) bool {
+	prevLen := len(*s)
+	(*s)[v] = struct{}{}
 
-	return prevLen != len(s)
+	return prevLen != len(*s)
 }
 
 func (s *Set[T]) Append(v ...T) int {

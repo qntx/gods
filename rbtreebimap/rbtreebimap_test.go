@@ -48,7 +48,7 @@ func TestMapPut(t *testing.T) {
 	}
 }
 
-func TestMapRemove(t *testing.T) {
+func TestMapDelete(t *testing.T) {
 	m := rbtreebimap.New[int, string]()
 	m.Put(5, "e")
 	m.Put(6, "f")
@@ -59,11 +59,11 @@ func TestMapRemove(t *testing.T) {
 	m.Put(2, "b")
 	m.Put(1, "a") //overwrite
 
-	m.Remove(5)
-	m.Remove(6)
-	m.Remove(7)
-	m.Remove(8)
-	m.Remove(5)
+	m.Delete(5)
+	m.Delete(6)
+	m.Delete(7)
+	m.Delete(8)
+	m.Delete(5)
 
 	slices.Equal(m.Keys(), []int{1, 2, 3, 4})
 	slices.Equal(m.Values(), []string{"a", "b", "c", "d"})
@@ -90,12 +90,12 @@ func TestMapRemove(t *testing.T) {
 		}
 	}
 
-	m.Remove(1)
-	m.Remove(4)
-	m.Remove(2)
-	m.Remove(3)
-	m.Remove(2)
-	m.Remove(2)
+	m.Delete(1)
+	m.Delete(4)
+	m.Delete(2)
+	m.Delete(3)
+	m.Delete(2)
+	m.Delete(2)
 
 	slices.Equal(m.Keys(), nil)
 	slices.Equal(m.Values(), nil)
@@ -104,7 +104,7 @@ func TestMapRemove(t *testing.T) {
 		t.Errorf("Got %v expected %v", actualValue, 0)
 	}
 
-	if actualValue := m.Empty(); actualValue != true {
+	if actualValue := m.IsEmpty(); actualValue != true {
 		t.Errorf("Got %v expected %v", actualValue, true)
 	}
 }

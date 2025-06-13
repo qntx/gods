@@ -3,20 +3,25 @@ package slicestack_test
 import (
 	"testing"
 
+	"github.com/qntx/gods/internal/testutil"
 	"github.com/qntx/gods/slicestack"
 )
 
-func benchmarkPush(b *testing.B, stack *slicestack.Stack[int], size int) {
+func benchmarkPush(b *testing.B, stack *slicestack.Stack[int], keys []int) {
+	b.Helper()
+
 	for range b.N {
-		for n := range size {
-			stack.Push(n)
+		for key := range keys {
+			stack.Push(key)
 		}
 	}
 }
 
-func benchmarkPop(b *testing.B, stack *slicestack.Stack[int], size int) {
+func benchmarkPop(b *testing.B, stack *slicestack.Stack[int], keys []int) {
+	b.Helper()
+
 	for range b.N {
-		for range size {
+		for range keys {
 			stack.Pop()
 		}
 	}
@@ -27,13 +32,14 @@ func BenchmarkArrayStackPop100(b *testing.B) {
 
 	size := 100
 	stack := slicestack.New[int]()
+	keys := testutil.GeneratePermutedInts(size)
 
-	for n := range size {
-		stack.Push(n)
+	for key := range keys {
+		stack.Push(key)
 	}
 
 	b.StartTimer()
-	benchmarkPop(b, stack, size)
+	benchmarkPop(b, stack, keys)
 }
 
 func BenchmarkArrayStackPop1000(b *testing.B) {
@@ -41,13 +47,14 @@ func BenchmarkArrayStackPop1000(b *testing.B) {
 
 	size := 1000
 	stack := slicestack.New[int]()
+	keys := testutil.GeneratePermutedInts(size)
 
-	for n := range size {
-		stack.Push(n)
+	for key := range keys {
+		stack.Push(key)
 	}
 
 	b.StartTimer()
-	benchmarkPop(b, stack, size)
+	benchmarkPop(b, stack, keys)
 }
 
 func BenchmarkArrayStackPop10000(b *testing.B) {
@@ -55,13 +62,14 @@ func BenchmarkArrayStackPop10000(b *testing.B) {
 
 	size := 10000
 	stack := slicestack.New[int]()
+	keys := testutil.GeneratePermutedInts(size)
 
-	for n := range size {
-		stack.Push(n)
+	for key := range keys {
+		stack.Push(key)
 	}
 
 	b.StartTimer()
-	benchmarkPop(b, stack, size)
+	benchmarkPop(b, stack, keys)
 }
 
 func BenchmarkArrayStackPop100000(b *testing.B) {
@@ -69,13 +77,14 @@ func BenchmarkArrayStackPop100000(b *testing.B) {
 
 	size := 100000
 	stack := slicestack.New[int]()
+	keys := testutil.GeneratePermutedInts(size)
 
-	for n := range size {
-		stack.Push(n)
+	for key := range keys {
+		stack.Push(key)
 	}
 
 	b.StartTimer()
-	benchmarkPop(b, stack, size)
+	benchmarkPop(b, stack, keys)
 }
 
 func BenchmarkArrayStackPush100(b *testing.B) {
@@ -83,9 +92,10 @@ func BenchmarkArrayStackPush100(b *testing.B) {
 
 	size := 100
 	stack := slicestack.New[int]()
+	keys := testutil.GeneratePermutedInts(size)
 
 	b.StartTimer()
-	benchmarkPush(b, stack, size)
+	benchmarkPush(b, stack, keys)
 }
 
 func BenchmarkArrayStackPush1000(b *testing.B) {
@@ -93,13 +103,10 @@ func BenchmarkArrayStackPush1000(b *testing.B) {
 
 	size := 1000
 	stack := slicestack.New[int]()
-
-	for n := range size {
-		stack.Push(n)
-	}
+	keys := testutil.GeneratePermutedInts(size)
 
 	b.StartTimer()
-	benchmarkPush(b, stack, size)
+	benchmarkPush(b, stack, keys)
 }
 
 func BenchmarkArrayStackPush10000(b *testing.B) {
@@ -107,13 +114,10 @@ func BenchmarkArrayStackPush10000(b *testing.B) {
 
 	size := 10000
 	stack := slicestack.New[int]()
-
-	for n := range size {
-		stack.Push(n)
-	}
+	keys := testutil.GeneratePermutedInts(size)
 
 	b.StartTimer()
-	benchmarkPush(b, stack, size)
+	benchmarkPush(b, stack, keys)
 }
 
 func BenchmarkArrayStackPush100000(b *testing.B) {
@@ -121,11 +125,8 @@ func BenchmarkArrayStackPush100000(b *testing.B) {
 
 	size := 100000
 	stack := slicestack.New[int]()
-
-	for n := range size {
-		stack.Push(n)
-	}
+	keys := testutil.GeneratePermutedInts(size)
 
 	b.StartTimer()
-	benchmarkPush(b, stack, size)
+	benchmarkPush(b, stack, keys)
 }

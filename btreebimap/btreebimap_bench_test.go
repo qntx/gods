@@ -4,192 +4,197 @@ import (
 	"testing"
 
 	"github.com/qntx/gods/btreebimap"
+	"github.com/qntx/gods/internal/testutil"
 )
 
-func benchmarkGet(b *testing.B, m *btreebimap.Map[int, int], size int) {
+func benchmarkGet(b *testing.B, m *btreebimap.Map[int, int], keys []int) {
 	for range b.N {
-		for n := range size {
-			m.Get(n)
+		for key := range keys {
+			m.Get(key)
 		}
 	}
 }
 
-func benchmarkPut(b *testing.B, m *btreebimap.Map[int, int], size int) {
+func benchmarkPut(b *testing.B, m *btreebimap.Map[int, int], keys []int) {
 	for range b.N {
-		for n := range size {
-			m.Put(n, n)
+		for key := range keys {
+			m.Put(key, key)
 		}
 	}
 }
 
-func benchmarkRemove(b *testing.B, m *btreebimap.Map[int, int], size int) {
+func benchmarkDelete(b *testing.B, m *btreebimap.Map[int, int], keys []int) {
 	for range b.N {
-		for n := range size {
-			m.Remove(n)
+		for key := range keys {
+			m.Delete(key)
 		}
 	}
 }
 
-func BenchmarkTreeBidiMapGet100(b *testing.B) {
+func BenchmarkBTreeBiMapGet100(b *testing.B) {
 	b.StopTimer()
 
 	size := 100
 	m := btreebimap.New[int, int]()
 
-	for n := range size {
-		m.Put(n, n)
+	keys := testutil.GeneratePermutedInts(size)
+	for key := range keys {
+		m.Put(key, key)
 	}
 
 	b.StartTimer()
-	benchmarkGet(b, m, size)
+	benchmarkGet(b, m, keys)
 }
 
-func BenchmarkTreeBidiMapGet1000(b *testing.B) {
+func BenchmarkBTreeBiMapGet1000(b *testing.B) {
 	b.StopTimer()
 
 	size := 1000
 	m := btreebimap.New[int, int]()
 
-	for n := range size {
-		m.Put(n, n)
+	keys := testutil.GeneratePermutedInts(size)
+	for key := range keys {
+		m.Put(key, key)
 	}
 
 	b.StartTimer()
-	benchmarkGet(b, m, size)
+	benchmarkGet(b, m, keys)
 }
 
-func BenchmarkTreeBidiMapGet10000(b *testing.B) {
+func BenchmarkBTreeBiMapGet10000(b *testing.B) {
 	b.StopTimer()
 
 	size := 10000
 	m := btreebimap.New[int, int]()
 
-	for n := range size {
-		m.Put(n, n)
+	keys := testutil.GeneratePermutedInts(size)
+	for key := range keys {
+		m.Put(key, key)
 	}
 
 	b.StartTimer()
-	benchmarkGet(b, m, size)
+	benchmarkGet(b, m, keys)
 }
 
-func BenchmarkTreeBidiMapGet100000(b *testing.B) {
+func BenchmarkBTreeBiMapGet100000(b *testing.B) {
 	b.StopTimer()
 
 	size := 100000
 	m := btreebimap.New[int, int]()
 
-	for n := range size {
-		m.Put(n, n)
+	keys := testutil.GeneratePermutedInts(size)
+	for key := range keys {
+		m.Put(key, key)
 	}
 
 	b.StartTimer()
-	benchmarkGet(b, m, size)
+	benchmarkGet(b, m, keys)
 }
 
-func BenchmarkTreeBidiMapPut100(b *testing.B) {
+func BenchmarkBTreeBiMapPut100(b *testing.B) {
 	b.StopTimer()
 
 	size := 100
 	m := btreebimap.New[int, int]()
 
+	keys := testutil.GeneratePermutedInts(size)
+
 	b.StartTimer()
-	benchmarkPut(b, m, size)
+	benchmarkPut(b, m, keys)
 }
 
-func BenchmarkTreeBidiMapPut1000(b *testing.B) {
+func BenchmarkBTreeBiMapPut1000(b *testing.B) {
 	b.StopTimer()
 
 	size := 1000
 	m := btreebimap.New[int, int]()
 
-	for n := range size {
-		m.Put(n, n)
-	}
+	keys := testutil.GeneratePermutedInts(size)
 
 	b.StartTimer()
-	benchmarkPut(b, m, size)
+	benchmarkPut(b, m, keys)
 }
 
-func BenchmarkTreeBidiMapPut10000(b *testing.B) {
+func BenchmarkBTreeBiMapPut10000(b *testing.B) {
 	b.StopTimer()
 
 	size := 10000
 	m := btreebimap.New[int, int]()
 
-	for n := range size {
-		m.Put(n, n)
-	}
+	keys := testutil.GeneratePermutedInts(size)
 
 	b.StartTimer()
-	benchmarkPut(b, m, size)
+	benchmarkPut(b, m, keys)
 }
 
-func BenchmarkTreeBidiMapPut100000(b *testing.B) {
+func BenchmarkBTreeBiMapPut100000(b *testing.B) {
 	b.StopTimer()
 
 	size := 100000
 	m := btreebimap.New[int, int]()
 
-	for n := range size {
-		m.Put(n, n)
-	}
+	keys := testutil.GeneratePermutedInts(size)
 
 	b.StartTimer()
-	benchmarkPut(b, m, size)
+	benchmarkPut(b, m, keys)
 }
 
-func BenchmarkTreeBidiMapRemove100(b *testing.B) {
+func BenchmarkBTreeBiMapDelete100(b *testing.B) {
 	b.StopTimer()
 
 	size := 100
 	m := btreebimap.New[int, int]()
 
-	for n := range size {
-		m.Put(n, n)
+	keys := testutil.GeneratePermutedInts(size)
+	for key := range keys {
+		m.Put(key, key)
 	}
 
 	b.StartTimer()
-	benchmarkRemove(b, m, size)
+	benchmarkDelete(b, m, keys)
 }
 
-func BenchmarkTreeBidiMapRemove1000(b *testing.B) {
+func BenchmarkBTreeBiMapDelete1000(b *testing.B) {
 	b.StopTimer()
 
 	size := 1000
 	m := btreebimap.New[int, int]()
 
-	for n := range size {
-		m.Put(n, n)
+	keys := testutil.GeneratePermutedInts(size)
+	for key := range keys {
+		m.Put(key, key)
 	}
 
 	b.StartTimer()
-	benchmarkRemove(b, m, size)
+	benchmarkDelete(b, m, keys)
 }
 
-func BenchmarkTreeBidiMapRemove10000(b *testing.B) {
+func BenchmarkBTreeBiMapDelete10000(b *testing.B) {
 	b.StopTimer()
 
 	size := 10000
 	m := btreebimap.New[int, int]()
 
-	for n := range size {
-		m.Put(n, n)
+	keys := testutil.GeneratePermutedInts(size)
+	for key := range keys {
+		m.Put(key, key)
 	}
 
 	b.StartTimer()
-	benchmarkRemove(b, m, size)
+	benchmarkDelete(b, m, keys)
 }
 
-func BenchmarkTreeBidiMapRemove100000(b *testing.B) {
+func BenchmarkBTreeBiMapDelete100000(b *testing.B) {
 	b.StopTimer()
 
 	size := 100000
 	m := btreebimap.New[int, int]()
 
-	for n := range size {
-		m.Put(n, n)
+	keys := testutil.GeneratePermutedInts(size)
+	for key := range keys {
+		m.Put(key, key)
 	}
 
 	b.StartTimer()
-	benchmarkRemove(b, m, size)
+	benchmarkDelete(b, m, keys)
 }

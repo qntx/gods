@@ -11,17 +11,17 @@ type Queue[T comparable] interface {
 	Container[T]
 
 	// Enqueue adds an element to the back of the queue.
-	Enqueue(value T)
+	Enqueue(val T)
 
 	// Dequeue removes and returns the front element of the queue.
 	// Returns the element and true if the queue is non-empty,
 	// or the zero value of T and false if the queue is empty.
-	Dequeue() (value T, ok bool)
+	Dequeue() (val T, ok bool)
 
 	// Peek returns the front element of the queue without removing it.
 	// Returns the element and true if the queue is non-empty,
 	// or the zero value of T and false if the queue is empty.
-	Peek() (value T, ok bool)
+	Peek() (val T, ok bool)
 }
 
 // PQueue is a generic interface for a priority queue.
@@ -33,17 +33,17 @@ type PQueue[T comparable, V cmp.Ordered] interface {
 	Container[T]
 
 	// Enqueue adds an element to the queue.
-	Enqueue(value T, priority V)
+	Enqueue(val T, priority V)
 
 	// Dequeue removes and returns the front element of the queue.
 	// Returns the element and true if the queue is non-empty,
 	// or the zero value of T and false if the queue is empty.
-	Dequeue() (value T, priority V, ok bool)
+	Dequeue() (val T, priority V, ok bool)
 
 	// Peek returns the front element of the queue without removing it.
 	// Returns the element and true if the queue is non-empty,
 	// or the zero value of T and false if the queue is empty.
-	Peek() (value T, priority V, ok bool)
+	Peek() (val T, priority V, ok bool)
 }
 
 // Deque is a generic interface for a double-ended queue, allowing
@@ -56,30 +56,30 @@ type Deque[T comparable] interface {
 	Container[T]
 
 	// PushFront adds an element to the front of the deque.
-	PushFront(value T)
+	PushFront(val T)
 
 	// PushBack adds an element to the back of the deque.
-	PushBack(value T)
+	PushBack(val T)
 
 	// PopFront removes and returns the front element of the deque.
 	// Returns the element and true if the deque is non-empty,
 	// or the zero value of T and false if the deque is empty.
-	PopFront() (value T, ok bool)
+	PopFront() (val T, ok bool)
 
 	// PopBack removes and returns the back element of the deque.
 	// Returns the element and true if the deque is non-empty,
 	// or the zero value of T and false if the deque is empty.
-	PopBack() (value T, ok bool)
+	PopBack() (val T, ok bool)
 
 	// Front returns the front element of the deque without removing it.
 	// Returns the element and true if the deque is non-empty,
 	// or the zero value of T and false if the deque is empty.
-	Front() (value T, ok bool)
+	Front() (val T, ok bool)
 
 	// Back returns the back element of the deque without removing it.
 	// Returns the element and true if the deque is non-empty,
 	// or the zero value of T and false if the deque is empty.
-	Back() (value T, ok bool)
+	Back() (val T, ok bool)
 
 	// Capacity returns the maximum number of elements the deque can hold,
 	// or -1 if the capacity is unbounded (e.g., for linked-list implementations).
@@ -88,20 +88,20 @@ type Deque[T comparable] interface {
 	// Get returns the element at the specified index, where 0 is the front.
 	// Returns the element and true if the index is valid,
 	// or the zero value of T and false if the index is out of bounds.
-	Get(idx int) (value T, ok bool)
+	Get(idx int) (val T, ok bool)
 
 	// Set updates the element at the specified index, where 0 is the front.
 	// Panics if the index is out of bounds.
-	Set(idx int, value T)
+	Set(idx int, val T)
 
 	// Insert adds an element at the specified index, shifting subsequent elements.
 	// Index 0 inserts at the front, and Len() inserts at the back.
 	// Panics if the index is out of bounds (i.e., idx < 0 or idx > Len()).
-	Insert(idx int, value T)
+	Insert(idx int, val T)
 
 	// Remove removes the element at the specified index, shifting subsequent elements.
 	// Panics if the index is out of bounds.
-	Remove(idx int) (value T, ok bool)
+	Remove(idx int) (val T, ok bool)
 
 	// Swap exchanges the elements at the specified indices.
 	// Panics if either index is out of bounds.
